@@ -38,33 +38,70 @@ int lex(void){
          yytext = current;
          yyleng = 1;
          switch( *current ){
-           case ';':
-            return SEMI;
-           case '+':
-            return PLUS;
-           case '-':
-            return MINUS;
-           case '*':
-            return TIMES;
-           case '/':
-            return DIV;
-           case '(':
-            return LP;
-           case ')':
-            return RP;
-           case '\n':
-           case '\t':
-           case ' ' :
+            case ';':
+               return SEMI;
+            case ':':
+               current++;
+               if(*current == '='){
+                  return ASSIGN;
+               }
+               else{
+                  fprintf(stderr, "Invalid syntax. Expected '=' <%c>\n", *current);
+               }
+            case '>':
+               return MORE;
+            case '<':
+               return LESS;
+            case '=':
+               return EQUAL;
+            case '+':
+               return PLUS;
+            case '-':
+               return MINUS;
+            case '*':
+               return MUL;
+            case '/':
+               return DIV;
+            /*case '(':
+               return LP;
+            case ')':
+               return RP;*/
+            case '\n':
+            case '\t':
+            case ' ' :
             break;
-           default:
-            if(!isalnum(*current))
-               fprintf(stderr, "Not alphanumeric <%c>\n", *current);
-            else{
-               while(isalnum(*current))
-                  ++current;
-               yyleng = current - yytext;
-               return NUM_OR_ID;
-            }
+            default:
+               if(!isalnum(*current))
+                  fprintf(stderr, "Not alphanumeric <%c>\n", *current);
+               else{
+                  char *temp;
+                  while(isalnum(*current)){
+                     temp=strcat(temp,current,1);
+                     ++current;
+                  }
+                  yyleng = current - yytext;
+                  if(!strcmp(temp, "if")){
+                     return IF;
+                  }
+                  else if(!strcmp(temp, "then")){
+                     return THEN;
+                  }
+                  else if(!strcmp(temp, "while")){
+                     return WHILE;
+                  }
+                  else if(!strcmp(temp, "do")){
+                     return DO;
+                  }
+                  else if(!strcmp(temp, "begin")){
+                     return BEGIN;
+                  }
+                  else if(!strcmp(temp, "end")){
+                     return END;
+                  }
+                  else{
+                     return NUM_OR_ID;
+                  }
+               }
             break;
          }
       }
