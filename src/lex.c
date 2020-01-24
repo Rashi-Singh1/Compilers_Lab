@@ -75,10 +75,9 @@ int lex(void){
                if(!isalnum(*current))
                   fprintf(stderr, "Not alphanumeric <%c>\n", *current);
                else{
-                  char *temp;
+                  char temp[50]="";
                   while(current && isalnum(*current)){
-                     char ch=*current;
-                     strncat(temp, &ch, 1);
+                     strncat(temp, current,1);
                      ++current;
                   }
                   yyleng = current - yytext;
