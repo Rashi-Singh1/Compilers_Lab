@@ -1,9 +1,13 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include "lex.h"
+
+//denotes the reg in x85 or x86 for assembly code gen
 char  *Names[] = { "t0", "t1", "t2", "t3", "t4", "t5", "t6", "t7" };   
 char  **Namep  = Names;   
    
+//using new reg
+//gives error if all reg already in use
 char  *newname()   
 {   
     if( Namep >= &Names[ sizeof(Names)/sizeof(*Names) ] )   
@@ -14,7 +18,9 @@ char  *newname()
    
     return( *Namep++ );   
 }   
-   
+
+//freeing the use of reg
+//gives error if no reg in use
 freename(s)   
 char    *s;   
 {   
