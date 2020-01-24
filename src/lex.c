@@ -1,6 +1,7 @@
 #include "lex.h"
 #include <stdio.h>
 #include <ctype.h>
+#include <string.h>
 
 
 char* yytext = ""; /* Lexeme (not '\0'
@@ -42,7 +43,7 @@ int lex(void){
                return SEMI;
             case ':':
                current++;
-               if(*current == '='){
+               if(current && *current == '='){
                   return ASSIGN;
                }
                else{
@@ -75,8 +76,9 @@ int lex(void){
                   fprintf(stderr, "Not alphanumeric <%c>\n", *current);
                else{
                   char *temp;
-                  while(isalnum(*current)){
-                     temp=strcat(temp,current,1);
+                  while(current && isalnum(*current)){
+                     char ch=*current;
+                     strncat(temp, &ch, 1);
                      ++current;
                   }
                   yyleng = current - yytext;

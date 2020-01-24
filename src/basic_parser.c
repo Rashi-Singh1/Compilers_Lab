@@ -52,11 +52,11 @@ term()
 
 term_prime()
 {
-    /* term' -> TIMES factor term'
+    /* term' -> MUL factor term'
      *       |   epsilon
      */
 
-    if( match( TIMES ) )
+    if( match( MUL ) )
     {
         advance();
         factor();
