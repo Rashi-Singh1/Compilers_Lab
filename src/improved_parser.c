@@ -45,7 +45,7 @@ void    term()
 	return;
 
     factor();
-    while( match( TIMES ) )
+    while( match( MUL ) )
     {
         advance();
         factor();
