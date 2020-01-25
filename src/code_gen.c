@@ -5,50 +5,49 @@
 char    *factor     ( void );
 char    *term       ( void );
 char    *expression ( void );
-
 extern char *newname( void       );
-char *exp( void       );
-char *expA( void       );
-char *expM( void       );
-char *AN( void       );
+char *exp( int padding    );
+char *expA( int padding       );
+char *expM( int padding       );
+char *AN( int padding       );
 extern void freename( char *name );
 
-
-void  stmt_list_(){
+void  stmt_list_(int padding){
     if(match(SEMI))
     {
-        advance();
-        stmt();
-        stmt_list_();
+        advance(padding);
+        stmt(padding);
+        stmt_list_(padding);
     }
 }
 
-void  stmt_list(){
-    stmt();
-    stmt_list_();
+void  stmt_list(int padding){
+    stmt(padding );
+    stmt_list_(padding);
 }
 
 
-void opt_stmts()
+void opt_stmts(int padding)
 {
-    stmt_list();
+    stmt_list(padding);
 }
-
-void stmt()
+void stmt(int padding)
 {
         /* stmt->   id:=expr
                |if expr then stmt
                |while expr do stmt
                |begin opt_stmts end
     */  
-
+    
     if(match(NUM_OR_ID)){
             char *tempvar = newname();
-            printf("    %s = _%0.*s\n", tempvar, yyleng, yytext );
+            for(int i = 0;i < padding;i++) printf("\t");
+            printf("%s = _%0.*s\n", tempvar, yyleng, yytext );
                 advance();
             if(match(ASSIGN)){
                 advance();
-                char* tempvar3=exp();
+                char* tempvar3=exp(padding);
+                for(int i = 0;i < padding;i++) printf("\t");
                 printf("%s := %s\n",tempvar,tempvar3);  
             }else{
                 fprintf( stderr, "%d: Assignment operator expected\n", yylineno );
@@ -57,13 +56,21 @@ void stmt()
         else if(match(IF))
         {
             advance();
-            char* tempvar2 = exp();
+            for(int i = 0;i < padding;i++) printf("\t");
+            printf("\n");
+            char* tempvar2 = exp(padding);
+            printf("\n");
             // advance();
             if(match(THEN))
             {
                 advance();
-                printf("if\n%s\nthen\n ",tempvar2 );
-                stmt();
+                for(int i = 0;i < padding;i++) printf("\t");
+                printf("if\n");
+                for(int i = 0;i <= padding;i++) printf("\t");
+                printf("%s\n",tempvar2);
+                for(int i = 0;i < padding;i++) printf("\t");
+                printf("then\n " );
+                stmt(padding + 1);
             }
             else fprintf( stderr, "%d: 'then' expected\n", yylineno );
             
@@ -71,26 +78,35 @@ void stmt()
         else if(match(WHILE))
         {
             advance();
-            char* tempvar2 = exp();
+            for(int i = 0;i < padding;i++) printf("\t");
+            printf("\n");
+            char* tempvar2 = exp(padding);
+            printf("\n");
             // advance();
             if(match(DO))
             {
                 advance();
-                printf("while\n%s\ndo\n ",tempvar2 );
-                stmt();
+                for(int i = 0;i < padding;i++) printf("\t");
+                printf("while\n");
+                for(int i = 0;i <= padding;i++) printf("\t");
+                printf("%s\n",tempvar2);
+                for(int i = 0;i < padding;i++) printf("\t");
+                printf("do\n " );
+                stmt(padding + 1);
             }
-            else fprintf( stderr, "%d: 'do' expected\n", yylineno );
-            
+            else fprintf( stderr, "%d: 'do' expected\n", yylineno );            
         }
         else if(match(BEGIN))
         {
             advance();
+            for(int i = 0;i < padding;i++) printf("\t");    
             printf("begin\n");
-            opt_stmts();
+            opt_stmts(padding + 1);
             // advance();
             if(match(END))
             {
-                advance();
+                advance(padding + 1);
+                for(int i = 0;i < padding;i++) printf("\t");
                 printf("end\n");
             }
             else fprintf( stderr, "%d: 'end' expected\n", yylineno );
@@ -124,7 +140,7 @@ char Mul()
 }
 
 
-char    *AN()
+char    *AN(int padding)
 {
     char *tempvar;
 
@@ -138,8 +154,8 @@ char    *AN()
      * to print the string. The ".*" tells printf() to take the maximum-
      * number-of-characters count from the next argument (yyleng).
      */
-
-        printf("    %s = _%0.*s\n", tempvar = newname(), yyleng, yytext );
+        for(int i = 0;i < padding;i++) printf("\t");
+        printf("%s = _%0.*s\n", tempvar = newname(), yyleng, yytext );
         advance();
     }
     else
@@ -148,21 +164,21 @@ char    *AN()
     return tempvar;
 }
 
-char    *exp()
+char    *exp(int padding)
 {
     /* exp -> expA exp_
         exp_ -> log expA exp_ |  epsilon
      */
 
     char  *tempvar, *tempvar2;
-
-    tempvar = expA();
+    tempvar = expA(padding);
     char cur;
     while((cur=Log())!='@')
     {
         advance();
-        tempvar2 = expA();
-        printf("  %s =   %s %c %s\n", tempvar, tempvar, cur, tempvar2 );
+        tempvar2 = expA(padding);
+        for(int i = 0;i < padding;i++) printf("\t");
+        printf("%s =   %s %c %s\n", tempvar, tempvar, cur, tempvar2 );
         freename( tempvar2 );
     }
 
@@ -170,7 +186,7 @@ char    *exp()
 }
 
 
-char    *expA()
+char    *expA(int padding)
 {
     /* expA -> expM expA_
         expA_ -> PLUS expM expA_ |  epsilon
@@ -179,20 +195,21 @@ char    *expA()
     // char  *tempvar, *tempvar2;
     char  *tempvar, *tempvar2;
 
-    tempvar = expM();
+    tempvar = expM(padding);
     char cur;
     while((cur=Add())!='@')
     {
         advance();
-        tempvar2 = expM();
-        printf("  %s =   %s %c %s\n", tempvar, tempvar, cur, tempvar2 );
+        tempvar2 = expM(padding);
+        for(int i = 0;i < padding;i++) printf("\t");
+        printf("%s =   %s %c %s\n", tempvar, tempvar, cur, tempvar2 );
         freename( tempvar2 );
     }
 
     return tempvar;
 }
 
-char    *expM()
+char    *expM(int padding)
 {
     /* expM -> AN expM_
         expM_ -> mul AN expM_ |  epsilon
@@ -201,13 +218,14 @@ char    *expM()
     // char  *tempvar, *tempvar2;
     char  *tempvar, *tempvar2;
 
-    tempvar = AN();
+    tempvar = AN(padding);
     char cur;
     while((cur=Mul())!='@')
     {
         advance();
-        tempvar2 = AN();
-        printf("  %s =   %s %c %s\n", tempvar, tempvar, cur, tempvar2 );
+        tempvar2 = AN(padding);
+        for(int i = 0;i < padding;i++) printf("\t");
+        printf("%s =   %s %c %s\n", tempvar, tempvar, cur, tempvar2 );
         freename( tempvar2 );
     }
 
