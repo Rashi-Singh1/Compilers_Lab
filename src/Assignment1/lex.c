@@ -43,6 +43,7 @@ int lex(void){
                return SEMI;
             case ':':
                current++;
+               yytext = current;
                if(current && *current == '='){
                   return ASSIGN;
                }
@@ -63,10 +64,6 @@ int lex(void){
                return MUL;
             case '/':
                return DIV;
-            /*case '(':
-               return LP;
-            case ')':
-               return RP;*/
             case '\n':
             case '\t':
             case ' ' :
@@ -83,7 +80,11 @@ int lex(void){
                      strncat(temp, current,1);
                      ++current;
                   }
+                  // fprintf(stderr, "current : %s yylength : %d yytext : %s temp : %s\n", current, yyleng, yytext, temp);
                   yyleng = current - yytext;
+                  // yytext = current;
+                  // fprintf(stderr, "current : %s yylength : %d yytext : %s temp : %s\n", current, yyleng, yytext, temp);
+
                   if(!strcmp(temp, "if")){
                      return IF;
                   }
