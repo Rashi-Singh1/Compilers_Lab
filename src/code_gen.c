@@ -98,7 +98,7 @@ char    *AN()
 	 * number-of-characters count from the next argument (yyleng).
 	 */
 
-        printf("    %s = %0.*s\n", tempvar = newname(), yyleng, yytext );
+        printf("    %s = _%0.*s\n", tempvar = newname(), yyleng, yytext );
         advance();
     }
     else
