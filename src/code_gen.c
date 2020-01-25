@@ -32,7 +32,27 @@ statements()
     // }
 
      /*  statements -> expression SEMI  |  expression SEMI statements  */
+    
+    /* stmt->id:=expr
+               |if expr then stmt
+       	       |while expr do stmt
+	       |begin opt_stmts end
+    */	
+	if(match(NUM_OR_ID)){
+		char* tempvar2=newname();
+		printf("    %s = _%0.*s\n", tempvar = newname(), yyleng, yytext );
+        	advance();
+		if(match(ASSIGN)){
+			char* tempvar3=exp();
+			printf("%s := %s\n",tempvar2,tempvar3);  
+		}else{
+			fprintf( stderr, "%d: Assignment operator expected\n", yylineno );
+		}
+    	}
+    	else
+        	fprintf( stderr, "%d: Number or identifier expected\n", yylineno );
 
+			       
     char *tempvar;
 
         tempvar = exp();

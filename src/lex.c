@@ -55,7 +55,7 @@ int lex(void){
                return LESS;
             case '=':
                return EQUAL;
-            case '+':
+            case '+':>
                return PLUS;
             case '-':
                return MINUS;
@@ -81,7 +81,7 @@ int lex(void){
 
                   while(current && isalnum(*current)){
                      strncat(temp, current,1);
-                     ++current;
+                     ++current;>
                   }
                   yyleng = current - yytext;
                   if(!strcmp(temp, "if")){
