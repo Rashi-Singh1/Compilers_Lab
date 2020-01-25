@@ -113,7 +113,7 @@ char    *exp()
         exp_ -> log expA exp_ |  epsilon
      */
 
-    char  *tempvar, *tempvar2;
+    char  *tempvar, *tempvar2, *tempvar3 = newname();
 
     tempvar = expA();
 
@@ -126,11 +126,11 @@ char    *exp()
         }
         advance();
         tempvar2 = expA();
-        printf("    %s %c %s\n", tempvar,cur, tempvar2 );
+        printf("  %s =   %s %c %s\n", tempvar3, tempvar,cur, tempvar2 );
         freename( tempvar2 );
     }
 
-    return tempvar;
+    return tempvar3;
 }
 
 
@@ -140,7 +140,8 @@ char    *expA()
         expA_ -> PLUS expM expA_ |  epsilon
      */
 
-    char  *tempvar, *tempvar2;
+    // char  *tempvar, *tempvar2;
+    char  *tempvar, *tempvar2, *tempvar3 = newname();
 
     tempvar = expM();
 
@@ -153,7 +154,9 @@ char    *expA()
         }
         advance();
         tempvar2 = expM();
-        printf("    %s %c %s\n", tempvar, cur,tempvar2 );
+        // printf("    %s %c %s\n", tempvar, cur,tempvar2 );
+        printf("  %s =   %s %c %s\n", tempvar3, tempvar,cur, tempvar2 );
+
         freename( tempvar2 );
     }
 
@@ -166,7 +169,8 @@ char    *expM()
         expM_ -> mul AN expM_ |  epsilon
      */
 
-    char  *tempvar, *tempvar2;
+    // char  *tempvar, *tempvar2;
+    char  *tempvar, *tempvar2, *tempvar3 = newname();
 
     tempvar = AN();
 
@@ -179,7 +183,9 @@ char    *expM()
         }
         advance();
         tempvar2 = AN();
-        printf("    %s %c %s\n", tempvar, cur,tempvar2 );
+        // printf("    %s %c %s\n", tempvar, cur,tempvar2 );
+        printf("  %s =   %s %c %s\n", tempvar3, tempvar,cur, tempvar2 );
+
         freename( tempvar2 );
     }
 
