@@ -75,7 +75,10 @@ int lex(void){
                if(!isalnum(*current))
                   fprintf(stderr, "Not alphanumeric <%c>\n", *current);
                else{
-                  char temp[50]="";
+
+                  // To store the keyword/identifier
+                  char temp[1000]="";
+
                   while(current && isalnum(*current)){
                      strncat(temp, current,1);
                      ++current;
