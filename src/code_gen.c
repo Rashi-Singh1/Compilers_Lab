@@ -113,24 +113,19 @@ char    *exp()
         exp_ -> log expA exp_ |  epsilon
      */
 
-    char  *tempvar, *tempvar2, *tempvar3 = newname();
+    char  *tempvar, *tempvar2;
 
     tempvar = expA();
-
-    while( match( LESS ) || match( MORE) || match(EQUAL))
+    char cur;
+    while((cur=Log())!='@')
     {
-        char cur = Log();
-        if(cur == '@') {
-            fprintf( stderr, "%d: Logical operator expected\n", yylineno );
-            exit(1);
-        }
         advance();
         tempvar2 = expA();
-        printf("  %s =   %s %c %s\n", tempvar3, tempvar,cur, tempvar2 );
+        printf("  %s =   %s %c %s\n", tempvar, tempvar, cur, tempvar2 );
         freename( tempvar2 );
     }
 
-    return tempvar3;
+    return tempvar;
 }
 
 
@@ -141,22 +136,15 @@ char    *expA()
      */
 
     // char  *tempvar, *tempvar2;
-    char  *tempvar, *tempvar2, *tempvar3 = newname();
+    char  *tempvar, *tempvar2;
 
     tempvar = expM();
-
-    while( match( PLUS ) || match( MINUS))
+    char cur;
+    while((cur=Add())!='@')
     {
-        char cur = Add();
-        if(cur == '@') {
-            fprintf( stderr, "%d: Arithmetic_1 operator expected\n", yylineno );
-            exit(1);
-        }
         advance();
         tempvar2 = expM();
-        // printf("    %s %c %s\n", tempvar, cur,tempvar2 );
-        printf("  %s =   %s %c %s\n", tempvar3, tempvar,cur, tempvar2 );
-
+        printf("  %s =   %s %c %s\n", tempvar, tempvar, cur, tempvar2 );
         freename( tempvar2 );
     }
 
@@ -170,22 +158,15 @@ char    *expM()
      */
 
     // char  *tempvar, *tempvar2;
-    char  *tempvar, *tempvar2, *tempvar3 = newname();
+    char  *tempvar, *tempvar2;
 
     tempvar = AN();
-
-    while( match( MUL ) || match( DIV))
+    char cur;
+    while((cur=Mul())!='@')
     {
-        char cur = Mul();
-        if(cur == '@') {
-            fprintf( stderr, "%d: Arithmetic_2 operator expected\n", yylineno );
-            exit(1);
-        }
         advance();
         tempvar2 = AN();
-        // printf("    %s %c %s\n", tempvar, cur,tempvar2 );
-        printf("  %s =   %s %c %s\n", tempvar3, tempvar,cur, tempvar2 );
-
+        printf("  %s =   %s %c %s\n", tempvar, tempvar, cur, tempvar2 );
         freename( tempvar2 );
     }
 
