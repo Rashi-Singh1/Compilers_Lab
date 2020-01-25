@@ -1,0 +1,1 @@
+if a<b then begin a:=b+c<s>16847+js*1/2/2;a:=v end
