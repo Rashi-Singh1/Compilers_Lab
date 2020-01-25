@@ -33,30 +33,131 @@ statements()
 
      /*  statements -> expression SEMI  |  expression SEMI statements  */
     
-    /* stmt->id:=expr
+    /* stmt->   id:=expr
                |if expr then stmt
        	       |while expr do stmt
-	       |begin opt_stmts end
+	           |begin opt_stmts end
     */	
-	if(match(NUM_OR_ID)){
-		char* tempvar2=newname();
-		printf("    %s = _%0.*s\n", tempvar = newname(), yyleng, yytext );
-        	advance();
-		if(match(ASSIGN)){
-			char* tempvar3=exp();
-			printf("%s := %s\n",tempvar2,tempvar3);  
-		}else{
-			fprintf( stderr, "%d: Assignment operator expected\n", yylineno );
-		}
-    	}
-    	else
-        	fprintf( stderr, "%d: Number or identifier expected\n", yylineno );
+	// if(match(NUM_OR_ID)){
+ //    		char* tempvar2=newname();
+ //    		printf("    %s = _%0.*s\n", tempvar = newname(), yyleng, yytext );
+ //            	advance();
+ //    		if(match(ASSIGN)){
+ //                advance();
+ //    			char* tempvar3=exp();
+ //    			printf("%s := %s\n",tempvar2,tempvar3);  
+ //    		}else{
+ //    			fprintf( stderr, "%d: Assignment operator expected\n", yylineno );
+ //    		}
+ //    	}
+ //        else if(match(IF))
+ //        {
+ //            advance();
+ //            char* tempvar2 = exp();
+ //            advance();
+ //            if(match(THEN))
+ //            {
+ //                advance();
+ //                char* tempvar3 = stmt();
+
+ //            }
+ //            else
+ //        }
+ //    	else
+ //        	fprintf( stderr, "%d: Number or identifier expected\n", yylineno );
 
 			       
-    char *tempvar;
+ //    char *tempvar;
 
-        tempvar = exp();
-        freename( tempvar );
+ //        tempvar = exp();
+ //        freename( tempvar );
+    stmt();
+}
+
+void  stmt_list_(){
+    if(match(SEMI))
+    {
+        advance();
+        stmt();
+        stmt_list_();
+    }
+}
+
+void  stmt_list(){
+    stmt();
+    stmt_list_();
+}
+
+
+void opt_stmts()
+{
+    stmt_list();
+}
+
+void stmt()
+{
+        /* stmt->   id:=expr
+               |if expr then stmt
+               |while expr do stmt
+               |begin opt_stmts end
+    */  
+
+    if(match(NUM_OR_ID)){
+            char* tempvar2 = newname(), *tempvar = newname();
+            printf("    %s = _%0.*s\n", tempvar, yyleng, yytext );
+                advance();
+            if(match(ASSIGN)){
+                advance();
+                char* tempvar3=exp();
+                printf("%s := %s\n",tempvar2,tempvar3);  
+            }else{
+                fprintf( stderr, "%d: Assignment operator expected\n", yylineno );
+            }
+        }
+        else if(match(IF))
+        {
+            advance();
+            char* tempvar2 = exp();
+            advance();
+            if(match(THEN))
+            {
+                advance();
+                printf("if\n%s\nthen\n ",tempvar2 );
+                stmt();
+            }
+            else fprintf( stderr, "%d: 'then' expected\n", yylineno );
+            
+        }
+        else if(match(WHILE))
+        {
+            advance();
+            char* tempvar2 = exp();
+            advance();
+            if(match(DO))
+            {
+                advance();
+                printf("while\n%s\ndo\n ",tempvar2 );
+                stmt();
+            }
+            else fprintf( stderr, "%d: 'do' expected\n", yylineno );
+            
+        }
+        else if(match(BEGIN))
+        {
+            advance();
+            printf("begin\n");
+            opt_stmts();
+            advance();
+            if(match(END))
+            {
+                advance();
+                printf("end\n");
+            }
+            else fprintf( stderr, "%d: 'end' expected\n", yylineno );
+            
+        }
+        else
+            fprintf( stderr, "%d: invalid statement\n", yylineno );
 }
 
 char    *expression()
