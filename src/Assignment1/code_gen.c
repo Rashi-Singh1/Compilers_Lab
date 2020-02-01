@@ -38,7 +38,6 @@ void stmt(int padding)
                |while expr do stmt
                |begin opt_stmts end
     */  
-    
     if(match(NUM_OR_ID)){
             char *tempvar = newname();
             for(int i = 0;i < padding;i++) printf("\t");
