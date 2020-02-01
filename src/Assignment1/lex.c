@@ -118,7 +118,7 @@ int lex(void){
                   return ASSIGN;
                }
                else{
-                  fprintf(stderr, "Invalid syntax. Expected '=' <%c>\n", *current);
+                  fprintf(stderr, "Invalid syntax. Expected '=' <%c>\n", *current);                 
                   return ERR;
                }
             case '>':
@@ -141,11 +141,11 @@ int lex(void){
             break;
             default:
                if(!isalnum(*current)){
+                  yytext = current; yyleng = 1;
                   fprintf(stderr, "Not alphanumeric <%c>\n", *current);
                   return ERR;
                }
                else{
-
                   // To store the keyword/identifier
                   char temp[1000]="";
                   int alpha_seen = 0;
@@ -205,8 +205,8 @@ int match(int token){
 void advance(void){
 /* Advance the lookahead to the next
    input symbol.                               */
-
     Lookahead = lex();
+
 }
 
 void tokenize(){
@@ -215,7 +215,6 @@ void tokenize(){
 
    // opening file in writing mode
     fptr = fopen("lex.txt", "a");
-   //  printf("<\"%s\",\"%0.*s\"> ", token_class(Lookahead), yyleng, yytext);
      
     fprintf(fptr, "<\"%s\",\"%0.*s\"> ", token_class(Lookahead), yyleng, yytext);
 

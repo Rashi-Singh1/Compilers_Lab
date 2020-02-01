@@ -8,6 +8,6 @@ main ()
 	fptr=fopen("lex.txt", "w");
 	fclose(fptr);
 	
-	//stmt(padding);
+	// stmt(padding);
 	perform_lexical_analysis();
 }

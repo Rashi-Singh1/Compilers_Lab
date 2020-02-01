@@ -19,7 +19,7 @@
 #define BEGIN		17
 #define END		    18
 #define CONST       19
-#define ERR         -1
+#define ERR         -50
 
                         
 extern char *yytext;		/* in lex.c			*/
