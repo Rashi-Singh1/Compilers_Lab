@@ -31,10 +31,17 @@ int isIdetifier(int val){
 }
 
 int isConst(int val){
-    if(val == CONST){
-        return 1;
-    }
-    return 0;
+   //  if(val == CONST){
+   //      return 1;
+   //  }
+   char * local_copy = yytext;
+   for(int i = 0; i < yyleng; i++){
+      if(local_copy && isalpha(*local_copy)){
+         local_copy++;
+         return 0;
+      }
+   }
+    return 1;
 }
 
 int isSemi(int val){
@@ -52,14 +59,12 @@ char * token_class(int val){
         return "op";
     }
     else if(isIdetifier(val)){
-        return "id";
-    }
-    else if(isConst(val)){
-        return "const";
+        if(isConst(val)) return "const";
+        else return "id";
     }
     else if(isSemi(val)){
         return "semi";
-    }
+    } 
     else{
         return "err";
     }
@@ -93,7 +98,6 @@ int lex(void){
          current = input_buffer;
          if(!gets(input_buffer)){
             *current = '\0' ;
-
             return EOI;
          }
          ++yylineno;
@@ -156,10 +160,10 @@ int lex(void){
                   yyleng = current - yytext;
                   // yytext = current;
                   // fprintf(stderr, "current : %s yylength : %d yytext : %s temp : %s\n", current, yyleng, yytext, temp);
-                  if (!alpha_seen){
-                     return CONST;
-                  }
-                  else if(!strcmp(temp, "if")){
+                  // if (!alpha_seen){
+                  //    return CONST;
+                  // }
+                  if(!strcmp(temp, "if")){
                      return IF;
                   }
                   else if(!strcmp(temp, "then")){
@@ -193,12 +197,8 @@ static int Lookahead = -1; /* Lookahead token  */
 int match(int token){
    /* Return true if "token" matches the
       current lookahead symbol.                */
-
    if(Lookahead == -1)
       Lookahead = lex();
-
-   if (token == Lookahead)
-      tokenize();
    return token == Lookahead;
 }
 
@@ -215,9 +215,17 @@ void tokenize(){
 
    // opening file in writing mode
     fptr = fopen("lex.txt", "a");
-
+   //  printf("<\"%s\",\"%0.*s\"> ", token_class(Lookahead), yyleng, yytext);
+     
     fprintf(fptr, "<\"%s\",\"%0.*s\"> ", token_class(Lookahead), yyleng, yytext);
 
    // closing file
     fclose(fptr);
+}
+
+void lexically_analyse(void){
+    while(!match(EOI)){
+        tokenize();
+        advance();
+    }
 }

@@ -12,6 +12,14 @@ char *expM( int padding       );
 char *AN( int padding       );
 extern void freename( char *name );
 
+/*performed lexical analysis*/
+void perform_lexical_analysis(void);
+
+void perform_lexical_analysis(){
+    lexically_analyse();
+}
+
+/*lexical analysis done*/
 void  stmt_list_(int padding){
     if(match(SEMI))
     {
@@ -39,6 +47,7 @@ void stmt(int padding)
                |begin opt_stmts end
     */  
     if(match(NUM_OR_ID)){
+          printf("matched num or id\n");
             char *tempvar = newname();
             for(int i = 0;i < padding;i++) printf("\t");
             printf("%s = _%0.*s\n", tempvar, yyleng, yytext );
@@ -142,7 +151,7 @@ char Mul()
 char    *AN(int padding)
 {
     char *tempvar;
-
+    printf("yytext = _%0.*s\n", yyleng, yytext );
     if( match(NUM_OR_ID) )
     {
     /* Print the assignment instruction. The %0.*s conversion is a form of
