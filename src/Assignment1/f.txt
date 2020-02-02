@@ -1,1 +1,0 @@
-begin begin a:=a+b-28+22<11+d end end

@@ -1,0 +1,8 @@
+Token Stream : <Token-class, lexeme>
+
+	<kw,"while"><id, 0><op,"<"><id, 1><kw,"do"><kw,"begin"><id, 0><op,":="><id, 0><op,"-"><const,"2"><semi,";"><id, 1><op,":="><const,"2"><semi,";"><id, 0><op,":="><id, 0><op,"-"><id, 1><op,"+"><const,"5"><kw,"end">
+
+Symbol Table : 
+<Token_id, lexeme>
+	0, a
+	1, b

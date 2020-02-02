@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "lex.h"
+#include "hashtable.h"
 #include <stdlib.h>
 
 char    *factor     ( void );

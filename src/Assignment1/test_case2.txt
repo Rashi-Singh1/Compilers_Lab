@@ -1,0 +1,1 @@
+while a<b do begin a:=a-2; b:=2; a:=a-b+5 end 

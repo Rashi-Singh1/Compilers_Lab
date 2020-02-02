@@ -216,9 +216,11 @@ void advance(void){
 void tokenize(){
 
    FILE *fptr;
+   FILE *fptr2;
 
    // opening file in writing mode
-    fptr = fopen("lex.txt", "a");
+    fptr = fopen("lex_output.txt", "a");
+    fptr2 = fopen("token_stream.txt", "a");
    
    char* temp=(char*)malloc(sizeof(char)*(yyleng+1));
    for(int i=0;i<yyleng;i++){
@@ -228,7 +230,9 @@ void tokenize(){
 
    if(isSemi(Lookahead) || isConst(Lookahead) || isKeyWord(Lookahead) || isOperator(Lookahead)){
       // printf("%d %s %d %0.*s\n",Lookahead,temp,isConst(Lookahead),yyleng,yytext);
-      fprintf(fptr, "<\"%0.*s\", %s>", yyleng,yytext,token_class(Lookahead));
+      // fprintf(fptr, "<\"%0.*s\", %s>", yyleng,yytext,token_class(Lookahead));
+      fprintf(fptr, "<%s,\"%0.*s\">",token_class(Lookahead), yyleng,yytext);
+      fprintf(fptr2, "<%s,\"%0.*s\">",token_class(Lookahead), yyleng,yytext);
    }else if(isIdetifier(Lookahead)){
       int idx=lookup(temp);
       if(idx==-1){
@@ -236,18 +240,35 @@ void tokenize(){
          idx=lookup(temp);
       }
       // printf("%s %d\n",temp,idx);
-      fprintf(fptr, "<\"%0.*s\", %s, %d>", yyleng, yytext,token_class(Lookahead),idx);
+      fprintf(fptr, "<%s, %d>", token_class(Lookahead),idx);
+      fprintf(fptr2, "<%s, %d>", token_class(Lookahead),idx);
    }else{
-      fprintf(fptr, "<\"%0.*s\", %s>", yyleng,yytext,token_class(Lookahead));
+      fprintf(fptr, "<%s,\"%0.*s\">",token_class(Lookahead), yyleng,yytext);
+      fprintf(fptr2, "<%s,\"%0.*s\">",token_class(Lookahead), yyleng,yytext);
    }
 
    // closing file
     fclose(fptr);
+    fclose(fptr2);
 }
 
 void lexically_analyse(void){
+    FILE *fptr;
+
+   // opening file in writing mode
+    fptr = fopen("lex_output.txt", "a");
+    fprintf(fptr,"Token Stream : <Token-class, lexeme>\n\n\t");
+    fclose(fptr);
     while(!match(EOI)){
         tokenize();
         advance();
     }
+
+   // opening file in writing mode
+    fptr = fopen("lex_output.txt", "a");
+    fprintf(fptr,"\n");
+    fclose(fptr);
+
+    //print the symbol table
+    print();
 }

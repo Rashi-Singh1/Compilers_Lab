@@ -1,5 +1,7 @@
 #include "hashtable.h"
-
+#include <stdio.h>
+#include <ctype.h>
+#include <string.h>
 struct HashNode{
     char* str;
     int idx;
@@ -14,6 +16,27 @@ void insert(char* str){
     x.idx=cntt;
     arr[cntt]=x;
     cntt++;
+}
+
+void print()
+{
+    FILE *fptr,*fptr2;
+
+   // opening file in writing mode
+    fptr = fopen("symbol_table.txt", "a");
+    fptr2 = fopen("lex_output.txt", "a");
+
+    fprintf(fptr2,"\nSymbol Table : \n<Token_id, lexeme>\n");
+    fprintf(fptr,"\n<Token_id, lexeme>\n");
+    for(int i = 0;i<cntt;i++)
+    {
+        fprintf(fptr2,"\t%d, %s\n",arr[i].idx,arr[i].str);
+        fprintf(fptr,"\t%d, %s\n",arr[i].idx,arr[i].str);
+    }
+
+   // closing file
+    fclose(fptr2);
+    fclose(fptr);
 }
 
 int lookup(char* str){
