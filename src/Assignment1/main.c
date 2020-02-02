@@ -3,5 +3,11 @@ int padding = 0;
 
 main ()
 {
-	stmt(padding);
+	// deleting previous contents of the file
+	FILE *fptr;
+	fptr=fopen("lex.txt", "w");
+	fclose(fptr);
+	
+	// stmt(padding);
+	perform_lexical_analysis();
 }
