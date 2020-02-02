@@ -13,7 +13,7 @@ To run the code for any testcase, follow the steps below :
 		$ ./a.out < test_case1.txt
 
 			2_b)	Three .txt files will be created : lex_output.txt, symbol_table.txt and token_stream.txt
-				-	lex_output.txt shows both the symbol table and token_stream and the intermediate code in a simple, more human readable form
+				-	lex_output.txt shows both the symbol table and token_stream in a simple, more human readable form
 				-	symbol_table.txt contains the Symbol Table and token_stream.txt contains the Token Stream.
 				To view the files in terminal, use
 
