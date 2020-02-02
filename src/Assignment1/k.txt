@@ -1,1 +1,2 @@
-a:=1+2*var+d/if+else;
+int a;
+a:=a+1;

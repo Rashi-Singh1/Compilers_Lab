@@ -1,4 +1,5 @@
 #include "lex.h"
+#include "hashtable.h"
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
@@ -24,9 +25,9 @@ int isOperator(int val){
 
 int isIdetifier(int val){
     if(val == NUM_OR_ID)
-        {
+   {
             return 1;
-        }
+   }
     return 0;
 }
 
@@ -34,14 +35,15 @@ int isConst(int val){
    //  if(val == CONST){
    //      return 1;
    //  }
-   char * local_copy = yytext;
    for(int i = 0; i < yyleng; i++){
-      if(local_copy && isalpha(*local_copy)){
-         local_copy++;
-         return 0;
+      if((yytext+i)){
+         char ch=*(yytext+i);
+         if(!(ch<='9' && ch>='0')){
+            return 0;
+         }
       }
    }
-    return 1;
+   return 1;
 }
 
 int isSemi(int val){
@@ -57,10 +59,12 @@ char * token_class(int val){
     }
     else if(isOperator(val)){
         return "op";
-    }
-    else if(isIdetifier(val)){
-        if(isConst(val)) return "const";
-        else return "id";
+    }else if(isIdetifier(val)){
+       if(isConst(val)){
+         //  printf("%0.*s\n",yyleng,yytext);
+         return "const";
+      }
+        return "id";
     }
     else if(isSemi(val)){
         return "semi";
@@ -215,8 +219,27 @@ void tokenize(){
 
    // opening file in writing mode
     fptr = fopen("lex.txt", "a");
-     
-    fprintf(fptr, "<\"%s\",\"%0.*s\"> ", token_class(Lookahead), yyleng, yytext);
+   
+   char* temp=(char*)malloc(sizeof(char)*(yyleng+1));
+   for(int i=0;i<yyleng;i++){
+      *(temp+i)=*(yytext+i);
+   }
+   *(temp+yyleng)='\0';
+
+   if(isSemi(Lookahead) || isConst(Lookahead) || isKeyWord(Lookahead) || isOperator(Lookahead)){
+      // printf("%d %s %d %0.*s\n",Lookahead,temp,isConst(Lookahead),yyleng,yytext);
+      fprintf(fptr, "<\"%0.*s\", %s>", yyleng,yytext,token_class(Lookahead));
+   }else if(isIdetifier(Lookahead)){
+      int idx=lookup(temp);
+      if(idx==-1){
+         insert(temp);
+         idx=lookup(temp);
+      }
+      // printf("%s %d\n",temp,idx);
+      fprintf(fptr, "<\"%0.*s\", %s, %d>", yyleng, yytext,token_class(Lookahead),idx);
+   }else{
+      fprintf(fptr, "<\"%0.*s\", %s>", yyleng,yytext,token_class(Lookahead));
+   }
 
    // closing file
     fclose(fptr);
