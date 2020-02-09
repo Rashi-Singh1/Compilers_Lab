@@ -1,8 +1,10 @@
 #include<stdio.h>
-#include<stdlib.h>
-#include<string.h>
+#include<bits/stdc++.h>
 
-// #include "code_gen.c"
+using namespace std;
+
+#include "code_gen.h"
+#include "lex.h"
 
 int main(int argc, char const *argv[])
 {
@@ -15,7 +17,8 @@ int main(int argc, char const *argv[])
 	}
 	if(argc > 1 && res==0){
 		printf("Intermediate code : \n\n");
-		stmt(0);
+		prog(0);
+		
 	}
 	else {
 		printf("Please check lex_output.txt for output\n\n");

@@ -18,6 +18,8 @@ void insert(char* str){
     cntt++;
 }
 
+
+//To print symbol table
 void print()
 {
     FILE *fptr,*fptr2;

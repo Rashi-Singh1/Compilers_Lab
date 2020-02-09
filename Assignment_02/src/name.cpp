@@ -1,6 +1,9 @@
-#include<stdio.h>
-#include<stdlib.h>
+#include<cstdio>
+#include<cstdlib>
 #include "lex.h"
+#include "bits/stdc++.h"
+
+using namespace std;
 
 //denotes the reg in x85 or x86 for assembly code gen
 char  *Names[] = { "t0", "t1", "t2", "t3", "t4", "t5", "t6", "t7", "t10", "t11", "t12", "t13", "t14", "t15", "t16", "t17"};   
@@ -21,8 +24,7 @@ char  *newname()
 
 //freeing the use of reg
 //gives error if no reg in use
-freename(s)   
-char    *s;   
+void freename(char *s)   
 {   
     if( Namep > Names )   
     *--Namep = s;   

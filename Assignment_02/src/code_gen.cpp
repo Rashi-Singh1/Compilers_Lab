@@ -1,20 +1,140 @@
-#include <stdio.h>
+#include <cstdio>
 #include "lex.h"
-#include "hashtable.h"
-#include <stdlib.h>
+#include "code_gen.h"
+#include <cstdlib>
 
-char    *factor     ( void );
-char    *term       ( void );
-char    *expression ( void );
-extern char *newname( void       );
-char *exp( int padding    );
-char *expA( int padding       );
-char *expM( int padding       );
-char *AN( int padding       );
-extern void freename( char *name );
+using namespace std;
 
-/*performed lexical analysis*/
-void perform_lexical_analysis(void);
+void prog(int padding){
+       if(match(NUM_OR_ID)){
+            char *tempvar = newname();
+            for(int i = 0;i < padding;i++) printf("\t");
+            printf("%s = _%0.*s\n", tempvar, yyleng, yytext );
+                advance();
+            if(match(ASSIGN)){
+                advance();
+                char* tempvar3=exp(padding);
+                for(int i = 0;i < padding;i++) printf("\t");
+                printf("%s := %s\n",tempvar,tempvar3);  
+            }else{
+                fprintf( stderr, "%d: Assignment operator expected\n", yylineno );
+            }
+        }
+        else if(match(CLASS))
+        {
+            classDef();
+        }
+        else if(match(INT))
+        {
+            advance();
+            for(int i = 0;i < padding;i++) printf("\t");
+            printf("\n");
+            char* tempvar2 = exp(padding);
+            printf("\n");
+            // advance();
+            if(match(DO))
+            {
+                advance();
+                for(int i = 0;i < padding;i++) printf("\t");
+                printf("while\n");
+                for(int i = 0;i <= padding;i++) printf("\t");
+                printf("%s\n",tempvar2);
+                for(int i = 0;i < padding;i++) printf("\t");
+                printf("do\n " );
+                stmt(padding + 1);
+            }
+            else fprintf( stderr, "%d: 'do' expected\n", yylineno );            
+        }
+        else
+            fprintf( stderr, "%d: invalid statement\n", yylineno );
+
+}
+
+string getID()
+{
+    char* temp=(char*)malloc(sizeof(char)*(yyleng+1));
+    for(int i=0;i<yyleng;i++){
+        *(temp+i)=*(yytext+i);
+    }
+    *(temp+yyleng)='\0';
+    string id(temp);
+    return id;
+}
+
+void classDef()
+{
+    advance();
+    if(match(NUM_OR_ID))
+    {
+        string id = getID();
+        cout<<id<<endl;
+        advance();
+        inherited();
+        if(match(CLP))
+        {
+            advance();
+            class_stmts(id);
+            if(match(CRP))
+            {
+                advance();
+                if(match(SEMI)) advance();
+                else fprintf( stderr, "%d: Missing semicolon \n", yylineno );
+
+            }
+            else fprintf( stderr, "%d: Missing parenthesis } \n", yylineno );
+        }
+        else fprintf( stderr, "%d: Missing parenthesis { \n", yylineno );
+        
+    }
+    else fprintf( stderr, "%d: Specify the class name\n", yylineno );
+}
+
+void class_stmts(string id)
+{
+    //TODO: advance after matching
+
+}
+
+void inherited()
+{
+    if(match(COLON))
+    {
+        advance();
+        if(match(MODE))
+        {
+            advance();
+            if(match(NUM_OR_ID))
+            {
+                advance();
+                multiple_inherited();
+            }
+            else fprintf( stderr, "%d: Specify super class name\n", yylineno );
+        }
+        else fprintf( stderr, "%d: Specify access modifier\n", yylineno );
+    }
+    //TODO: advance after matching
+}
+
+void multiple_inherited()
+{
+    if(match(COMMA))
+    {
+        advance();
+        if(match(MODE))
+        {
+            advance();
+            if(match(NUM_OR_ID))
+            {
+                string id = getID();
+                //TODO : match id from hash function
+                advance();
+                multiple_inherited();
+            }
+            else fprintf( stderr, "%d: Specify super class name\n", yylineno );
+        }
+        else fprintf( stderr, "%d: Specify access modifier\n", yylineno );
+    }
+}
 
 void perform_lexical_analysis(){
     lexically_analyse();
@@ -24,7 +144,7 @@ void perform_lexical_analysis(){
 void  stmt_list_(int padding){
     if(match(SEMI))
     {
-        advance(padding);
+        advance();
         stmt(padding);
         stmt_list_(padding);
     }
@@ -113,7 +233,7 @@ void stmt(int padding)
             // advance();
             if(match(END))
             {
-                advance(padding + 1);
+                advance();
                 for(int i = 0;i < padding;i++) printf("\t");
                 printf("end\n");
             }

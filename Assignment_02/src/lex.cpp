@@ -1,12 +1,16 @@
+#include<bits/stdc++.h>
 #include "lex.h"
+#include <iostream>
 #include "hashtable.h"
-#include <stdio.h>
-#include <ctype.h>
-#include <string.h>
+// #include <stdio.h>
+// #include <ctype.h>
+// #include <cstring>
+// #include <cstdlib>
+// #include <cstdio>
 
-
+using namespace std;
 int isKeyWord(int val){
-    if(val == IF || val == THEN || val == WHILE || val == DO || val == BEGIN 
+    if(val == IF || val == THEN || val == WHILE || val == DO || val == BEGIN || val == CLASS || val == MODE
         || val == END)
         {
             return 1;
@@ -15,7 +19,7 @@ int isKeyWord(int val){
 }
 
 int isOperator(int val){
-    if(val == PLUS || val == MINUS || val == MUL || val == DIV || val == LESS 
+    if(val == PLUS || val == MINUS || val == MUL || val == DIV || val == LESS || val == CLP || val == CRP || val == LP || val == RP || val == COLON || val == COMMA
         || val == MORE || val == EQUAL || val == ASSIGN)
         {
             return 1;
@@ -100,7 +104,10 @@ int lex(void){
          */
 
          current = input_buffer;
-         if(!gets(input_buffer)){
+         // if(!fgets(input_buffer)){
+         // if(!scanf("%s",input_buffer)){
+         if(!fgets(input_buffer, 1024,stdin)){
+           
             *current = '\0' ;
             return EOI;
          }
@@ -115,22 +122,28 @@ int lex(void){
          switch( *current ){
             case ';':
                return SEMI;
-            case ':':
-               yytext = current;
-               if((current+1) && *(current+1) == '='){
-                  yyleng =2;
-                  return ASSIGN;
-               }
-               else{
-                  fprintf(stderr, "Invalid syntax. Expected '=' <%c>\n", *current);                 
-                  return ERR;
-               }
+            // case ':':
+            //    yytext = current;
+            //    if((current+1) && *(current+1) == '='){
+            //       yyleng =2;
+            //       return ASSIGN;
+            //    }
+            //    else{
+            //       fprintf(stderr, "Invalid syntax. Expected '=' <%c>\n", *current);                 
+            //       return ERR;
+            //    }
             case '>':
                return MORE;
             case '<':
                return LESS;
+            case '{':
+               return CLP;
+            case '}':
+               return CRP;
             case '=':
                return EQUAL;
+            case ':':
+               return COLON;
             case '+':
                return PLUS;
             case '-':
@@ -139,6 +152,8 @@ int lex(void){
                return MUL;
             case '/':
                return DIV;
+            case ',':
+               return COMMA;
             case '\n':
             case '\t':
             case ' ' :
@@ -170,6 +185,9 @@ int lex(void){
                   if(!strcmp(temp, "if")){
                      return IF;
                   }
+                  else if(!strcmp(temp, "class")){
+                     return CLASS;
+                  }
                   else if(!strcmp(temp, "then")){
                      return THEN;
                   }
@@ -185,6 +203,11 @@ int lex(void){
                   else if(!strcmp(temp, "end")){
                      return END;
                   }
+                  else if(!strcmp(temp, "int")){
+                     return INT;
+                  }
+                  else if(!strcmp(temp, "private") || !strcmp(temp, "public") || !strcmp(temp, "protected"))
+                     return MODE;
                   else{
                      return NUM_OR_ID;
                   }

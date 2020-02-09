@@ -1,0 +1,4 @@
+
+<Token_id, lexeme>
+	0, Tree
+	1, LIVING

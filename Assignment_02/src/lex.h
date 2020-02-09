@@ -4,7 +4,7 @@
 #define PLUS 	    2	/* + 				*/
 #define MUL		    3	/* * 				*/
 #define LP		    4	/* (				*/
-#define RP		    5	/* )				*/
+#define RP		    5	/* )	            */		
 #define NUM_OR_ID	6	/* Decimal Number or Identifier */
 #define MINUS 		7
 #define DIV		    8
@@ -19,6 +19,13 @@
 #define BEGIN		17
 #define END		    18
 #define CONST       19
+#define CLASS       20
+#define INT         21
+#define CLP		    22	/* {				*/
+#define CRP		    23	/* }                */
+#define COLON	    24	/* : 				*/
+#define MODE        25
+#define COMMA       26
 #define ERR         -50
 
                         
@@ -32,4 +39,7 @@ int isIdentifier(int);
 int isConst(int);
 int isSemi(int);
 char * token_class(int);
+int match(int token);
+void advance(void);
+void lexically_analyse(void);
 
