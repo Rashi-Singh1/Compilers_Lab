@@ -1,0 +1,28 @@
+To run the code for any testcase, follow the steps below : 
+
+	1)	Compile the code - 
+		We have made a Makefile for ease of compiling. Running make forms .o files and the executable of the name a.out
+		$ make
+
+	2)  Write the testcase in a .txt file or use the testcases given in the folder as follows 
+
+		To show intermediate code, use
+		$ ./a.out code_gen < test_case1.txt 
+
+		To show symbol table and token_stream, use
+		$ ./a.out < test_case1.txt
+
+			2_b)	Three .txt files will be created : lex_output.txt, symbol_table.txt and token_stream.txt
+				-	lex_output.txt shows both the symbol table and token_stream in a simple, more human readable form
+				-	symbol_table.txt contains the Symbol Table and token_stream.txt contains the Token Stream.
+				To view the files in terminal, use
+
+				$ cat lex_output.txt
+				$ cat symbol_table.txt
+				$ cat token_stream.txt
+
+	4) 	(optional) To delete .o files and the executable, use
+		$ make clean
+
+	5)  (optional) To remove the output files lex_output.txt, token_stream.txt, symbol_table.txt. use
+		$ make dOut
