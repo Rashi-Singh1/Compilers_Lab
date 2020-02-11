@@ -5,7 +5,6 @@ using namespace std;
 
 #include "code_gen.h"
 #include "lex.h"
-
 int main(int argc, char const *argv[])
 {
 	// deleting previous contents of the file
@@ -32,6 +31,7 @@ int main(int argc, char const *argv[])
 		fptr=fopen("symbol_table.txt", "w");
 		fclose(fptr);
 		perform_lexical_analysis();
+
 	}
 	return 0;
 }

@@ -1,7 +1,6 @@
 class Tree{
-Tree(char a, int b){
-
-}
-
-Tree operator + ;
+	Tree operator + (Tree a){} 
+	Tree(){}
+	class Hash{};
+	Hash hash();
 };

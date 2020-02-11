@@ -227,13 +227,19 @@ int match(int token){
       current lookahead symbol.                */
    if(Lookahead == -1)
       Lookahead = lex();
+   string temp(yytext);
+   // if(token == Lookahead) cout<<"Matched : "<<temp.substr(yyleng)<<endl;
    return token == Lookahead;
 }
 
 void advance(void){
 /* Advance the lookahead to the next
-   input symbol.                               */
-    Lookahead = lex();
+   input symbol.  */
+   cout<<"advance called"<<endl;
+   string temp(yytext);
+   cout<<temp.substr(yyleng)<<endl;                             
+   Lookahead = lex();
+   
 
 }
 

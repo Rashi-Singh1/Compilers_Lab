@@ -2,169 +2,359 @@
 #include "lex.h"
 #include "code_gen.h"
 #include <cstdlib>
+#include <bits/stdc++.h>
 
 using namespace std;
 
-void prog(){
+unordered_set<string> class_names;
+int cntClass = 0, cntObject = 0, cntIClass = 0, cntConstructor = 0, cntOverload = 0;
+
+bool prog(){
     //TODO : call as a while loop
-       if(match(NUM_OR_ID)){
-           //
-        }
-        else if(match(CLASS))
-        {
-            classDef();
-        }
-        else if(match(INT))
-        {
-            // advance();
-        }
+    cout<<"Entering prog"<<endl;
+    advance();
+    string id = getID();
+    if(match(CLASS))
+    {
+        advance();
+        if(classDef()) cntClass++;
+        else return false;
+    }
+    else if(match(NUM_OR_ID) && class_names.count(id))
+    {
+        advance();
+        if(!object_def(id)) return false;
+        if(!more_def(id)) return false;
+        cntObject++; 
+    }
+    // else if(match(INT))
+    // {
+    //     // advance();
+    // }
+    cout<<"Coming out of prog"<<endl;
+    cout<<"Number of Class Definitions: "<<cntClass<<endl;
+    cout<<"Number of Inherited Class Definitions: "<<cntIClass<<endl;
+    cout<<"Number of Object Declarations: "<<cntObject<<endl;
+    cout<<"Number of Constructors: "<<cntConstructor<<endl;
+    cout<<"Number of Operator Overloaded Functions: "<<cntOverload<<endl;
+    return true;
 }
 
+bool object_def(string id)
+{
+    cout<<"Entering object_def"<<endl;
+    if(match(NUM_OR_ID))
+    {
+        advance();
+        if(!ending(id)) return false;
+        if(!more_def(id)) return false;
+    }
+    else{
+        fprintf( stderr, "%d: Specify the object name\n", yylineno );
+        return false;
+    } 
+    cout<<"Coming out of object_def"<<endl;
+    return true;
 
-void prog2(){
-       if(match(NUM_OR_ID)){
-           //
-        }
-        else if(match(CLASS))
+}
+
+bool more_def(string id)
+{
+    cout<<"Entering more_def"<<endl;
+    if(match(SEMI))
+    {
+        advance();
+    }
+    else if(match(COMMA))
+    {
+        advance();
+        cntObject++;
+        if(match(NUM_OR_ID))
         {
-            classDef();
+            advance();
+            ending(id);
+            more_def(id);
         }
+        else{
+            fprintf( stderr, "%d: Trailing comma\n", yylineno );
+            return false;
+        } 
+    }
+    else{
+        fprintf( stderr, "%d: Unexpected ending of object declaration\n", yylineno );
+        return false;
+    } 
+    cout<<"Coming out of more_def"<<endl;
+    return true;
+   
+}
 
+bool ending(string id)
+{
+    cout<<"Entering ending"<<endl;
+    if(match(EQUAL))
+    {
+        advance();
+        string curClass = getID();
+        if(id == curClass)
+        {
+            advance();
+            if(match(LP))
+            {
+                advance();
+                 if(match(RP)){
+                    advance();
+                    return true;
+                }
+                else advance();
+                //random parameters as of now
+                do{
+                    if(match(RP)){
+                        advance();
+                        break;
+                    }
+                    advance();
+                }
+                while(!match(EOI) && !match(RP));
+            }
+            else{
+                fprintf( stderr, "%d: Missing (\n", yylineno );
+                return false;
+            } 
+        }
+        else{
+            fprintf( stderr, "%d: Class mismatch\n", yylineno );
+            return false;
+        } 
+    }
+    else if(match(LP))
+    {
+        advance();
+        if(match(RP)){
+            advance();
+            return true;
+        }
+        else advance();
+        //random parameters as of now
+            do{
+            if(match(RP)){
+                advance();
+                break;
+            }
+            advance();
+        }
+        while(!match(EOI) && !match(RP));
+    }
+    cout<<"Coming out of ending"<<endl;
+    return true;
+}
+
+bool prog2(){
+    cout<<"Entering prog2"<<endl;
+    string id = getID();
+    cout << " class name **********************************************************************\n";
+    for(auto x : class_names) cout << x << " ";
+    cout << '\n';
+    if(match(CLASS))
+    {
+        advance();
+        if(!classDef()) return false;
+        cntClass++;
+        cntIClass++;
+    }
+    else if(match(NUM_OR_ID) && class_names.count(id))
+    {
+        advance();
+        if(!object_def(id)) return false;
+        cntObject++;
+    }
+    cout<<"Coming out of prog2"<<endl;
+    return true;
 }
 
 //to get the token from yytext
 string getID()
 {
+    cout<<"Entering getID"<<endl;
     char* temp=(char*)malloc(sizeof(char)*(yyleng+1));
     for(int i=0;i<yyleng;i++){
         *(temp+i)=*(yytext+i);
     }
     *(temp+yyleng)='\0';
     string id(temp);
+    cout<<"id : "<<id<<endl;
     return id;
 }
 
-//classDef -> id inherited {class_stmts};
-void classDef()
+//classDef -> id inherited {class_stmt_list};
+bool classDef()
 {
-    advance();
+    cout<<"Entering classDef"<<endl;
+    // advance();
     if(match(NUM_OR_ID))
     {
         string id = getID();
-        cout<<id<<endl;
+        class_names.insert(id);
         advance();
-        inherited();
+        if(!inherited()) return false;
         if(match(CLP))
         {
             advance();
-            class_stmts(id);
+            if(!class_stmt_list(id)) return false;
             if(match(CRP))
             {
                 advance();
                 if(match(SEMI)) advance();
-                else fprintf( stderr, "%d: Missing semicolon \n", yylineno );
+                else{
+                    fprintf( stderr, "%d: Missing semicolon \n", yylineno );
+                    return false;
+                } 
 
             }
-            else fprintf( stderr, "%d: Missing parenthesis } \n", yylineno );
+            else{
+                fprintf( stderr, "%d: Missing parenthesis } \n", yylineno );
+                return false;
+            } 
         }
-        else fprintf( stderr, "%d: Missing parenthesis { \n", yylineno );
+        else{
+            fprintf( stderr, "%d: Missing parenthesis { \n", yylineno );
+            return false;
+        } 
         
     }
-    else fprintf( stderr, "%d: Specify the class name\n", yylineno );
+    else{
+        fprintf( stderr, "%d: Specify the class name\n", yylineno );
+        return false;
+    } 
+    cout<<"Coming out of classDef"<<endl;
+    return true;
 }
 
 //classDef -> epsilon | class_stmt_list(id)
-void class_stmts(string id)
+bool class_stmt_list(string id)
 {
-    //TODO: advance after matching
-    class_stmt_list(id);
+     cout<<"Entering class_stmt_list"<<endl;
+    if(!class_stmt(id)) return false;
+    if(!class_stmt_list_(id)) return false;
+    cout<<"Coming out of class_stmt_list"<<endl;
+    return true;
 }
 
 
-void  class_stmt_list_(string id)
+bool  class_stmt_list_(string id)
 {
-    if(match(SEMI))
+    cout<<"Entering class_stmt_list_"<<endl;
+    string curid = getID();
+    cout <<" curid in class stmt list : " << curid << '\n';
+    if(curid != "}")
     {
-        advance();
-        class_stmt(id);
-        class_stmt_list_(id);
+        if(!class_stmt(id)) return false;
+        if(!class_stmt_list_(id)) return false;
     }
+    cout<<"Coming out of class_stmt_list_"<<endl;
+    return true;
 }
 
-void  class_stmt_list(string id)
-{
-    class_stmt(id);
-    class_stmt_list_(id);
-}
 
-void class_stmt(string id)
+bool class_stmt(string id)
 {
+    cout<<"Entering class_stmt"<<endl;
     string curID = getID();
+    // cout<<"id passed in class_stmt********************************************"<<id<<endl;
+
     if(curID == id)
     {
         advance();
-        nextFUNC();
+        if(!nextFUNC(id)) return false;
+    }else{
+        // advance();
+        if(!prog2())return false;
     }
-    else prog2();
+    cout<<"Coming out of class_stmt"<<endl;
+    return true;
+
 }
 
-void nextFUNC()
+bool nextFUNC(string id)
 {
+    cout<<"Entering nextFunc"<<endl;
     string curID = getID();
     if(match(LP))
     {
         advance();
-        constructor();
+        if(!constructor()) return false;
+        cntConstructor++;
     }
     else if(curID == "operator")
     {
         advance();
-        operator_overload();
+        if(!operator_overload(id)) return false;
     }
-    else fprintf( stderr, "%d: Extra keyword\n", yylineno );
+    
+
+    cout<<"Coming out of nextFunc"<<endl;
+    return true;
 }
 
-void constructor()
+bool constructor()
 {
-    parameter_list();
+    cout<<"Entering constructor"<<endl;
+    if(!parameter_list()) return false;
+
     if(match(RP))
     {
         advance();
         if(match(CLP))
         {
             advance();
-            stmt_list();
+            if(!stmt_list()) return false;
             if(match(CRP))
             {
                 advance();
-                if(match(SEMI)) advance();
-                else fprintf( stderr, "%d: Missing semicolon \n", yylineno );
-
             }
-            else fprintf( stderr, "%d: Missing parenthesis } \n", yylineno );
+            else{
+                fprintf( stderr, "%d: Missing parenthesis } \n", yylineno );
+                return false;
+            } 
         }
-        else fprintf( stderr, "%d: Missing parenthesis { \n", yylineno );
+        else{
+            fprintf( stderr, "%d: Missing parenthesis { \n", yylineno );
+            return false;
+        } 
     }
-    else fprintf( stderr, "%d: Missing right bracket\n", yylineno );
+    else{
+        fprintf( stderr, "%d: Missing right bracket\n", yylineno );
+        return false;
+    } 
+
+cout<<"Coming out of constructor"<<endl;
+    return true;
     
 
 }
 
-void parameter_list()
+bool parameter_list()
 {
+    cout<<"Entering parameter_list"<<endl;
     if(match(DATA_TYPE))
     {
         advance();
         if(match(NUM_OR_ID))
         {
             advance();
-            opt_parameter();
+            if(!opt_parameter()) return false;
         }
-        else fprintf( stderr, "%d: Missing parameter name\n", yylineno );
+        else{
+            fprintf( stderr, "%d: Missing parameter name\n", yylineno );
+            return false;
+        } 
     }
+    cout<<"Coming out of parameter_list"<<endl;
+    return true;
 }
 
-void opt_parameter(){
+bool opt_parameter(){
+    cout<<"Entering opt_parameter"<<endl;
     if(match(COMMA))
     {
         advance();
@@ -174,37 +364,116 @@ void opt_parameter(){
             if(match(NUM_OR_ID))
             {
                 advance();
-                opt_parameter();
+                if(!opt_parameter()) return false;
             }
-            else fprintf( stderr, "%d: Missing parameter name\n", yylineno );
+            else{
+                fprintf( stderr, "%d: Missing parameter name\n", yylineno );
+                return false;
+            } 
         }
-        else fprintf( stderr, "%d: Trailing comma\n", yylineno );
+        else{
+            fprintf( stderr, "%d: Trailing comma\n", yylineno );
+            return false;
+        } 
     }
+    cout<<"Coming out of opt_parameter"<<endl;
+    return true;
 }
 
-void stmt_list()
+bool stmt_list()
 {
-    prog2();
-    stmt_list_();
+    cout<<"Entering stmt_list"<<endl;
+    if(!prog2()) return false;
+    if(!stmt_list_()) return false;
+
+    cout<<"Coming out of stmt_list"<<endl;
+    return true;
 }
 
-void stmt_list_()
+bool stmt_list_()
 {
+    cout<<"Entering stmt_list_"<<endl;
     if(match(SEMI))
     {
         advance();
-        prog2();
-        stmt_list_();
+        if(!prog2()) return false;
+        if(!stmt_list_()) return false;
     }
+    cout<<"Coming out of stmt_list_"<<endl;
+    return true;
 }
 
-void operator_overload()
-{
-
+bool is_overloaded_operator(){
+    cout<<"Entering is_overload_operator"<<endl;
+    if(match(PLUS)|| match(MINUS) || match(MUL) || match(DIV) || match(LESS )|| match(COLON) || match(COMMA) || match(MORE )|| match(EQUAL) || match(ASSIGN))
+    {
+        return true;
+    }
+    return false;
 }
 
-void inherited()
+bool operator_overload(string id)
 {
+    cout<<"Entering operator_overload"<<endl;
+    if(is_overloaded_operator()){
+        advance();
+        if(match(LP)){
+            advance();
+            string curID = getID();
+            if(curID == id){
+                advance();
+                if(match(NUM_OR_ID)){
+                    advance();
+                    if(match(RP)){
+                        advance();
+                        if(match(CLP)){
+                            advance();
+                            if(!stmt_list()) return false;
+                            if(match(CRP)){
+                                advance();
+                            }
+                            else{
+                                fprintf( stderr, "%d: Missing curly right parenthesis }\n", yylineno );
+                                return false;
+                            } 
+                        }
+                        else{
+                            fprintf( stderr, "%d: Missing curly left parenthesis {\n", yylineno );
+                            return false;
+                        } 
+                    }
+                    else{
+                        fprintf( stderr, "%d: Missing right parenthesis )\n", yylineno );
+                        return false;
+                    } 
+                }
+                else{
+                    fprintf( stderr, "%d: Missing param name\n", yylineno );
+                    return false;
+                } 
+            }
+            else{
+                fprintf( stderr, "%d: Missing data type\n", yylineno );
+                return false;
+            } 
+        }
+        else{
+            fprintf( stderr, "%d: Missing left parenthesis (\n", yylineno );
+            return false;
+        } 
+    }
+    else{
+        fprintf( stderr, "%d: Missing operator\n", yylineno );
+        return false;
+    } 
+    cntOverload++;
+    cout<<"Coming out of operator_overload"<<endl;
+    return true;
+}
+
+bool inherited()
+{
+    cout<<"Entering inherited"<<endl;
     if(match(COLON))
     {
         advance();
@@ -216,16 +485,31 @@ void inherited()
             {
                 string id = getID();
                 advance();
-                multiple_inherited();
+                if(multiple_inherited()) {
+                    cntIClass++;
+                    cntClass++;
+                }else{
+                    return false;
+                }
             }
-            else fprintf( stderr, "%d: Specify super class name\n", yylineno );
+            else{
+                fprintf( stderr, "%d: Specify super class name\n", yylineno );
+                return false;
+            } 
         }
-        else fprintf( stderr, "%d: Specify access modifier\n", yylineno );
+        else{
+            fprintf( stderr, "%d: Specify access modifier\n", yylineno );
+            return false;
+        } 
     }
+
+cout<<"Coming out of inherited"<<endl;
+    return true;
 }
 
-void multiple_inherited()
+bool multiple_inherited()
 {
+    cout<<"Entering multiple_inherited"<<endl;
     if(match(COMMA))
     {
         advance();
@@ -237,20 +521,29 @@ void multiple_inherited()
                 string id = getID();
                 //TODO : match id from hash function
                 advance();
-                multiple_inherited();
+                if(!multiple_inherited()) return false;
             }
-            else fprintf( stderr, "%d: Specify super class name\n", yylineno );
+            else{
+                fprintf( stderr, "%d: Specify super class name\n", yylineno );
+                return false;
+            } 
         }
-        else fprintf( stderr, "%d: Specify access modifier\n", yylineno );
+        else{
+            fprintf( stderr, "%d: Specify access modifier\n", yylineno );
+            return false;
+        } 
     }
+    cout<<"Coming out of multiple_inherited"<<endl;
+    return true;
 }
 
 void perform_lexical_analysis(){
+    cout<<"Entering lexical_analyse"<<endl;
     lexically_analyse();
 }
 
 // /*lexical analysis done*/
-// void  init_stmt_list_(int padding){
+// bool  init_stmt_list_(int padding){
 //     if(match(SEMI))
 //     {
 //         advance();
@@ -309,7 +602,10 @@ void perform_lexical_analysis(){
 //                 printf("then\n " );
 //                 init_stmt(padding + 1);
 //             }
-//             else fprintf( stderr, "%d: 'then' expected\n", yylineno );
+//             else{
+//     fprintf( stderr, "%d: 'then' expected\n", yylineno );
+//     return false;
+// } 
             
 //         }
 //         else if(match(WHILE))
@@ -331,7 +627,10 @@ void perform_lexical_analysis(){
 //                 printf("do\n " );
 //                 init_stmt(padding + 1);
 //             }
-//             else fprintf( stderr, "%d: 'do' expected\n", yylineno );            
+//             else{
+//     fprintf( stderr, "%d: 'do' expected\n", yylineno );            
+//     return false;
+// } 
 //         }
 //         else if(match(BEGIN))
 //         {
@@ -346,7 +645,10 @@ void perform_lexical_analysis(){
 //                 for(int i = 0;i < padding;i++) printf("\t");
 //                 printf("end\n");
 //             }
-//             else fprintf( stderr, "%d: 'end' expected\n", yylineno );
+//             else{
+//     fprintf( stderr, "%d: 'end' expected\n", yylineno );
+//     return false;
+// } 
             
 //         }
 //         else

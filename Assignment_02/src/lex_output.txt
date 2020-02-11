@@ -1,9 +1,9 @@
 Token Stream : <Token-class, lexeme>
 
-	<kw,"class"><id, 0><op,"{"><id, 0><op,"("><kw,"char"><id, 1><op,","><kw,"int"><id, 2><op,")"><op,"{"><op,"}"><id, 0><kw,"operator"><op,"+"><semi,";"><op,"}"><semi,";">
+	<kw,"class"><id, 0><op,"{"><kw,"class"><id, 1><op,"{"><op,"}"><semi,";"><id, 1><id, 2><op,"="><id, 1><op,"("><op,")"><semi,";"><op,"}"><semi,";">
 
 Symbol Table : 
 <Token_id, lexeme>
 	0, Tree
-	1, a
-	2, b
+	1, Hash
+	2, myHash

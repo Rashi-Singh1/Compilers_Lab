@@ -23,7 +23,7 @@ int isOperator(int val){
     return 0;
 }
 
-int isIdetifier(int val){
+int isIdentifier(int val){
     if(val == NUM_OR_ID)
    {
             return 1;
@@ -59,7 +59,7 @@ char * token_class(int val){
     }
     else if(isOperator(val)){
         return "op";
-    }else if(isIdetifier(val)){
+    }else if(isIdentifier(val)){
        if(isConst(val)){
          //  printf("%0.*s\n",yyleng,yytext);
          return "const";
@@ -233,7 +233,7 @@ void tokenize(){
       // fprintf(fptr, "<\"%0.*s\", %s>", yyleng,yytext,token_class(Lookahead));
       fprintf(fptr, "<%s,\"%0.*s\">",token_class(Lookahead), yyleng,yytext);
       fprintf(fptr2, "<%s,\"%0.*s\">",token_class(Lookahead), yyleng,yytext);
-   }else if(isIdetifier(Lookahead)){
+   }else if(isIdentifier(Lookahead)){
       int idx=lookup(temp);
       if(idx==-1){
          insert(temp);

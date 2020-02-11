@@ -14,24 +14,26 @@ extern void freename( char *name );
 /*performed lexical analysis*/
 void perform_lexical_analysis(void);
 void stmt(int padding);
-void prog();
-void prog2();
-void classDef();
-void class_stmts(string id);
-void inherited();
-void multiple_inherited();
+bool prog();
+bool prog2();
+bool classDef();
+bool class_stmt_list(string id);
+bool inherited();
+bool multiple_inherited();
 string getID();
-void class_stmt(string id);
-void class_stmts(string id);
-void  class_stmt_list_(string id);
-void  class_stmt_list(string id);
-void nextFUNC();
-void operator_overload();
-void constructor();
-void opt_parameter();
-void stmt_list_();
-void stmt_list();
-void parameter_list();
+bool class_stmt(string id);
+bool class_stmt_list(string id);
+bool  class_stmt_list_(string id);
+bool nextFUNC(string id);
+bool operator_overload(string id);
+bool constructor();
+bool opt_parameter();
+bool stmt_list_();
+bool stmt_list();
+bool parameter_list();
+bool object_def(string id);
+bool more_def(string id);
+bool ending(string id);
 
 
 
