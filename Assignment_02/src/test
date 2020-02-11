@@ -1,1 +1,7 @@
-class Tree:private LIVING {};
+class Tree{
+Tree(char a, int b){
+
+}
+
+Tree operator + ;
+};

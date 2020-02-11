@@ -17,7 +17,7 @@ int main(int argc, char const *argv[])
 	}
 	if(argc > 1 && res==0){
 		printf("Intermediate code : \n\n");
-		prog(0);
+		prog();
 		
 	}
 	else {

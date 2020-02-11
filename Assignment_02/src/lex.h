@@ -26,6 +26,8 @@
 #define COLON	    24	/* : 				*/
 #define MODE        25
 #define COMMA       26
+#define OPERATOR    27
+#define DATA_TYPE   28
 #define ERR         -50
 
                         

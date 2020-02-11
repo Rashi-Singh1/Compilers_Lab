@@ -1,1 +1,1 @@
-<kw,"class"><id, 0><op,":"><kw,"private"><id, 1><op,"{"><op,"}"><semi,";">
+<kw,"class"><id, 0><op,"{"><id, 0><op,"("><kw,"char"><id, 1><op,","><kw,"int"><id, 2><op,")"><op,"{"><op,"}"><id, 0><kw,"operator"><op,"+"><semi,";"><op,"}"><semi,";">

@@ -2,16 +2,11 @@
 #include "lex.h"
 #include <iostream>
 #include "hashtable.h"
-// #include <stdio.h>
-// #include <ctype.h>
-// #include <cstring>
-// #include <cstdlib>
-// #include <cstdio>
 
 using namespace std;
 int isKeyWord(int val){
-    if(val == IF || val == THEN || val == WHILE || val == DO || val == BEGIN || val == CLASS || val == MODE
-        || val == END)
+    if(val == IF || val == THEN || val == WHILE || val == DO || val == BEGIN || val == CLASS || val == MODE || val == OPERATOR
+        || val == END || val == DATA_TYPE)
         {
             return 1;
         }
@@ -19,15 +14,14 @@ int isKeyWord(int val){
 }
 
 int isOperator(int val){
-    if(val == PLUS || val == MINUS || val == MUL || val == DIV || val == LESS || val == CLP || val == CRP || val == LP || val == RP || val == COLON || val == COMMA
-        || val == MORE || val == EQUAL || val == ASSIGN)
+    if(val == PLUS || val == MINUS || val == MUL || val == DIV || val == LESS || val == CLP || val == CRP || val == LP || val == RP || val == COLON || val == COMMA || val == MORE || val == EQUAL || val == ASSIGN)
         {
             return 1;
         }
     return 0;
 }
 
-int isIdetifier(int val){
+int isIdentifier(int val){
     if(val == NUM_OR_ID)
    {
             return 1;
@@ -63,7 +57,7 @@ char * token_class(int val){
     }
     else if(isOperator(val)){
         return "op";
-    }else if(isIdetifier(val)){
+    }else if(isIdentifier(val)){
        if(isConst(val)){
          //  printf("%0.*s\n",yyleng,yytext);
          return "const";
@@ -140,6 +134,10 @@ int lex(void){
                return CLP;
             case '}':
                return CRP;
+            case '(':
+               return LP;
+            case ')':
+               return RP;
             case '=':
                return EQUAL;
             case ':':
@@ -203,8 +201,11 @@ int lex(void){
                   else if(!strcmp(temp, "end")){
                      return END;
                   }
-                  else if(!strcmp(temp, "int")){
-                     return INT;
+                  else if(!strcmp(temp, "int") || !strcmp(temp, "char") || !strcmp(temp, "string") || !strcmp(temp, "double") || !strcmp(temp, "float") || !strcmp(temp, "bool") || !strcmp(temp, "void")){
+                     return DATA_TYPE;
+                  }
+                   else if(!strcmp(temp, "operator")){
+                     return OPERATOR;
                   }
                   else if(!strcmp(temp, "private") || !strcmp(temp, "public") || !strcmp(temp, "protected"))
                      return MODE;
@@ -256,7 +257,7 @@ void tokenize(){
       // fprintf(fptr, "<\"%0.*s\", %s>", yyleng,yytext,token_class(Lookahead));
       fprintf(fptr, "<%s,\"%0.*s\">",token_class(Lookahead), yyleng,yytext);
       fprintf(fptr2, "<%s,\"%0.*s\">",token_class(Lookahead), yyleng,yytext);
-   }else if(isIdetifier(Lookahead)){
+   }else if(isIdentifier(Lookahead)){
       int idx=lookup(temp);
       if(idx==-1){
          insert(temp);
