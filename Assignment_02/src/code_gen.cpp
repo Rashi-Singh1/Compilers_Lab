@@ -3,11 +3,15 @@
 #include "code_gen.h"
 #include <cstdlib>
 #include <bits/stdc++.h>
-
+// #define show(x) cout << #x << " incremented to " << x << endl;
 using namespace std;
 
 unordered_set<string> class_names;
 int cntClass = 0, cntObject = 0, cntIClass = 0, cntConstructor = 0, cntOverload = 0;
+void inc(int &v, string name){
+    ++v;
+    cout<<"Incremented "<< name <<" to "<< v << endl;
+}
 
 bool prog(){
     //TODO : call as a while loop
@@ -17,15 +21,13 @@ bool prog(){
     if(match(CLASS))
     {
         advance();
-        if(classDef()) cntClass++;
-        else return false;
+        if(!classDef()) return false;
     }
     else if(match(NUM_OR_ID) && class_names.count(id))
     {
         advance();
         if(!object_def(id)) return false;
         if(!more_def(id)) return false;
-        cntObject++; 
     }
     // else if(match(INT))
     // {
@@ -43,6 +45,8 @@ bool prog(){
 bool object_def(string id)
 {
     cout<<"Entering object_def"<<endl;
+    inc(cntObject , "cntobject" ); 
+
     if(match(NUM_OR_ID))
     {
         advance();
@@ -68,7 +72,7 @@ bool more_def(string id)
     else if(match(COMMA))
     {
         advance();
-        cntObject++;
+        inc(cntObject , "cntobject" );
         if(match(NUM_OR_ID))
         {
             advance();
@@ -102,7 +106,7 @@ bool ending(string id)
             if(match(LP))
             {
                 advance();
-                 if(match(RP)){
+                if(match(RP)){
                     advance();
                     return true;
                 }
@@ -116,6 +120,10 @@ bool ending(string id)
                     advance();
                 }
                 while(!match(EOI) && !match(RP));
+                if(match(RP)){
+                    advance();
+                    return true;
+                }
             }
             else{
                 fprintf( stderr, "%d: Missing (\n", yylineno );
@@ -144,6 +152,10 @@ bool ending(string id)
             advance();
         }
         while(!match(EOI) && !match(RP));
+        if(match(RP)){
+            advance();
+            return true;
+        }
     }
     cout<<"Coming out of ending"<<endl;
     return true;
@@ -158,15 +170,17 @@ bool prog2(){
     if(match(CLASS))
     {
         advance();
+        // inc(cntIClass , "cntIclass");
         if(!classDef()) return false;
-        cntClass++;
-        cntIClass++;
     }
-    else if(match(NUM_OR_ID) && class_names.count(id))
+    else if(match(NUM_OR_ID))
     {
+        if(!(class_names.count(id))){
+            cout<<"Undeclared class name"<<endl;
+            return false;
+        }
         advance();
         if(!object_def(id)) return false;
-        cntObject++;
     }
     cout<<"Coming out of prog2"<<endl;
     return true;
@@ -190,6 +204,7 @@ string getID()
 bool classDef()
 {
     cout<<"Entering classDef"<<endl;
+    inc(cntClass , "cntclass");
     // advance();
     if(match(NUM_OR_ID))
     {
@@ -233,7 +248,7 @@ bool classDef()
 //classDef -> epsilon | class_stmt_list(id)
 bool class_stmt_list(string id)
 {
-     cout<<"Entering class_stmt_list"<<endl;
+    cout<<"Entering class_stmt_list"<<endl;
     if(!class_stmt(id)) return false;
     if(!class_stmt_list_(id)) return false;
     cout<<"Coming out of class_stmt_list"<<endl;
@@ -283,22 +298,26 @@ bool nextFUNC(string id)
     {
         advance();
         if(!constructor()) return false;
-        cntConstructor++;
+        cout<<"Coming out of nextFunc"<<endl;
+        return true;
     }
     else if(curID == "operator")
     {
         advance();
         if(!operator_overload(id)) return false;
+        cout<<"Coming out of nextFunc"<<endl;
+        return true;
     }
-    
 
-    cout<<"Coming out of nextFunc"<<endl;
-    return true;
+    cout<<"Coming out of nextFunc (nextFunc failed)"<<endl;
+    return false;
 }
 
 bool constructor()
 {
     cout<<"Entering constructor"<<endl;
+    inc(cntConstructor , "cntconstructor");
+
     if(!parameter_list()) return false;
 
     if(match(RP))
@@ -415,6 +434,7 @@ bool is_overloaded_operator(){
 bool operator_overload(string id)
 {
     cout<<"Entering operator_overload"<<endl;
+    inc(cntOverload , "cntOverload");
     if(is_overloaded_operator()){
         advance();
         if(match(LP)){
@@ -466,7 +486,7 @@ bool operator_overload(string id)
         fprintf( stderr, "%d: Missing operator\n", yylineno );
         return false;
     } 
-    cntOverload++;
+
     cout<<"Coming out of operator_overload"<<endl;
     return true;
 }
@@ -476,6 +496,7 @@ bool inherited()
     cout<<"Entering inherited"<<endl;
     if(match(COLON))
     {
+        inc(cntIClass , "cntIclass");
         advance();
         if(match(MODE))
         {
@@ -485,12 +506,7 @@ bool inherited()
             {
                 string id = getID();
                 advance();
-                if(multiple_inherited()) {
-                    cntIClass++;
-                    cntClass++;
-                }else{
-                    return false;
-                }
+                if(!multiple_inherited()) return false;
             }
             else{
                 fprintf( stderr, "%d: Specify super class name\n", yylineno );
