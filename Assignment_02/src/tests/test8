@@ -1,0 +1,6 @@
+class hello{
+    hello operator + (hello B){}
+    hello (int bro){}
+    class world{};
+    world earth, mars(int a, int b), venus = world(int a, char c);
+};

@@ -1,5 +1,0 @@
-
-<Token_id, lexeme>
-	0, Tree
-	1, Hash
-	2, myHash

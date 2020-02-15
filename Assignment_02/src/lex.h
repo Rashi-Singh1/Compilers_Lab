@@ -28,6 +28,7 @@
 #define COMMA       26
 #define OPERATOR    27
 #define DATA_TYPE   28
+#define SCOPE       29
 #define ERR         -50
 
                         

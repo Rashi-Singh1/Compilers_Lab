@@ -1,8 +1,15 @@
-DEFAULT=all
+.PHONY=all clean test
+.DEFAULT=all
 
-all:start
-start: main.cpp code_gen.cpp name.cpp lex.cpp hashtable.cpp
+all: a.out
+
+a.out: main.cpp code_gen.cpp name.cpp lex.cpp hashtable.cpp
 	g++ -w -g -c main.cpp code_gen.cpp name.cpp lex.cpp hashtable.cpp
 	g++ *.o
+
 clean: 
-	-rm *.o a.out token_stream.txt lex_output.txt symbol_table.txt
+	-rm -f *.o a.out token_stream.txt lex_output.txt symbol_table.txt
+
+test: all
+	./a.out code_gen < ./tests/test$(N)
+	cat ./tests/test$(N)

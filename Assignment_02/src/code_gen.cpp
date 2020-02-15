@@ -3,11 +3,15 @@
 #include "code_gen.h"
 #include <cstdlib>
 #include <bits/stdc++.h>
+#include <fstream>
+#include <iostream> 
 // #define show(x) cout << #x << " incremented to " << x << endl;
+#define MAX_ITS 100
 using namespace std;
 
 unordered_set<string> class_names;
 int cntClass = 0, cntObject = 0, cntIClass = 0, cntConstructor = 0, cntOverload = 0;
+
 void inc(int &v, string name){
     ++v;
     cout<<"Incremented "<< name <<" to "<< v << endl;
@@ -17,22 +21,140 @@ bool prog(){
     //TODO : call as a while loop
     cout<<"Entering prog"<<endl;
     advance();
-    string id = getID();
-    if(match(CLASS))
-    {
-        advance();
-        if(!classDef()) return false;
+    int no_of_iterations = 0;
+    while(!match(EOI)){
+        ++no_of_iterations;
+        if(no_of_iterations > MAX_ITS){
+             cout << "error -- may be infinite loop\n";
+             return false;
+        }
+        string id = getID();
+        if(match(CLASS))
+        {
+            if(!prog2()) return false;
+        }
+        else if(match(DATA_TYPE))
+        {
+            advance();
+            string new_id = getID();
+            if(match(NUM_OR_ID) && class_names.count(new_id)){
+                advance();
+                if(match(COLON)){
+                    advance();
+                    if(match(COLON)){
+                        advance();
+                        cout << "normal _ function -----------------\n";
+                        if(!normal_function()) return false;
+                    } else{
+                        fprintf( stderr, "%d: scope operator incomplete \n", yylineno );
+                        return false;
+                    }
+                } else{
+                    fprintf( stderr, "%d: expected scope operator\n", yylineno );
+                    return false;
+                }
+            } else{
+                 string str = getID();
+                 if(str == "main"){
+                     cout << "----------------MAIN MATCHED ----------------\n";
+                     advance();
+                     if(match(LP)){ 
+                            advance();
+                            if(!parameter_list()) return false;
+                            if(match(RP)){
+                                 advance();
+                                 if(match(CLP)){
+                                         advance();
+                                         if(!stmt_list()) return false;
+                                         if(match(CRP)){
+                                              advance();
+                                              
+                                         } else{
+                                                fprintf( stderr, "%d: curly right parenthesis expected \n", yylineno );
+                                                return false;
+                                         }
+                                 } else{
+                                    fprintf( stderr, "%d: missing curly left parenthesis\n", yylineno );
+                                    return false;
+                                 }
+                            } else{
+                                 fprintf( stderr, "%d: missing right parenthesis\n", yylineno );
+                                 return false;
+                            }
+                     } else{
+                          fprintf( stderr, "%d: expected left parenthesis after main\n", yylineno );
+                          return false;
+                     }
+                 }
+                 else {
+                     cout << "culprit----------------------- \n";
+                     if(!normal_function()) return false;
+                 }
+            }
+        }
+        else if((match(NUM_OR_ID) && class_names.count(id)))
+        {
+             // object definition or scoped constructor or scoped operator overload 
+            advance();
+            // scoped constructor
+              if(match(COLON)){
+                    advance();
+                    if(match(COLON)){
+                        advance();
+                        string name_str = getID();
+                        cout << "name_str = " << name_str << endl;
+                        if(name_str == id){
+                            advance();
+                            if(match(LP)){
+                                  advance();
+                                  if(!constructor()) return false;
+                            } else{
+                                    fprintf( stderr, "%d: left parenthesis expected \n", yylineno );
+                                    return false;        
+                                  }
+                        }
+                    } else{
+                        fprintf( stderr, "%d: scope operator incomplete \n", yylineno );
+                        return false;
+                    }
+                } else{
+                     string name_str = getID();
+                     if(id == name_str){
+                          // may be a scoped operator
+                          advance();
+                          if(match(COLON)){
+                               advance();
+                               if(match(COLON)){
+                                    advance();
+                                   // operator operator_overload
+                                   string op = getID();
+                                   if(op == "operator"){
+                                        advance();
+                                        if(!operator_overload(id)) return false;
+                                   } else{
+                                    // class_name:: normalfunction() type
+                                       if(!normal_function()) return false;
+         
+                                   }
+
+                               } else{
+                                    fprintf( stderr, "%d: incomplete scope operator \n", yylineno );
+                                    return false;
+                               }
+                          } else{
+                                    fprintf( stderr, "%d: scope operator expected\n", yylineno );
+                                    return false;
+                          }            
+                     } else{
+                             // may be a object definition
+                             if(!object_def(id)){
+                                  return false;
+                             }
+                     }
+                }
+
+        }
     }
-    else if(match(NUM_OR_ID) && class_names.count(id))
-    {
-        advance();
-        if(!object_def(id)) return false;
-        if(!more_def(id)) return false;
-    }
-    // else if(match(INT))
-    // {
-    //     // advance();
-    // }
     cout<<"Coming out of prog"<<endl;
     cout<<"Number of Class Definitions: "<<cntClass<<endl;
     cout<<"Number of Inherited Class Definitions: "<<cntIClass<<endl;
@@ -46,6 +168,7 @@ bool object_def(string id)
 {
     cout<<"Entering object_def"<<endl;
     inc(cntObject , "cntobject" ); 
+    cout << "getID() IN object def is " << getID() << endl;
 
     if(match(NUM_OR_ID))
     {
@@ -281,6 +404,9 @@ bool class_stmt(string id)
     {
         advance();
         if(!nextFUNC(id)) return false;
+    }else if(match(DATA_TYPE)){
+        advance();
+        if(!normal_function()) return false;
     }else{
         // advance();
         if(!prog2())return false;
@@ -307,10 +433,58 @@ bool nextFUNC(string id)
         if(!operator_overload(id)) return false;
         cout<<"Coming out of nextFunc"<<endl;
         return true;
+    }else {
+        if(!normal_function()) return false;
+        cout<<"Coming out of nextFunc"<<endl;
+        return true;
     }
 
     cout<<"Coming out of nextFunc (nextFunc failed)"<<endl;
     return false;
+}
+
+bool normal_function(){
+    cout<<"Entering normal_function"<<endl;
+    if(match(NUM_OR_ID))
+    {
+        advance();
+        cout << "id is " << getID() << endl;
+        if(match(LP)){
+            advance();
+            if(!parameter_list()) return false;
+            if(match(RP)){
+                advance();
+                if(match(CLP)){
+                    advance();
+                    if(!stmt_list()) return false;
+                    if(match(CRP)){
+                        advance();
+                        return true;
+                    }
+                    else{
+                        fprintf( stderr, "%d: Missing curly right parenthesis\n", yylineno );
+                        return false;
+                    }
+                }
+                else
+                {
+                    fprintf( stderr, "%d: Missing curly left parenthesis\n", yylineno );
+                    return false;
+                }
+            }
+            else{
+                fprintf( stderr, "%d: Missing right parenthesis\n", yylineno );
+                return false;
+            }
+        }else{
+            fprintf( stderr, "%d: broooo Missing left parenthesis\n", yylineno );
+            return false;
+        }
+
+    }else{
+        fprintf( stderr, "%d: Missing function name\n", yylineno );
+        return false;
+    }
 }
 
 bool constructor()
@@ -402,23 +576,41 @@ bool opt_parameter(){
 bool stmt_list()
 {
     cout<<"Entering stmt_list"<<endl;
-    if(!prog2()) return false;
-    if(!stmt_list_()) return false;
-
-    cout<<"Coming out of stmt_list"<<endl;
-    return true;
-}
-
-bool stmt_list_()
-{
-    cout<<"Entering stmt_list_"<<endl;
-    if(match(SEMI))
-    {
-        advance();
-        if(!prog2()) return false;
-        if(!stmt_list_()) return false;
+    if(match(CRP)){
+        cout << "Coming out of stmt_list" << endl;
+        return true;
     }
-    cout<<"Coming out of stmt_list_"<<endl;
+
+    string id = getID();
+    int curly_paren_count = 0;
+    int no_of_its = 0;
+
+    while(curly_paren_count != 0  || !match(CRP))
+    {
+        no_of_its++;
+        if(no_of_its > MAX_ITS){
+            fprintf( stderr, "%d: Syntax error\n", yylineno );
+            return false;
+        }
+
+        if(match(CLP)) {
+            curly_paren_count++;
+            advance();
+        }
+        else if(match(CRP)){
+             curly_paren_count--;
+             advance();
+        }
+        else if(match(CLASS) || (match(NUM_OR_ID)  && class_names.count(id))){
+            if(!prog2()) return false;
+        }else{
+            advance();
+        }
+        if(match(EOI)) return false;
+        id = getID();
+    }
+
+    cout << "Coming out of stmt_list" << endl;
     return true;
 }
 

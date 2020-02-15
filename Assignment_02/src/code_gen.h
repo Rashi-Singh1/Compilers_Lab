@@ -34,8 +34,7 @@ bool parameter_list();
 bool object_def(string id);
 bool more_def(string id);
 bool ending(string id);
-
-
+bool normal_function();
 
 
 

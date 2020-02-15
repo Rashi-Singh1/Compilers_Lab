@@ -15,7 +15,6 @@ int main(int argc, char const *argv[])
 		// printf("%d\n",res);
 	}
 	if(argc > 1 && res==0){
-		printf("Intermediate code : \n\n");
 		prog();
 		
 	}

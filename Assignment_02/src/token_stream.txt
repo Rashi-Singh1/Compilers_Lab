@@ -1,1 +1,0 @@
-<kw,"class"><id, 0><op,"{"><kw,"class"><id, 1><op,"{"><op,"}"><semi,";"><id, 1><id, 2><op,"="><id, 1><op,"("><op,")"><semi,";"><op,"}"><semi,";">
