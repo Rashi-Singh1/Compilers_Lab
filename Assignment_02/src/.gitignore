@@ -1,3 +1,7 @@
 *.o
 .vscode/*
 a.out
+symbol_table.txt
+token_stream.txt
+lex_output.txt
+output/*
