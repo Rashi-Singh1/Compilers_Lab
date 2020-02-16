@@ -1,3 +1,3 @@
-2     stack(int a , char c , double x){}
-13 tree:: tree(int a , int b , int c){
-26 subtree:: subtree(int a , int b , int c){
+2	     stack(int a , char c , double x){}
+13	 tree:: tree(int a , int b , int c){
+26	 subtree:: subtree(int a , int b , int c){
