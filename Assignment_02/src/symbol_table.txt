@@ -1,6 +1,0 @@
-
-<Token_id, lexeme>
-	0, Tree
-	1, a
-	2, Hash
-	3, hash

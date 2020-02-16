@@ -11,7 +11,7 @@ clean:
 	-rm -f *.o a.out token_stream.txt lex_output.txt symbol_table.txt debug_file.txt output_file.txt
 
 test: all
-	rm ./output/*.txt
+	-rm ./output/*.txt
 	./a.out $(N) code_gen < ./tests/test$(N)
 	@touch output/debug_file.txt
 	@touch output/output_file.txt
