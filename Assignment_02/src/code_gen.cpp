@@ -11,21 +11,33 @@
 // debugFile.close();
 ofstream debugFile;
 ofstream outputFile;
+ifstream testFile;
+string test_file;
+
 #define MAX_ITS 100
 using namespace std;
 
 unordered_set<string> class_names;
 int cntClass = 0, cntObject = 0, cntIClass = 0, cntConstructor = 0, cntOverload = 0;
 
-void inc(int &v, string name){
+void inc(int &v, string name, string output_file_name){
     ++v;
     debugFile.open("debug_file.txt",std::ios_base::app);
     debugFile<<"Incremented "<< name <<" to "<< v << endl;    
     debugFile.close();
+    testFile.open(test_file,std::ios_base::app);
+    string curLine;
+    for(int i = 0;i < yylineno;i++) std::getline(testFile,curLine);
+    testFile.close();
+    ofstream out_file;
+    out_file.open("output/"+output_file_name,std::ios_base::app);
+    out_file<<yylineno<<" "<<curLine<<endl;    
+    out_file.close();
 }
 
-bool prog(){
+bool prog(string test){
     //TODO : call as a while loop
+    test_file = test;
     debugFile.open("debug_file.txt");
     debugFile<<"Entering prog"<<endl;    
     debugFile.close();
@@ -177,16 +189,16 @@ bool prog(){
     debugFile.open("debug_file.txt",std::ios_base::app);
     debugFile<<"Coming out of prog"<<endl;    
     outputFile.open("output_file.txt");
-    debugFile<<"Number of Class Definitions: "<<cntClass<<endl;    
+    debugFile<<endl<<"Number of Class Definitions: "<<cntClass<<endl;    
     debugFile<<"Number of Inherited Class Definitions: "<<cntIClass<<endl;    
     debugFile<<"Number of Object Declarations: "<<cntObject<<endl;    
     debugFile<<"Number of Constructors: "<<cntConstructor<<endl;    
-    debugFile<<"Number of Operator Overloaded Functions: "<<cntOverload<<endl;    
-    outputFile<<"Number of Class Definitions: "<<cntClass<<endl;    
+    debugFile<<"Number of Operator Overloaded Functions: "<<cntOverload<<endl<<endl;    
+    outputFile<<endl<<"Number of Class Definitions: "<<cntClass<<endl;    
     outputFile<<"Number of Inherited Class Definitions: "<<cntIClass<<endl;    
     outputFile<<"Number of Object Declarations: "<<cntObject<<endl;    
     outputFile<<"Number of Constructors: "<<cntConstructor<<endl;    
-    outputFile<<"Number of Operator Overloaded Functions: "<<cntOverload<<endl; 
+    outputFile<<"Number of Operator Overloaded Functions: "<<cntOverload<<endl<<endl; 
     outputFile.close();
     debugFile.close();
     return true;
@@ -197,7 +209,7 @@ bool object_def(string id)
     debugFile.open("debug_file.txt",std::ios_base::app);
     debugFile<<"Entering object_def"<<endl;    
     debugFile.close();
-    inc(cntObject , "cntobject" ); 
+    inc(cntObject , "cntobject","object_def_file.txt" ); 
     debugFile.open("debug_file.txt",std::ios_base::app);
     debugFile << "getID() IN object def is " << getID() << endl;    
     debugFile.close();
@@ -231,7 +243,7 @@ bool more_def(string id)
     else if(match(COMMA))
     {
         advance();
-        inc(cntObject , "cntobject" );
+        inc(cntObject , "cntobject", "object_def_file.txt");
         if(match(NUM_OR_ID))
         {
             advance();
@@ -385,7 +397,7 @@ bool classDef()
     debugFile.open("debug_file.txt",std::ios_base::app);
     debugFile<<"Entering classDef"<<endl;    
     debugFile.close();
-    inc(cntClass , "cntclass");
+    inc(cntClass , "cntclass","class_def_file.txt");
     // advance();
     if(match(NUM_OR_ID))
     {
@@ -583,7 +595,7 @@ bool constructor()
     debugFile.open("debug_file.txt",std::ios_base::app);
     debugFile<<"Entering constructor"<<endl;    
     debugFile.close();
-    inc(cntConstructor , "cntconstructor");
+    inc(cntConstructor , "cntconstructor","constructor_def_file.txt");
 
     if(!parameter_list()) return false;
 
@@ -739,7 +751,7 @@ bool operator_overload(string id)
     debugFile.open("debug_file.txt",std::ios_base::app);
     debugFile<<"Entering operator_overload"<<endl;    
     debugFile.close();
-    inc(cntOverload , "cntOverload");
+    inc(cntOverload , "cntOverload","op_overload_file.txt");
     if(is_overloaded_operator()){
         advance();
         if(match(LP)){
@@ -805,7 +817,7 @@ bool inherited()
     debugFile.close();
     if(match(COLON))
     {
-        inc(cntIClass , "cntIclass");
+        inc(cntIClass , "cntIclass","int_class_def_file.txt");
         advance();
         if(match(MODE))
         {
@@ -874,231 +886,3 @@ void perform_lexical_analysis(){
     debugFile.close();
     lexically_analyse();
 }
-
-// /*lexical analysis done*/
-// bool  init_stmt_list_(int padding){
-//     if(match(SEMI))
-//     {
-//         advance();
-//         init_stmt(padding);
-//         init_stmt_list_(padding);
-//     }
-// }
-
-// void  init_stmt_list(int padding){
-//     init_stmt(padding );
-//     init_stmt_list_(padding);
-// }
-
-
-// void opt_init_stmts(int padding)
-// {
-//     init_stmt_list(padding);
-// }
-// void init_stmt(int padding)
-// {
-//         /* init_stmt->   id:=expr
-//                |if expr then init_stmt
-//                |while expr do init_stmt
-//                |begin opt_init_stmts end
-//     */  
-//     if(match(NUM_OR_ID)){
-//             char *tempvar = newname();
-//             for(int i = 0;i < padding;i++) printf("\t");
-//             printf("%s = _%0.*s\n", tempvar, yyleng, yytext );
-//                 advance();
-//             if(match(ASSIGN)){
-//                 advance();
-//                 char* tempvar3=exp(padding);
-//                 for(int i = 0;i < padding;i++) printf("\t");
-//                 printf("%s := %s\n",tempvar,tempvar3);  
-//             }else{
-//                 fprintf( stderr, "%d: Assignment operator expected\n", yylineno );
-//             }
-//         }
-//         else if(match(IF))
-//         {
-//             advance();
-//             for(int i = 0;i < padding;i++) printf("\t");
-//             printf("\n");
-//             char* tempvar2 = exp(padding);
-//             printf("\n");
-//             // advance();
-//             if(match(THEN))
-//             {
-//                 advance();
-//                 for(int i = 0;i < padding;i++) printf("\t");
-//                 printf("if\n");
-//                 for(int i = 0;i <= padding;i++) printf("\t");
-//                 printf("%s\n",tempvar2);
-//                 for(int i = 0;i < padding;i++) printf("\t");
-//                 printf("then\n " );
-//                 init_stmt(padding + 1);
-//             }
-//             else{
-//     fprintf( stderr, "%d: 'then' expected\n", yylineno );
-//     return false;
-// } 
-            
-//         }
-//         else if(match(WHILE))
-//         {
-//             advance();
-//             for(int i = 0;i < padding;i++) printf("\t");
-//             printf("\n");
-//             char* tempvar2 = exp(padding);
-//             printf("\n");
-//             // advance();
-//             if(match(DO))
-//             {
-//                 advance();
-//                 for(int i = 0;i < padding;i++) printf("\t");
-//                 printf("while\n");
-//                 for(int i = 0;i <= padding;i++) printf("\t");
-//                 printf("%s\n",tempvar2);
-//                 for(int i = 0;i < padding;i++) printf("\t");
-//                 printf("do\n " );
-//                 init_stmt(padding + 1);
-//             }
-//             else{
-//     fprintf( stderr, "%d: 'do' expected\n", yylineno );            
-//     return false;
-// } 
-//         }
-//         else if(match(BEGIN))
-//         {
-//             advance();
-//             for(int i = 0;i < padding;i++) printf("\t");    
-//             printf("begin\n");
-//             opt_init_stmts(padding + 1);
-//             // advance();
-//             if(match(END))
-//             {
-//                 advance();
-//                 for(int i = 0;i < padding;i++) printf("\t");
-//                 printf("end\n");
-//             }
-//             else{
-//     fprintf( stderr, "%d: 'end' expected\n", yylineno );
-//     return false;
-// } 
-            
-//         }
-//         else
-//             fprintf( stderr, "%d: invalid statement\n", yylineno );
-// }
-
-// char Log()
-// {
-//     if(match(LESS)) return '<';
-//     else if(match(MORE)) return '>';
-//     else if(match(EQUAL)) return '=';
-//     else return '@';
-// }
-
-
-// char Add()
-// {
-//     if(match(PLUS)) return '+';
-//     else if(match(MINUS)) return '-';
-//     else return '@';
-// }
-
-// char Mul()
-// {
-//     if(match(MUL)) return '*';
-//     else if(match(DIV)) return '/';
-//     else return '@';
-// }
-
-
-// char    *AN(int padding)
-// {
-//     char *tempvar;
-//     if( match(NUM_OR_ID) )
-//     {
-//     /* Print the assignment instruction. The %0.*s conversion is a form of
-//      * %X.Ys, where X is the field width and Y is the maximum number of
-//      * characters that will be printed (even if the string is longer). I'm
-//      * using the %0.*s to print the string because it's not \0 terminated.
-//      * The field has a default width of 0, but it will grow the size needed
-//      * to print the string. The ".*" tells printf() to take the maximum-
-//      * number-of-characters count from the next argument (yyleng).
-//      */
-//         for(int i = 0;i < padding;i++) printf("\t");
-//         printf("%s = _%0.*s\n", tempvar = newname(), yyleng, yytext );
-//         advance();
-//     }
-//     else
-//     fprintf( stderr, "%d: Number or identifier expected\n", yylineno );
-
-//     return tempvar;
-// }
-
-// char    *exp(int padding)
-// {
-//     /* exp -> expA exp_
-//         exp_ -> log expA exp_ |  epsilon
-//      */
-
-//     char  *tempvar, *tempvar2;
-//     tempvar = expA(padding);
-//     char cur;
-//     while((cur=Log())!='@')
-//     {
-//         advance();
-//         tempvar2 = expA(padding);
-//         for(int i = 0;i < padding;i++) printf("\t");
-//         printf("%s =   %s %c %s\n", tempvar, tempvar, cur, tempvar2 );
-//         freename( tempvar2 );
-//     }
-
-//     return tempvar;
-// }
-
-
-// char    *expA(int padding)
-// {
-//     /* expA -> expM expA_
-//         expA_ -> PLUS expM expA_ |  epsilon
-//      */
-
-//     // char  *tempvar, *tempvar2;
-//     char  *tempvar, *tempvar2;
-
-//     tempvar = expM(padding);
-//     char cur;
-//     while((cur=Add())!='@')
-//     {
-//         advance();
-//         tempvar2 = expM(padding);
-//         for(int i = 0;i < padding;i++) printf("\t");
-//         printf("%s =   %s %c %s\n", tempvar, tempvar, cur, tempvar2 );
-//         freename( tempvar2 );
-//     }
-
-//     return tempvar;
-// }
-
-// char    *expM(int padding)
-// {
-//     /* expM -> AN expM_
-//         expM_ -> mul AN expM_ |  epsilon
-//      */
-
-//     // char  *tempvar, *tempvar2;
-//     char  *tempvar, *tempvar2;
-
-//     tempvar = AN(padding);
-//     char cur;
-//     while((cur=Mul())!='@')
-//     {
-//         advance();
-//         tempvar2 = AN(padding);
-//         for(int i = 0;i < padding;i++) printf("\t");
-//         printf("%s =   %s %c %s\n", tempvar, tempvar, cur, tempvar2 );
-//         freename( tempvar2 );
-//     }
-
-//     return tempvar;
-// }

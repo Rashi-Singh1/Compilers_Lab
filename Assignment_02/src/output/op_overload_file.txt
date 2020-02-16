@@ -1,0 +1,2 @@
+3     stack operator *(stack x){
+20 tree tree::operator -(tree x){

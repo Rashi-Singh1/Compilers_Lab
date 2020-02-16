@@ -10,12 +10,14 @@ int main(int argc, char const *argv[])
 	// deleting previous contents of the file
 	// printf("%d\n",argc);
 	int res = 1;
-	if(argc > 1) {
-		res = strcmp(argv[1],"code_gen");
+	if(argc > 2) {
+		res = strcmp(argv[2],"code_gen");
 		// printf("%d\n",res);
 	}
-	if(argc > 1 && res==0){
-		prog();
+	if(argc > 2 && res==0){
+		string test(argv[1]);
+		string testFile = "tests/test" + test;
+		prog(testFile);
 		
 	}
 	else {

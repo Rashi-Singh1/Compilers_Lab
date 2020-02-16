@@ -14,7 +14,7 @@ extern void freename( char *name );
 /*performed lexical analysis*/
 void perform_lexical_analysis(void);
 void stmt(int padding);
-bool prog();
+bool prog(string test);
 bool prog2();
 bool classDef();
 bool class_stmt_list(string id);
