@@ -5,7 +5,12 @@
 #include <bits/stdc++.h>
 #include <fstream>
 #include <iostream> 
-// #define show(x) cout << #x << " incremented to " << x << endl;
+// #define show(x) ("debug_file.txt");
+// debugFile.open("debug_file.txt",std::ios_base::app);
+// debugFile << #x << " incremented to " << x << endl;
+// debugFile.close();
+ofstream debugFile;
+ofstream outputFile;
 #define MAX_ITS 100
 using namespace std;
 
@@ -14,18 +19,24 @@ int cntClass = 0, cntObject = 0, cntIClass = 0, cntConstructor = 0, cntOverload 
 
 void inc(int &v, string name){
     ++v;
-    cout<<"Incremented "<< name <<" to "<< v << endl;
+    debugFile.open("debug_file.txt",std::ios_base::app);
+    debugFile<<"Incremented "<< name <<" to "<< v << endl;    
+    debugFile.close();
 }
 
 bool prog(){
     //TODO : call as a while loop
-    cout<<"Entering prog"<<endl;
+    debugFile.open("debug_file.txt");
+    debugFile<<"Entering prog"<<endl;    
+    debugFile.close();
     advance();
     int no_of_iterations = 0;
     while(!match(EOI)){
         ++no_of_iterations;
         if(no_of_iterations > MAX_ITS){
-             cout << "error -- may be infinite loop\n";
+             debugFile.open("debug_file.txt",std::ios_base::app);
+             debugFile << "error -- may be infinite loop\n";             
+             debugFile.close();
              return false;
         }
         string id = getID();
@@ -43,7 +54,9 @@ bool prog(){
                     advance();
                     if(match(COLON)){
                         advance();
-                        cout << "normal _ function -----------------\n";
+                        debugFile.open("debug_file.txt",std::ios_base::app);
+                        debugFile << "normal _ function -----------------\n";                        
+                        debugFile.close();
                         if(!normal_function()) return false;
                     } else{
                         fprintf( stderr, "%d: scope operator incomplete \n", yylineno );
@@ -56,7 +69,9 @@ bool prog(){
             } else{
                  string str = getID();
                  if(str == "main"){
-                     cout << "----------------MAIN MATCHED ----------------\n";
+                     debugFile.open("debug_file.txt",std::ios_base::app);
+                     debugFile << "----------------MAIN MATCHED ----------------\n";                     
+                     debugFile.close();
                      advance();
                      if(match(LP)){ 
                             advance();
@@ -87,7 +102,9 @@ bool prog(){
                      }
                  }
                  else {
-                     cout << "culprit----------------------- \n";
+                     debugFile.open("debug_file.txt",std::ios_base::app);
+                     debugFile << "culprit----------------------- \n";                     
+                     debugFile.close();
                      if(!normal_function()) return false;
                  }
             }
@@ -102,7 +119,9 @@ bool prog(){
                     if(match(COLON)){
                         advance();
                         string name_str = getID();
-                        cout << "name_str = " << name_str << endl;
+                        debugFile.open("debug_file.txt",std::ios_base::app);
+                        debugFile << "name_str = " << name_str << endl;                        
+                        debugFile.close();
                         if(name_str == id){
                             advance();
                             if(match(LP)){
@@ -155,20 +174,33 @@ bool prog(){
 
         }
     }
-    cout<<"Coming out of prog"<<endl;
-    cout<<"Number of Class Definitions: "<<cntClass<<endl;
-    cout<<"Number of Inherited Class Definitions: "<<cntIClass<<endl;
-    cout<<"Number of Object Declarations: "<<cntObject<<endl;
-    cout<<"Number of Constructors: "<<cntConstructor<<endl;
-    cout<<"Number of Operator Overloaded Functions: "<<cntOverload<<endl;
+    debugFile.open("debug_file.txt",std::ios_base::app);
+    debugFile<<"Coming out of prog"<<endl;    
+    outputFile.open("output_file.txt");
+    debugFile<<"Number of Class Definitions: "<<cntClass<<endl;    
+    debugFile<<"Number of Inherited Class Definitions: "<<cntIClass<<endl;    
+    debugFile<<"Number of Object Declarations: "<<cntObject<<endl;    
+    debugFile<<"Number of Constructors: "<<cntConstructor<<endl;    
+    debugFile<<"Number of Operator Overloaded Functions: "<<cntOverload<<endl;    
+    outputFile<<"Number of Class Definitions: "<<cntClass<<endl;    
+    outputFile<<"Number of Inherited Class Definitions: "<<cntIClass<<endl;    
+    outputFile<<"Number of Object Declarations: "<<cntObject<<endl;    
+    outputFile<<"Number of Constructors: "<<cntConstructor<<endl;    
+    outputFile<<"Number of Operator Overloaded Functions: "<<cntOverload<<endl; 
+    outputFile.close();
+    debugFile.close();
     return true;
 }
 
 bool object_def(string id)
 {
-    cout<<"Entering object_def"<<endl;
+    debugFile.open("debug_file.txt",std::ios_base::app);
+    debugFile<<"Entering object_def"<<endl;    
+    debugFile.close();
     inc(cntObject , "cntobject" ); 
-    cout << "getID() IN object def is " << getID() << endl;
+    debugFile.open("debug_file.txt",std::ios_base::app);
+    debugFile << "getID() IN object def is " << getID() << endl;    
+    debugFile.close();
 
     if(match(NUM_OR_ID))
     {
@@ -180,14 +212,18 @@ bool object_def(string id)
         fprintf( stderr, "%d: Specify the object name\n", yylineno );
         return false;
     } 
-    cout<<"Coming out of object_def"<<endl;
+    debugFile.open("debug_file.txt",std::ios_base::app);
+    debugFile<<"Coming out of object_def"<<endl;    
+    debugFile.close();
     return true;
 
 }
 
 bool more_def(string id)
 {
-    cout<<"Entering more_def"<<endl;
+    debugFile.open("debug_file.txt",std::ios_base::app);
+    debugFile<<"Entering more_def"<<endl;    
+    debugFile.close();
     if(match(SEMI))
     {
         advance();
@@ -211,14 +247,18 @@ bool more_def(string id)
         fprintf( stderr, "%d: Unexpected ending of object declaration\n", yylineno );
         return false;
     } 
-    cout<<"Coming out of more_def"<<endl;
+    debugFile.open("debug_file.txt",std::ios_base::app);
+    debugFile<<"Coming out of more_def"<<endl;    
+    debugFile.close();
     return true;
    
 }
 
 bool ending(string id)
 {
-    cout<<"Entering ending"<<endl;
+    debugFile.open("debug_file.txt",std::ios_base::app);
+    debugFile<<"Entering ending"<<endl;    
+    debugFile.close();
     if(match(EQUAL))
     {
         advance();
@@ -280,16 +320,24 @@ bool ending(string id)
             return true;
         }
     }
-    cout<<"Coming out of ending"<<endl;
+    debugFile.open("debug_file.txt",std::ios_base::app);
+    debugFile<<"Coming out of ending"<<endl;    
+    debugFile.close();
     return true;
 }
 
 bool prog2(){
-    cout<<"Entering prog2"<<endl;
+    debugFile.open("debug_file.txt",std::ios_base::app);
+    debugFile<<"Entering prog2"<<endl;    
+    debugFile.close();
     string id = getID();
-    cout << " class name **********************************************************************\n";
-    for(auto x : class_names) cout << x << " ";
-    cout << '\n';
+    debugFile.open("debug_file.txt",std::ios_base::app);
+    debugFile << " class name **********************************************************************\n";    
+    debugFile.close();
+    // for(auto x : classbugFile ("debug_file.txt");
+    // debugFile.open("debug_file.txt",std::ios_base::app);
+    // debugFilet << x << " ";   
+    // debugFile.close();
     if(match(CLASS))
     {
         advance();
@@ -299,34 +347,44 @@ bool prog2(){
     else if(match(NUM_OR_ID))
     {
         if(!(class_names.count(id))){
-            cout<<"Undeclared class name"<<endl;
+            debugFile.open("debug_file.txt",std::ios_base::app);
+            debugFile<<"Undeclared class name"<<endl;            
+            debugFile.close();
             return false;
         }
         advance();
         if(!object_def(id)) return false;
     }
-    cout<<"Coming out of prog2"<<endl;
+    debugFile.open("debug_file.txt",std::ios_base::app);
+    debugFile<<"Coming out of prog2"<<endl;    
+    debugFile.close();
     return true;
 }
 
 //to get the token from yytext
 string getID()
 {
-    cout<<"Entering getID"<<endl;
+    debugFile.open("debug_file.txt",std::ios_base::app);
+    debugFile<<"Entering getID"<<endl;    
+    debugFile.close();
     char* temp=(char*)malloc(sizeof(char)*(yyleng+1));
     for(int i=0;i<yyleng;i++){
         *(temp+i)=*(yytext+i);
     }
     *(temp+yyleng)='\0';
     string id(temp);
-    cout<<"id : "<<id<<endl;
+    debugFile.open("debug_file.txt",std::ios_base::app);
+    debugFile<<"id : "<<id<<endl;    
+    debugFile.close();
     return id;
 }
 
 //classDef -> id inherited {class_stmt_list};
 bool classDef()
 {
-    cout<<"Entering classDef"<<endl;
+    debugFile.open("debug_file.txt",std::ios_base::app);
+    debugFile<<"Entering classDef"<<endl;    
+    debugFile.close();
     inc(cntClass , "cntclass");
     // advance();
     if(match(NUM_OR_ID))
@@ -364,41 +422,58 @@ bool classDef()
         fprintf( stderr, "%d: Specify the class name\n", yylineno );
         return false;
     } 
-    cout<<"Coming out of classDef"<<endl;
+    debugFile.open("debug_file.txt",std::ios_base::app);
+    debugFile<<"Coming out of classDef"<<endl;    
+    debugFile.close();
     return true;
 }
 
 //classDef -> epsilon | class_stmt_list(id)
 bool class_stmt_list(string id)
 {
-    cout<<"Entering class_stmt_list"<<endl;
+    debugFile.open("debug_file.txt",std::ios_base::app);
+    debugFile<<"Entering class_stmt_list"<<endl;    
+    debugFile.close();
     if(!class_stmt(id)) return false;
     if(!class_stmt_list_(id)) return false;
-    cout<<"Coming out of class_stmt_list"<<endl;
+    debugFile.open("debug_file.txt",std::ios_base::app);
+    debugFile<<"Coming out of class_stmt_list"<<endl;    
+    debugFile.close();
     return true;
 }
 
 
 bool  class_stmt_list_(string id)
 {
-    cout<<"Entering class_stmt_list_"<<endl;
+    debugFile.open("debug_file.txt",std::ios_base::app);
+    debugFile<<"Entering class_stmt_list_"<<endl;    
+    debugFile.close();
     string curid = getID();
-    cout <<" curid in class stmt list : " << curid << '\n';
+    debugFile.open("debug_file.txt",std::ios_base::app);
+    debugFile <<" curid in class stmt list : " << curid << '\n';    
+    debugFile.close();
     if(curid != "}")
     {
         if(!class_stmt(id)) return false;
         if(!class_stmt_list_(id)) return false;
     }
-    cout<<"Coming out of class_stmt_list_"<<endl;
+    debugFile.open("debug_file.txt",std::ios_base::app);
+    debugFile<<"Coming out of class_stmt_list_"<<endl;    
+    debugFile.close();
     return true;
 }
 
 
 bool class_stmt(string id)
 {
-    cout<<"Entering class_stmt"<<endl;
+    debugFile.open("debug_file.txt",std::ios_base::app);
+    debugFile<<"Entering class_stmt"<<endl;    
+    debugFile.close();
     string curID = getID();
-    // cout<<"id passed in class_stmt********************************************"<<id<<endl;
+    // ofstream debugFt");
+    debugFile.open("debug_file.txt",std::ios_base::app);
+    debugFile<<"id passed in class_stmt********************************************"<<id<<endl;    
+    debugFile.close();
 
     if(curID == id)
     {
@@ -411,44 +486,60 @@ bool class_stmt(string id)
         // advance();
         if(!prog2())return false;
     }
-    cout<<"Coming out of class_stmt"<<endl;
+    debugFile.open("debug_file.txt",std::ios_base::app);
+    debugFile<<"Coming out of class_stmt"<<endl;    
+    debugFile.close();
     return true;
 
 }
 
 bool nextFUNC(string id)
 {
-    cout<<"Entering nextFunc"<<endl;
+    debugFile.open("debug_file.txt",std::ios_base::app);
+    debugFile<<"Entering nextFunc"<<endl;    
+    debugFile.close();
     string curID = getID();
     if(match(LP))
     {
         advance();
         if(!constructor()) return false;
-        cout<<"Coming out of nextFunc"<<endl;
+        debugFile.open("debug_file.txt",std::ios_base::app);
+        debugFile<<"Coming out of nextFunc"<<endl;        
+        debugFile.close();
         return true;
     }
     else if(curID == "operator")
     {
         advance();
         if(!operator_overload(id)) return false;
-        cout<<"Coming out of nextFunc"<<endl;
+        debugFile.open("debug_file.txt",std::ios_base::app);
+        debugFile<<"Coming out of nextFunc"<<endl;        
+        debugFile.close();
         return true;
     }else {
         if(!normal_function()) return false;
-        cout<<"Coming out of nextFunc"<<endl;
+        debugFile.open("debug_file.txt",std::ios_base::app);
+        debugFile<<"Coming out of nextFunc"<<endl;        
+        debugFile.close();
         return true;
     }
 
-    cout<<"Coming out of nextFunc (nextFunc failed)"<<endl;
+    debugFile.open("debug_file.txt",std::ios_base::app);
+    debugFile<<"Coming out of nextFunc (nextFunc failed)"<<endl;    
+    debugFile.close();
     return false;
 }
 
 bool normal_function(){
-    cout<<"Entering normal_function"<<endl;
+    debugFile.open("debug_file.txt",std::ios_base::app);
+    debugFile<<"Entering normal_function"<<endl;    
+    debugFile.close();
     if(match(NUM_OR_ID))
     {
         advance();
-        cout << "id is " << getID() << endl;
+        debugFile.open("debug_file.txt",std::ios_base::app);
+        debugFile << "id is " << getID() << endl;        
+        debugFile.close();
         if(match(LP)){
             advance();
             if(!parameter_list()) return false;
@@ -489,7 +580,9 @@ bool normal_function(){
 
 bool constructor()
 {
-    cout<<"Entering constructor"<<endl;
+    debugFile.open("debug_file.txt",std::ios_base::app);
+    debugFile<<"Entering constructor"<<endl;    
+    debugFile.close();
     inc(cntConstructor , "cntconstructor");
 
     if(!parameter_list()) return false;
@@ -520,7 +613,9 @@ bool constructor()
         return false;
     } 
 
-cout<<"Coming out of constructor"<<endl;
+debugFile.open("debug_file.txt",std::ios_base::app);
+debugFile<<"Coming out of constructor"<<endl;
+debugFile.close();
     return true;
     
 
@@ -528,7 +623,9 @@ cout<<"Coming out of constructor"<<endl;
 
 bool parameter_list()
 {
-    cout<<"Entering parameter_list"<<endl;
+    debugFile.open("debug_file.txt",std::ios_base::app);
+    debugFile<<"Entering parameter_list"<<endl;    
+    debugFile.close();
     if(match(DATA_TYPE))
     {
         advance();
@@ -542,12 +639,16 @@ bool parameter_list()
             return false;
         } 
     }
-    cout<<"Coming out of parameter_list"<<endl;
+    debugFile.open("debug_file.txt",std::ios_base::app);
+    debugFile<<"Coming out of parameter_list"<<endl;    
+    debugFile.close();
     return true;
 }
 
 bool opt_parameter(){
-    cout<<"Entering opt_parameter"<<endl;
+    debugFile.open("debug_file.txt",std::ios_base::app);
+    debugFile<<"Entering opt_parameter"<<endl;    
+    debugFile.close();
     if(match(COMMA))
     {
         advance();
@@ -569,15 +670,21 @@ bool opt_parameter(){
             return false;
         } 
     }
-    cout<<"Coming out of opt_parameter"<<endl;
+    debugFile.open("debug_file.txt",std::ios_base::app);
+    debugFile<<"Coming out of opt_parameter"<<endl;    
+    debugFile.close();
     return true;
 }
 
 bool stmt_list()
 {
-    cout<<"Entering stmt_list"<<endl;
+    debugFile.open("debug_file.txt",std::ios_base::app);
+    debugFile<<"Entering stmt_list"<<endl;    
+    debugFile.close();
     if(match(CRP)){
-        cout << "Coming out of stmt_list" << endl;
+        debugFile.open("debug_file.txt",std::ios_base::app);
+        debugFile << "Coming out of stmt_list" << endl;        
+        debugFile.close();
         return true;
     }
 
@@ -610,12 +717,16 @@ bool stmt_list()
         id = getID();
     }
 
-    cout << "Coming out of stmt_list" << endl;
+    debugFile.open("debug_file.txt",std::ios_base::app);
+    debugFile << "Coming out of stmt_list" << endl;    
+    debugFile.close();
     return true;
 }
 
 bool is_overloaded_operator(){
-    cout<<"Entering is_overload_operator"<<endl;
+    debugFile.open("debug_file.txt",std::ios_base::app);
+    debugFile<<"Entering is_overload_operator"<<endl;    
+    debugFile.close();
     if(match(PLUS)|| match(MINUS) || match(MUL) || match(DIV) || match(LESS )|| match(COLON) || match(COMMA) || match(MORE )|| match(EQUAL) || match(ASSIGN))
     {
         return true;
@@ -625,7 +736,9 @@ bool is_overloaded_operator(){
 
 bool operator_overload(string id)
 {
-    cout<<"Entering operator_overload"<<endl;
+    debugFile.open("debug_file.txt",std::ios_base::app);
+    debugFile<<"Entering operator_overload"<<endl;    
+    debugFile.close();
     inc(cntOverload , "cntOverload");
     if(is_overloaded_operator()){
         advance();
@@ -679,13 +792,17 @@ bool operator_overload(string id)
         return false;
     } 
 
-    cout<<"Coming out of operator_overload"<<endl;
+    debugFile.open("debug_file.txt",std::ios_base::app);
+    debugFile<<"Coming out of operator_overload"<<endl;    
+    debugFile.close();
     return true;
 }
 
 bool inherited()
 {
-    cout<<"Entering inherited"<<endl;
+    debugFile.open("debug_file.txt",std::ios_base::app);
+    debugFile<<"Entering inherited"<<endl;    
+    debugFile.close();
     if(match(COLON))
     {
         inc(cntIClass , "cntIclass");
@@ -711,13 +828,17 @@ bool inherited()
         } 
     }
 
-cout<<"Coming out of inherited"<<endl;
+debugFile.open("debug_file.txt",std::ios_base::app);
+debugFile<<"Coming out of inherited"<<endl;
+debugFile.close();
     return true;
 }
 
 bool multiple_inherited()
 {
-    cout<<"Entering multiple_inherited"<<endl;
+    debugFile.open("debug_file.txt",std::ios_base::app);
+    debugFile<<"Entering multiple_inherited"<<endl;    
+    debugFile.close();
     if(match(COMMA))
     {
         advance();
@@ -741,12 +862,16 @@ bool multiple_inherited()
             return false;
         } 
     }
-    cout<<"Coming out of multiple_inherited"<<endl;
+    debugFile.open("debug_file.txt",std::ios_base::app);
+    debugFile<<"Coming out of multiple_inherited"<<endl;    
+    debugFile.close();
     return true;
 }
 
 void perform_lexical_analysis(){
-    cout<<"Entering lexical_analyse"<<endl;
+    debugFile.open("debug_file.txt",std::ios_base::app);
+    debugFile<<"Entering lexical_analyse"<<endl;    
+    debugFile.close();
     lexically_analyse();
 }
 

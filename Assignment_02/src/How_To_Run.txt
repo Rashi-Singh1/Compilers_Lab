@@ -2,7 +2,7 @@ To run the code for any testcase, follow the steps below :
 
 	1)	Compile the code - 
 		We have made a Makefile for ease of compiling. Running make forms .o files and the executable of the name a.out
-		$ make
+		$ make test N=1
 
 	2)  Write the testcase in a .txt file or use the testcases given in the folder as follows 
 

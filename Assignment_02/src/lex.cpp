@@ -1,6 +1,7 @@
 #include<bits/stdc++.h>
 #include "lex.h"
 #include <iostream>
+#include <fstream>
 #include "hashtable.h"
 
 using namespace std;
@@ -232,12 +233,16 @@ int match(int token){
    return token == Lookahead;
 }
 
+
 void advance(void){
 /* Advance the lookahead to the next
    input symbol.  */
-   cout<<"advance called"<<endl;
+   ofstream debugFile;
+   debugFile.open("debug_file.txt",std::ios_base::app);
+   debugFile<<"advance called"<< endl;  
    string temp(yytext);
-   cout<<temp.substr(yyleng)<<endl;                             
+   debugFile<<temp.substr(yyleng)<<endl;      
+   debugFile.close();
    Lookahead = lex();
    
 

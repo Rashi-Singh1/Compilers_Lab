@@ -1,0 +1,10 @@
+Token Stream : <Token-class, lexeme>
+
+	<kw,"class"><id, 0><op,"{"><id, 0><kw,"operator"><op,"+"><op,"("><id, 0><id, 1><op,")"><op,"{"><op,"}"><id, 0><op,"("><op,")"><op,"{"><op,"}"><kw,"class"><id, 2><op,"{"><op,"}"><semi,";"><id, 2><id, 3><op,"("><op,")"><semi,";"><op,"}"><semi,";">
+
+Symbol Table : 
+<Token_id, lexeme>
+	0, Tree
+	1, a
+	2, Hash
+	3, hash
