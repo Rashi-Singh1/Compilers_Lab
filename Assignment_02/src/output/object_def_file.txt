@@ -1,3 +1,0 @@
-34        tree obj;
-35        stack obj2;
-37        subtree xyz;
