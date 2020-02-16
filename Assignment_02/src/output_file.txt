@@ -1,7 +1,0 @@
-
-Number of Class Definitions: 3
-Number of Inherited Class Definitions: 1
-Number of Object Declarations: 3
-Number of Constructors: 3
-Number of Operator Overloaded Functions: 2
-
