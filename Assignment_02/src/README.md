@@ -6,7 +6,7 @@ $ make
 ```
 Executable (a.out) and object files are created.
 
-### 1. Run test cases for Assignment 02
+### 2. Run test cases for Assignment 02
 There are 13 tests in ./tests directory, more can be added and run.
 ```
 $ make test N=<test number>
@@ -14,12 +14,12 @@ $ make test N=13 	# To run ./tests/test13
 ```
 Output is stored in multiple files in output/ directory.
 
-### 1. (optional) Delete object files and the executable
+### 3. (optional) Delete object files and the executable
 ```
 $ make clean
 ```
 
-### 1. (optional) Run lexer
+### 4. (optional) Run lexer
 ```
 $ make
 $ ./a.out < ./tests/test10		# To run lexer on ./tests/test10
