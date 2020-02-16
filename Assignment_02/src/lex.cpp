@@ -238,7 +238,7 @@ void advance(void){
 /* Advance the lookahead to the next
    input symbol.  */
    ofstream debugFile;
-   debugFile.open("debug_file.txt",std::ios_base::app);
+   debugFile.open("output/debug_file.txt",std::ios_base::app);
    debugFile<<"advance called"<< endl;  
    string temp(yytext);
    debugFile<<temp.substr(yyleng)<<endl;      

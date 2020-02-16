@@ -15,12 +15,13 @@ test: all
 	./a.out $(N) code_gen < ./tests/test$(N)
 	@touch output/debug_file.txt
 	@touch output/output_file.txt
-	@touch output/check output_file.txt
+	@touch output/current_test_case.txt
 	@touch output/class_def_file.txt
 	@touch output/constructor_def_file.txt
 	@touch output/int_class_def_file.txt
 	@touch output/object_def_file.txt
 	@touch output/op_overload_file.txt
+	@cat ./tests/test$(N) >> output/current_test_case.txt
 	@cat ./tests/test$(N) >> output/debug_file.txt
 	@cat ./tests/test$(N) >> output/output_file.txt
 	@echo "Please go to the output directory and check output_file.txt 		for a short summary"

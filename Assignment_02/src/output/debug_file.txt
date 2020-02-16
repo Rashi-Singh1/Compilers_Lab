@@ -1,0 +1,1110 @@
+Entering prog
+advance called
+
+Entering getID
+id : class
+Entering prog2
+Entering getID
+id : class
+ class name **********************************************************************
+advance called
+ stack{
+
+Entering classDef
+Incremented cntclass to 1
+Entering getID
+id : stack
+advance called
+{
+
+Entering inherited
+Coming out of inherited
+advance called
+
+
+Entering class_stmt_list
+Entering class_stmt
+Entering getID
+id : stack
+id passed in class_stmt********************************************stack
+advance called
+(int a , char c , double x){}
+
+Entering nextFunc
+Entering getID
+id : (
+advance called
+int a , char c , double x){}
+
+Entering constructor
+Incremented cntconstructor to 1
+Entering parameter_list
+advance called
+ a , char c , double x){}
+
+advance called
+ , char c , double x){}
+
+Entering opt_parameter
+advance called
+ char c , double x){}
+
+advance called
+ c , double x){}
+
+advance called
+ , double x){}
+
+Entering opt_parameter
+advance called
+ double x){}
+
+advance called
+ x){}
+
+advance called
+){}
+
+Entering opt_parameter
+Coming out of opt_parameter
+Coming out of opt_parameter
+Coming out of opt_parameter
+Coming out of parameter_list
+advance called
+{}
+
+advance called
+}
+
+Entering stmt_list
+Coming out of stmt_list
+advance called
+
+
+Coming out of constructor
+Coming out of nextFunc
+Coming out of class_stmt
+Entering class_stmt_list_
+Entering getID
+id : stack
+ curid in class stmt list : stack
+Entering class_stmt
+Entering getID
+id : stack
+id passed in class_stmt********************************************stack
+advance called
+ operator *(stack x){
+
+Entering nextFunc
+Entering getID
+id : operator
+advance called
+ *(stack x){
+
+Entering operator_overload
+Incremented cntOverload to 1
+Entering is_overload_operator
+advance called
+(stack x){
+
+advance called
+stack x){
+
+Entering getID
+id : stack
+advance called
+ x){
+
+advance called
+){
+
+advance called
+{
+
+advance called
+
+
+Entering stmt_list
+Entering getID
+id : return
+advance called
+ x  x;
+
+Entering getID
+id : x
+advance called
+  x;
+
+Entering getID
+id : x
+advance called
+;
+
+Entering getID
+id : ;
+advance called
+
+
+Entering getID
+id : }
+Coming out of stmt_list
+advance called
+
+
+Coming out of operator_overload
+Coming out of nextFunc
+Coming out of class_stmt
+Entering class_stmt_list_
+Entering getID
+id : int
+ curid in class stmt list : int
+Entering class_stmt
+Entering getID
+id : int
+id passed in class_stmt********************************************stack
+advance called
+ whatisthis(int normal , int hello , int abnormal){
+
+Entering normal_function
+advance called
+(int normal , int hello , int abnormal){
+
+id is id : (
+advance called
+int normal , int hello , int abnormal){
+
+Entering parameter_list
+advance called
+ normal , int hello , int abnormal){
+
+advance called
+ , int hello , int abnormal){
+
+Entering opt_parameter
+advance called
+ int hello , int abnormal){
+
+advance called
+ hello , int abnormal){
+
+advance called
+ , int abnormal){
+
+Entering opt_parameter
+advance called
+ int abnormal){
+
+advance called
+ abnormal){
+
+advance called
+){
+
+Entering opt_parameter
+Coming out of opt_parameter
+Coming out of opt_parameter
+Coming out of opt_parameter
+Coming out of parameter_list
+advance called
+{
+
+advance called
+
+
+Entering stmt_list
+Entering getID
+id : return
+advance called
+ x;
+
+Entering getID
+id : x
+advance called
+;
+
+Entering getID
+id : ;
+advance called
+
+
+Entering getID
+id : }
+Coming out of stmt_list
+advance called
+
+
+Coming out of class_stmt
+Entering class_stmt_list_
+Entering getID
+id : }
+ curid in class stmt list : }
+Coming out of class_stmt_list_
+Coming out of class_stmt_list_
+Coming out of class_stmt_list_
+Coming out of class_stmt_list
+advance called
+;
+
+advance called
+
+
+Coming out of classDef
+Coming out of prog2
+Entering getID
+id : class
+Entering prog2
+Entering getID
+id : class
+ class name **********************************************************************
+advance called
+ tree{
+
+Entering classDef
+Incremented cntclass to 2
+Entering getID
+id : tree
+advance called
+{
+
+Entering inherited
+Coming out of inherited
+advance called
+
+
+Entering class_stmt_list
+Entering class_stmt
+Entering getID
+id : }
+id passed in class_stmt********************************************tree
+Entering prog2
+Entering getID
+id : }
+ class name **********************************************************************
+Coming out of prog2
+Coming out of class_stmt
+Entering class_stmt_list_
+Entering getID
+id : }
+ curid in class stmt list : }
+Coming out of class_stmt_list_
+Coming out of class_stmt_list
+advance called
+;
+
+advance called
+
+
+Coming out of classDef
+Coming out of prog2
+Entering getID
+id : tree
+advance called
+:: tree(int a , int b , int c){
+
+advance called
+: tree(int a , int b , int c){
+
+advance called
+ tree(int a , int b , int c){
+
+Entering getID
+id : tree
+name_str = tree
+advance called
+(int a , int b , int c){
+
+advance called
+int a , int b , int c){
+
+Entering constructor
+Incremented cntconstructor to 2
+Entering parameter_list
+advance called
+ a , int b , int c){
+
+advance called
+ , int b , int c){
+
+Entering opt_parameter
+advance called
+ int b , int c){
+
+advance called
+ b , int c){
+
+advance called
+ , int c){
+
+Entering opt_parameter
+advance called
+ int c){
+
+advance called
+ c){
+
+advance called
+){
+
+Entering opt_parameter
+Coming out of opt_parameter
+Coming out of opt_parameter
+Coming out of opt_parameter
+Coming out of parameter_list
+advance called
+{
+
+advance called
+
+
+Entering stmt_list
+Entering getID
+id : return
+advance called
+ a + 1 = a ;
+
+Entering getID
+id : a
+advance called
+ + 1 = a ;
+
+Entering getID
+id : +
+advance called
+ 1 = a ;
+
+Entering getID
+id : 1
+advance called
+ = a ;
+
+Entering getID
+id : =
+advance called
+ a ;
+
+Entering getID
+id : a
+advance called
+ ;
+
+Entering getID
+id : ;
+advance called
+
+
+Entering getID
+id : }
+Coming out of stmt_list
+advance called
+
+
+Coming out of constructor
+Entering getID
+id : double
+advance called
+ tree:: normal(int a , int b, int c){
+
+Entering getID
+id : tree
+advance called
+:: normal(int a , int b, int c){
+
+advance called
+: normal(int a , int b, int c){
+
+advance called
+ normal(int a , int b, int c){
+
+normal _ function -----------------
+Entering normal_function
+advance called
+(int a , int b, int c){
+
+id is id : (
+advance called
+int a , int b, int c){
+
+Entering parameter_list
+advance called
+ a , int b, int c){
+
+advance called
+ , int b, int c){
+
+Entering opt_parameter
+advance called
+ int b, int c){
+
+advance called
+ b, int c){
+
+advance called
+, int c){
+
+Entering opt_parameter
+advance called
+ int c){
+
+advance called
+ c){
+
+advance called
+){
+
+Entering opt_parameter
+Coming out of opt_parameter
+Coming out of opt_parameter
+Coming out of opt_parameter
+Coming out of parameter_list
+advance called
+{
+
+advance called
+
+
+Entering stmt_list
+Entering getID
+id : return
+advance called
+ a + bc;
+
+Entering getID
+id : a
+advance called
+ + bc;
+
+Entering getID
+id : +
+advance called
+ bc;
+
+Entering getID
+id : bc
+advance called
+;
+
+Entering getID
+id : ;
+advance called
+
+
+Entering getID
+id : }
+Coming out of stmt_list
+advance called
+
+
+Entering getID
+id : tree
+advance called
+ tree::operator -(tree x){
+
+Entering getID
+id : tree
+advance called
+::operator -(tree x){
+
+advance called
+:operator -(tree x){
+
+advance called
+operator -(tree x){
+
+Entering getID
+id : operator
+advance called
+ -(tree x){
+
+Entering operator_overload
+Incremented cntOverload to 2
+Entering is_overload_operator
+advance called
+(tree x){
+
+advance called
+tree x){
+
+Entering getID
+id : tree
+advance called
+ x){
+
+advance called
+){
+
+advance called
+{
+
+advance called
+
+
+Entering stmt_list
+Entering getID
+id : if
+advance called
+(x == 1) return 1;
+
+Entering getID
+id : (
+advance called
+x == 1) return 1;
+
+Entering getID
+id : x
+advance called
+ == 1) return 1;
+
+Entering getID
+id : =
+advance called
+= 1) return 1;
+
+Entering getID
+id : =
+advance called
+ 1) return 1;
+
+Entering getID
+id : 1
+advance called
+) return 1;
+
+Entering getID
+id : )
+advance called
+ return 1;
+
+Entering getID
+id : return
+advance called
+ 1;
+
+Entering getID
+id : 1
+advance called
+;
+
+Entering getID
+id : ;
+advance called
+
+
+Entering getID
+id : class
+Entering prog2
+Entering getID
+id : class
+ class name **********************************************************************
+advance called
+ subtree:public stack{
+
+Entering classDef
+Incremented cntclass to 3
+Entering getID
+id : subtree
+advance called
+:public stack{
+
+Entering inherited
+Incremented cntIclass to 1
+advance called
+public stack{
+
+advance called
+ stack{
+
+Entering getID
+id : stack
+advance called
+{
+
+Entering multiple_inherited
+Coming out of multiple_inherited
+Coming out of inherited
+advance called
+
+
+Entering class_stmt_list
+Entering class_stmt
+Entering getID
+id : }
+id passed in class_stmt********************************************subtree
+Entering prog2
+Entering getID
+id : }
+ class name **********************************************************************
+Coming out of prog2
+Coming out of class_stmt
+Entering class_stmt_list_
+Entering getID
+id : }
+ curid in class stmt list : }
+Coming out of class_stmt_list_
+Coming out of class_stmt_list
+advance called
+;
+
+advance called
+
+
+Coming out of classDef
+Coming out of prog2
+Entering getID
+id : }
+Coming out of stmt_list
+advance called
+
+
+Coming out of operator_overload
+Entering getID
+id : subtree
+advance called
+:: subtree(int a , int b , int c){
+
+advance called
+: subtree(int a , int b , int c){
+
+advance called
+ subtree(int a , int b , int c){
+
+Entering getID
+id : subtree
+name_str = subtree
+advance called
+(int a , int b , int c){
+
+advance called
+int a , int b , int c){
+
+Entering constructor
+Incremented cntconstructor to 3
+Entering parameter_list
+advance called
+ a , int b , int c){
+
+advance called
+ , int b , int c){
+
+Entering opt_parameter
+advance called
+ int b , int c){
+
+advance called
+ b , int c){
+
+advance called
+ , int c){
+
+Entering opt_parameter
+advance called
+ int c){
+
+advance called
+ c){
+
+advance called
+){
+
+Entering opt_parameter
+Coming out of opt_parameter
+Coming out of opt_parameter
+Coming out of opt_parameter
+Coming out of parameter_list
+advance called
+{
+
+advance called
+
+
+Entering stmt_list
+Coming out of stmt_list
+advance called
+
+
+Coming out of constructor
+Entering getID
+id : int
+advance called
+ main(){
+
+Entering getID
+id : main
+Entering getID
+id : main
+----------------MAIN MATCHED ----------------
+advance called
+(){
+
+advance called
+){
+
+Entering parameter_list
+Coming out of parameter_list
+advance called
+{
+
+advance called
+
+
+Entering stmt_list
+Entering getID
+id : if
+advance called
+(x == 1) return 1;
+
+Entering getID
+id : (
+advance called
+x == 1) return 1;
+
+Entering getID
+id : x
+advance called
+ == 1) return 1;
+
+Entering getID
+id : =
+advance called
+= 1) return 1;
+
+Entering getID
+id : =
+advance called
+ 1) return 1;
+
+Entering getID
+id : 1
+advance called
+) return 1;
+
+Entering getID
+id : )
+advance called
+ return 1;
+
+Entering getID
+id : return
+advance called
+ 1;
+
+Entering getID
+id : 1
+advance called
+;
+
+Entering getID
+id : ;
+advance called
+
+
+Entering getID
+id : else
+advance called
+ return 0;
+
+Entering getID
+id : return
+advance called
+ 0;
+
+Entering getID
+id : 0
+advance called
+;
+
+Entering getID
+id : ;
+advance called
+
+
+Entering getID
+id : tree
+Entering prog2
+Entering getID
+id : tree
+ class name **********************************************************************
+advance called
+ obj;
+
+Entering object_def
+Incremented cntobject to 1
+getID() IN object def is id : obj
+advance called
+;
+
+Entering ending
+Coming out of ending
+Entering more_def
+advance called
+
+
+Coming out of more_def
+Coming out of object_def
+Coming out of prog2
+Entering getID
+id : stack
+Entering prog2
+Entering getID
+id : stack
+ class name **********************************************************************
+advance called
+ obj2;
+
+Entering object_def
+Incremented cntobject to 2
+getID() IN object def is id : obj2
+advance called
+;
+
+Entering ending
+Coming out of ending
+Entering more_def
+advance called
+
+
+Coming out of more_def
+Coming out of object_def
+Coming out of prog2
+Entering getID
+id : subtree
+Entering prog2
+Entering getID
+id : subtree
+ class name **********************************************************************
+advance called
+ xyz;
+
+Entering object_def
+Incremented cntobject to 3
+getID() IN object def is id : xyz
+advance called
+;
+
+Entering ending
+Coming out of ending
+Entering more_def
+advance called
+
+
+Coming out of more_def
+Coming out of object_def
+Coming out of prog2
+Entering getID
+id : }
+Coming out of stmt_list
+advance called
+
+
+Entering getID
+id : int
+advance called
+ stack:: normalFunct(int a , int b){
+
+Entering getID
+id : stack
+advance called
+:: normalFunct(int a , int b){
+
+advance called
+: normalFunct(int a , int b){
+
+advance called
+ normalFunct(int a , int b){
+
+normal _ function -----------------
+Entering normal_function
+advance called
+(int a , int b){
+
+id is id : (
+advance called
+int a , int b){
+
+Entering parameter_list
+advance called
+ a , int b){
+
+advance called
+ , int b){
+
+Entering opt_parameter
+advance called
+ int b){
+
+advance called
+ b){
+
+advance called
+){
+
+Entering opt_parameter
+Coming out of opt_parameter
+Coming out of opt_parameter
+Coming out of parameter_list
+advance called
+{
+
+advance called
+
+
+Entering stmt_list
+Entering getID
+id : return
+advance called
+ a + b +  c;
+
+Entering getID
+id : a
+advance called
+ + b +  c;
+
+Entering getID
+id : +
+advance called
+ b +  c;
+
+Entering getID
+id : b
+advance called
+ +  c;
+
+Entering getID
+id : +
+advance called
+  c;
+
+Entering getID
+id : c
+advance called
+;
+
+Entering getID
+id : ;
+advance called
+
+
+Entering getID
+id : }
+Coming out of stmt_list
+advance called
+
+
+Entering getID
+id : int
+advance called
+ hellopeople(int a){
+
+Entering getID
+id : hellopeople
+Entering getID
+id : hellopeople
+culprit----------------------- 
+Entering normal_function
+advance called
+(int a){
+
+id is id : (
+advance called
+int a){
+
+Entering parameter_list
+advance called
+ a){
+
+advance called
+){
+
+Entering opt_parameter
+Coming out of opt_parameter
+Coming out of parameter_list
+advance called
+{
+
+advance called
+
+
+Entering stmt_list
+Entering getID
+id : return
+advance called
+ a + b;
+
+Entering getID
+id : a
+advance called
+ + b;
+
+Entering getID
+id : +
+advance called
+ b;
+
+Entering getID
+id : b
+advance called
+;
+
+Entering getID
+id : ;
+advance called
+
+
+Entering getID
+id : }
+Coming out of stmt_list
+advance called
+
+Coming out of prog
+
+Number of Class Definitions: 3
+Number of Inherited Class Definitions: 1
+Number of Object Declarations: 3
+Number of Constructors: 3
+Number of Operator Overloaded Functions: 2
+
+class stack{
+    stack(int a , char c , double x){}
+    stack operator *(stack x){
+        return x  x;
+    }
+    int whatisthis(int normal , int hello , int abnormal){
+         return x;
+    }
+};
+class tree{
+
+};
+tree:: tree(int a , int b , int c){
+     return a + 1 = a ;
+}
+
+double tree:: normal(int a , int b, int c){
+     return a + bc;
+}
+tree tree::operator -(tree x){
+     if(x == 1) return 1;
+     class subtree:public stack{
+
+     };
+}
+subtree:: subtree(int a , int b , int c){
+    
+}
+
+int main(){
+       if(x == 1) return 1;
+       else return 0;
+
+       tree obj;
+       stack obj2;
+
+       subtree xyz;
+}
+
+int stack:: normalFunct(int a , int b){
+     return a + b +  c;
+}
+
+int hellopeople(int a){
+     return a + b;
+}
