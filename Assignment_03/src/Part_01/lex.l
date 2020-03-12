@@ -24,16 +24,23 @@ extern int Lookahead = -1;
 [<]                                                     return LESS;
 [ \n\t]                                                 ;
 "if"                                                    return IF;
+"else"                                                  return ELSE;
+"main"                                                  return MAIN;
 "class"                                                 return CLASS;
 "then"                                                  return THEN;
+"const"                                                 return CONST;
 "while"                                                 return WHILE;
 "do"                                                    return DO;
 (int|char|string|double|float|bool|void)                return DATA_TYPE;
 "begin"                                                 return START;
 "end"                                                   return FIN;
 "operator"                                              return OPERATOR;
+"return"                                                return RETURN;
+::                                                      return SCOPE;
 (private|public|protected)                              return MOD;
-.                                                       return NUM_OR_ID;
+(true|false)                                            return BOOLEAN;
+[A-z][A-z0-9_]*                                         return NUM_OR_ID;
+.                                                       return ERR;
 %%
 
 int yywrap()
@@ -43,8 +50,8 @@ int yywrap()
 
 
 int isKeyWord(int val){
-    if(val == IF || val == THEN || val == WHILE || val == DO || val == START || val == CLASS || val == MOD || val == OPERATOR
-        || val == FIN || val == DATA_TYPE)
+    if(val == IF || val == THEN || val == WHILE || val == DO || val == START || val == CLASS || val == MOD || val == OPERATOR || val == ELSE || val == MAIN || val == RETURN
+        || val == FIN || val == BOOLEAN || val == DATA_TYPE)
         {
             return 1;
         }
@@ -138,21 +145,23 @@ void lexically_analyse(void){
     fprintf(fptr,"Token Stream : <Token-class, lexeme>\n\n\t");
     fclose(fptr);
 
-    int Lookahead = yylex();
+    Lookahead = yylex();
     FILE *fptr2;
 
    // opening file in writing mode
     fptr = fopen("lex_output.txt", "a");
     fptr2 = fopen("token_stream.txt", "a");
     while(Lookahead){
-        if(isSemi(Lookahead) || isConst(Lookahead) || isKeyWord(Lookahead) || isOperator(Lookahead)){
-            // printf("%d %s %d %0.*s\n",Lookahead,yytext,isConst(Lookahead),yyleng,yytext);
-            // fprintf(fptr, "<\"%0.*s\", %s>", yyleng,yytext,token_class(Lookahead));
-            fprintf(fptr, "<%s,\"%0.*s\">",token_class(Lookahead), yyleng,yytext);
-            fprintf(fptr2, "<%s,\"%0.*s\">",token_class(Lookahead), yyleng,yytext);
-        }else if(isIdentifier(Lookahead)){
+        // if(isSemi(Lookahead) || isConst(Lookahead) || isKeyWord(Lookahead) || isOperator(Lookahead)){
+        //     // printf("%d %s %d %0.*s\n",Lookahead,yytext,isConst(Lookahead),yyleng,yytext);
+        //     // fprintf(fptr, "<\"%0.*s\", %s>", yyleng,yytext,token_class(Lookahead));
+        //     fprintf(fptr, "<%s,%s>",token_class(Lookahead),yytext);
+        //     fprintf(fptr2, "<%s,%s>",token_class(Lookahead),yytext);
+        // }else 
+        if(isIdentifier(Lookahead)){
             int idx=lookup(yytext);
             if(idx==-1){
+                printf("%s is being inserted\n",yytext);
                 insert(yytext);
                 idx=lookup(yytext);
             }
@@ -160,8 +169,8 @@ void lexically_analyse(void){
             fprintf(fptr, "<%s, %d>", token_class(Lookahead),idx);
             fprintf(fptr2, "<%s, %d>", token_class(Lookahead),idx);
         }else{
-            fprintf(fptr, "<%s,\"%0.*s\">",token_class(Lookahead), yyleng,yytext);
-            fprintf(fptr2, "<%s,\"%0.*s\">",token_class(Lookahead), yyleng,yytext);
+            fprintf(fptr, "<%s,%s>",token_class(Lookahead),yytext);
+            fprintf(fptr2, "<%s,%s>",token_class(Lookahead),yytext);
         }
         Lookahead = yylex();
     }
@@ -174,6 +183,6 @@ void lexically_analyse(void){
     fclose(fptr);
 
     //print the symbol table
-    //print();
+    print();
 
 }

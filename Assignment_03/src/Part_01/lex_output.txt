@@ -1,3 +1,6 @@
 Token Stream : <Token-class, lexeme>
 
-	<semi,";"><op,">"><op,"("><op,")"><op,")"><op,")"><kw,"if"><kw,"int"><kw,"class"><op,"{"><kw,"while"><kw,"do"><kw,"void"><op,"}"><op,"=="><op,"="><op,"=="><op,"=">
+	<kw,class><id, 0><op,{><id, 0><op,(><kw,char><id, 1><op,,><kw,int><id, 2><op,,><kw,bool><id, 3><op,)><op,{><op,}><kw,class><id, 4><op,:><kw,public><id, 0><op,,><kw,private><id, 0><op,,><kw,protected><id, 0><op,{><kw,class><id, 5><op,{><op,}><semi,;><id, 4><op,(><kw,int><id, 6><op,,><kw,char><id, 7><op,,><kw,string><id, 8><op,)><op,{><op,}><op,}><semi,;><id, 4><id, 9><op,=><id, 4><op,(><op,)><semi,;><kw,class><id, 10><op,{><id, 10><op,(><op,)><op,{><op,}><op,}><semi,;><id, 10><id, 11><op,=><id, 10><op,(><op,)><op,,><id, 12><op,(><op,)><op,,><id, 13><op,(><id, 14><op,)><semi,;><op,}><semi,;>
+
+Symbol Table : 
+<Token_id, lexeme>

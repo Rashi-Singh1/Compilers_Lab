@@ -3,9 +3,9 @@
 
 all: a.out
 
-a.out: main.cpp code_gen.cpp name.cpp hashtable.cpp lex.l
+a.out: main.cpp code_gen.cpp name.cpp hashtable2.cpp lex.l
 	flex lex.l
-	g++ -w -g -c main.cpp code_gen.cpp name.cpp hashtable.cpp lex.yy.c
+	g++ -w -g -c main.cpp code_gen.cpp name.cpp hashtable2.cpp lex.yy.c
 	g++ *.o
 
 clean: 

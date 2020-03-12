@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
+#include <iostream>
+using namespace std;
 struct HashNode{
     char* str;
     int idx;
@@ -12,7 +14,9 @@ static int cntt=0;
 
 void insert(char* str){
     struct HashNode x;
-    x.str=str;
+    cout<<str<<" is being inserted in INSERT **********"<<endl<<endl;
+    string temp(str);
+    x.str=temp;
     x.idx=cntt;
     arr[cntt]=x;
     cntt++;
@@ -42,12 +46,14 @@ void print()
 }
 
 int lookup(char* str){
+    cout<<"Lookup of "<<str<<" is happeneing"<<endl;
     for(int i=0;i<cntt;i++){
+        cout<<arr[i].str<<" at index "<<i<<endl;
         if(strcmp(arr[i].str,str)==0){
             // printf("%s %s %d %d\n",arr[i].str,str,arr[i].idx,cntt);
             return arr[i].idx;
         }
-    }
+    }cout<<endl<<endl;
     return -1;
 }
 

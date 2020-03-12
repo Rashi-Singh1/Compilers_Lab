@@ -29,6 +29,10 @@
 #define OPERATOR    27
 #define DATA_TYPE   28
 #define SCOPE       29
+#define ELSE       30
+#define MAIN       31
+#define RETURN       32
+#define BOOLEAN       33
 #define ERR         -50
 
                         

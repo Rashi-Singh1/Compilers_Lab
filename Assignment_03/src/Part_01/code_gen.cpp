@@ -80,7 +80,7 @@ bool prog(string test){
                 }
             } else{
                  string str = getID();
-                 if(str == "main"){
+                 if(match(MAIN)){
                      debugFile.open("output/debug_file.txt",std::ios_base::app);
                      debugFile << "----------------MAIN MATCHED ----------------\n";                     
                      debugFile.close();
@@ -403,6 +403,7 @@ bool classDef()
     if(match(NUM_OR_ID))
     {
         string id = getID();
+        cout<<"in code_gen inserting in class_names "<<id<<endl;
         class_names.insert(id);
         advance();
         if(!inherited()) return false;
