@@ -1,5 +1,5 @@
 %{
-    void yyerror(char *s);
+    void yyerror(const char *s);
     #include <stdio.h>
     #include <iostream>
     #include <stdlib.h>
@@ -71,6 +71,6 @@ EQUI_COND : TABLE DOT ID EQUAL TABLE DOT ID
 int main(void){
     return yyparse();
 }
-void yyerror(char *s){
+void yyerror(const char *s){
     fprintf(stderr , "%s\n",s);
 }
