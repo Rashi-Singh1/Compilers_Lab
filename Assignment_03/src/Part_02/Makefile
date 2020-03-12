@@ -1,4 +1,4 @@
-LINE = ------------------------------------------
+PRINT_LINE = @printf "\n------------------------------------------\n"
 
 .PHONY: all clean test
 .DEFAULT: main
@@ -13,14 +13,14 @@ lex.yy.c: lex.l parser.tab.h++
 	flex lex.l
 
 test: ./tests/test$(N) main
-	@printf "\n$(LINE)\n"
+	$(PRINT_LINE)
 	@printf "test$(N)"
-	@printf "\n$(LINE)\n"
+	$(PRINT_LINE)
 	@cat ./tests/test$(N)
 
-	@printf "\n$(LINE)\n"
+	$(PRINT_LINE)
 	@printf "./main < ./tests/test$(N)"
-	@printf "\n$(LINE)\n"
+	$(PRINT_LINE)
 	@./main < ./tests/test$(N)
 
 clean:
