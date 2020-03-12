@@ -1,0 +1,6 @@
+class Tree{
+	Tree operator + (Tree a){} 
+	Tree(){}
+	class Hash{};
+	Hash hash();
+};

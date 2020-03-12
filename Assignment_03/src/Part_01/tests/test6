@@ -1,0 +1,12 @@
+class hello{
+    hello operator + (hello B){
+        if(a == b){
+            a = a+b;
+            class world{};
+        }else if(c == d){
+            a++;
+            world earth(int a);
+        }
+        else return false;
+    }
+};

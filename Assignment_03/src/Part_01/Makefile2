@@ -1,0 +1,8 @@
+.PHONY=all
+.DEFAULT=all
+
+all: a.out
+
+a.out: lex.l test_lex.cpp
+	flex lex.l
+	g++ lex.yy.c test_lex.cpp -o main

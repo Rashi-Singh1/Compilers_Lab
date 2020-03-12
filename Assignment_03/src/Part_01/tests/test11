@@ -1,0 +1,21 @@
+class world{};
+world::world(){}
+int world::radius(){}
+world world::operator+(world a){}
+world xyz;
+int main(){
+    class Tree{
+        Tree operator -(Tree a){}
+        Tree(){}
+    };
+    if(x == 6){
+        return 0;
+    } else{
+        return true;
+    }
+    Tree tree();
+    class subtree: public Tree{
+
+    };
+    subtree ST = subtree();
+}

@@ -1,0 +1,46 @@
+class stack{
+    stack(int a , char c , double x){}
+    stack operator *(stack x){
+        return x  x;
+    }
+    int whatisthis(int normal , int hello , int abnormal){
+         return x;
+    }
+};
+class tree{
+
+};
+tree:: tree(int a , int b , int c){
+     return a + 1 = a ;
+}
+
+double tree:: normal(int a , int b, int c){
+     return a + bc;
+}
+tree tree::operator -(tree x){
+     if(x == 1) return 1;
+     class subtree:public stack{
+
+     };
+}
+subtree:: subtree(int a , int b , int c){
+    
+}
+
+int main(){
+       if(x == 1) return 1;
+       else return 0;
+
+       tree obj;
+       stack obj2;
+
+       subtree xyz;
+}
+
+int stack:: normalFunct(int a , int b){
+     return a + b +  c;
+}
+
+int hellopeople(int a){
+     return a + b;
+}

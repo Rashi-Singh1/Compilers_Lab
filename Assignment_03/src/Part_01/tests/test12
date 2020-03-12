@@ -1,0 +1,9 @@
+ class Tree{
+    Tree operator -(Tree a){}
+    Tree(){}
+};
+Tree tree();
+class subtree: public Tree{
+
+};
+subtree ST = subtree();
