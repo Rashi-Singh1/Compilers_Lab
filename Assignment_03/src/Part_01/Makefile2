@@ -3,6 +3,6 @@
 
 all: a.out
 
-a.out: lex.l test_lex.cpp
+a.out: lex.l test_lex_2.cpp
 	flex lex.l
-	g++ lex.yy.c test_lex.cpp -o main
+	g++ -g lex.yy.c test_lex_2.cpp -o main

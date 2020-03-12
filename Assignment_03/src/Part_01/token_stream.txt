@@ -1,0 +1,1 @@
+<semi,";"><op,">"><op,"("><op,")"><op,")"><op,")"><kw,"if"><kw,"int"><kw,"class"><op,"{"><kw,"while"><kw,"do"><kw,"void"><op,"}"><op,"=="><op,"="><op,"=="><op,"=">

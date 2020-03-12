@@ -53,3 +53,10 @@ int stack:: normalFunct(int a , int b){
 int hellopeople(int a){
      return a + b;
 }Entering lexical_analyse
+Entering lexical_analyse
+Entering lexical_analyse
+Entering lexical_analyse
+Entering lexical_analyse
+Entering lexical_analyse
+Entering lexical_analyse
+Entering lexical_analyse
