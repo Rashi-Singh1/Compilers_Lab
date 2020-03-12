@@ -9,4 +9,18 @@ Use flex, bison to analyse, execute the following language subset of Relational 
 
 ## Instructions to run
 
-## TODO
+### 1. Compile parser
+```
+$ make
+```
+```main``` executable, ```lex.yy.c``` flex output, ```parser.tab.c++``` and ```parser.tab.h++``` bison outputs are created.
+
+### 2. Run tests
+```
+$ make test N=TEST_NO
+$ make test N=3             # Run test3
+```
+
+## Information about files
+- **lex.l** : Flex input file
+- **parser.y++** : Bison input file
