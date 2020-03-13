@@ -1,5 +1,5 @@
 %{
-     #include "parser.tab.h++"
+     #include "parser.tab.h"
      #define MAX_LEN 1024
 %}
 
@@ -26,7 +26,7 @@
 (?i:PROJECT)                                              { printf("Projection operation\n"); return PROJECT; }
 (?i:CARTESIAN_PRODUCT)                                     { return CARTESIAN_PRODUCT; }
 (?i:EQUI_JOIN)                                             { return EQUI_JOIN; }
-[a-zA-Z][a-zA-Z0-9]*                                    {
+[a-zA-Z][a-zA-Z0-9_]*                                    {
                                                           char *new_str = (char*) malloc(sizeof(char) * MAX_LEN);
                                                           strcpy(new_str , yytext);
                                                           yylval.str = new_str;
