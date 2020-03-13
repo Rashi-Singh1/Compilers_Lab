@@ -170,3 +170,9 @@ class Heap{
 	stack h1 = stack(), h2(),h3(hgdfghadv);
 };
 Entering lexical_analyse
+Entering lexical_analyse
+Entering lexical_analyse
+Entering lexical_analyse
+Entering lexical_analyse
+Entering lexical_analyse
+Entering lexical_analyse

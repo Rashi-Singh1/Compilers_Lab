@@ -1,2 +1,17 @@
 
-<Token_id, lexeme>
+<Token_id	 lexeme>
+	14	 hgdfghadv
+	11	 h1
+	8	 dhdhdh
+	12	 h2
+	9	 set
+	7	 sjdh
+	10	 stack
+	0	 Heap
+	2	 b
+	13	 h3
+	4	 Set
+	6	 abcd
+	1	 a
+	3	 c
+	5	 Animal

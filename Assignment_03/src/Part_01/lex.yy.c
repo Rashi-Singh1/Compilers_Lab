@@ -2090,25 +2090,19 @@ void lexically_analyse(void){
     fptr = fopen("lex_output.txt", "a");
     fptr2 = fopen("token_stream.txt", "a");
     while(Lookahead){
-        // if(isSemi(Lookahead) || isConst(Lookahead) || isKeyWord(Lookahead) || isOperator(Lookahead)){
-        //     // printf("%d %s %d %0.*s\n",Lookahead,yytext,isConst(Lookahead),yyleng,yytext);
-        //     // fprintf(fptr, "<\"%0.*s\", %s>", yyleng,yytext,token_class(Lookahead));
-        //     fprintf(fptr, "<%s,%s>",token_class(Lookahead),yytext);
-        //     fprintf(fptr2, "<%s,%s>",token_class(Lookahead),yytext);
-        // }else 
         if(isIdentifier(Lookahead)){
             int idx=lookup(yytext);
             if(idx==-1){
-                printf("%s is being inserted\n",yytext);
+                // printf("%s is being inserted\n",yytext);
                 insert(yytext);
                 idx=lookup(yytext);
             }
             // printf("%s %d\n",yytext,idx);
-            fprintf(fptr, "<%s, %d>", token_class(Lookahead),idx);
-            fprintf(fptr2, "<%s, %d>", token_class(Lookahead),idx);
+            fprintf(fptr, "<%s,%d>  ", token_class(Lookahead),idx);
+            fprintf(fptr2, "<%s,%d>  ", token_class(Lookahead),idx);
         }else{
-            fprintf(fptr, "<%s,%s>",token_class(Lookahead),yytext);
-            fprintf(fptr2, "<%s,%s>",token_class(Lookahead),yytext);
+            fprintf(fptr, "<%s,%s>  ",token_class(Lookahead),yytext);
+            fprintf(fptr2, "<%s,%s>  ",token_class(Lookahead),yytext);
         }
         Lookahead = yylex();
     }
