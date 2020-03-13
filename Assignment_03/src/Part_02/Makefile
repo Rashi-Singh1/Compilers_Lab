@@ -4,7 +4,7 @@ PRINT_LINE = @printf "\n------------------------------------------\n"
 .DEFAULT: main
 
 main: lex.yy.c parser.tab.c++
-	g++ lex.yy.c parser.tab.c++ -o main
+	g++ -g lex.yy.c parser.tab.c++ -o main
 
 parser.tab.c++ parser.tab.h++: parser.y++
 	bison -d parser.y++
