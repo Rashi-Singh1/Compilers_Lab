@@ -1,2 +1,1 @@
-1  class Tree{
-6 class subtree: public Tree{
+1 class world{};

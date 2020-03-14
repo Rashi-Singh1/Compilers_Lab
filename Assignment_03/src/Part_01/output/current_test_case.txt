@@ -1,9 +1,8 @@
- class Tree{
-    Tree operator -(Tree a){}
-    Tree(){}
-};
-Tree tree();
-class subtree: public Tree{
-
-};
-subtree ST = subtree();
+class world{};
+world::world(){}
+int world::radius(){}
+world world::operator+(world a){}
+world xyz;
+int main(){
+    return 0;
+}

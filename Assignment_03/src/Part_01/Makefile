@@ -11,7 +11,7 @@ a.out: main.cpp code_gen.cpp name.cpp hashtable2.cpp lex.l
 	g++ *.o
 
 clean: 
-	-rm -f *.o a.out token_stream.txt lex_output.txt symbol_table.txt debug_file.txt output_file.txt lex.yy.c
+	-rm -f *.o a.out token_stream.txt lex_output.txt symbol_table.txt debug_file.txt output_file.txt lex.yy.c main
 
 test: a.out
 	-rm -f ./output/*.txt
