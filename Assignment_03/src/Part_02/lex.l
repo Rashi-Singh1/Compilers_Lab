@@ -15,7 +15,12 @@
 ">="                                                    { return MOREEQUAL; }
 "<>"                                                    { return NOTEQUAL; }
 [ \n\t]                                                 ; 
-[0-9]+                                                  { return NUM; }
+[0-9]+                                                  { 
+                                                          char *new_str = (char*) malloc(sizeof(char) * MAX_LEN);
+                                                          strcpy(new_str , yytext);
+                                                          yylval.str = new_str;
+                                                          return NUM; 
+                                                        }
 [']                                                     { return QUOTE; }
 [.]                                                     { return DOT; }
 ;                                                       { return SEMI; }

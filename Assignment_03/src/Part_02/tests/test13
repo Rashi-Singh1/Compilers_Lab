@@ -1,0 +1,1 @@
+select <salary > 4876 and cpi > 9 and not city = 'chand'> (t1);

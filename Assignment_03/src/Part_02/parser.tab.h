@@ -75,15 +75,16 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 76 "parser.y" /* yacc.c:1909  */
+#line 112 "parser.y" /* yacc.c:1909  */
 
         char* str;
         void* attr_set;
         void* attr_pair;
         void* attr_pair_list;
+        void* root;
        
 
-#line 87 "parser.tab.h" /* yacc.c:1909  */
+#line 88 "parser.tab.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

@@ -19,6 +19,7 @@
         char * arr[MAX_ATTR_LIST];
         int last;
     } custom_list;
+
     void list_insert_string( custom_list* lst , char * str){
         // NULL check
         if(lst == NULL){
@@ -30,12 +31,14 @@
         (lst->last)++;
         return; 
     }
+
     void copy_list( custom_list *list1 ,  custom_list list2){
         for(int i = 0; i < list2.last; ++i){
             list_insert_string(list1, (list2.arr)[i]);
         }
         return;
     }
+
     void list_show(const char * name, custom_list* lst){
         if(lst == NULL){
             yyerror("Inserting into NULL");
@@ -50,6 +53,37 @@
         return;
     }
 
+    enum TYPE{AND_op, OR_op, NOT_op, VAR, CONST};
+
+    typedef
+    struct node{
+        struct node** children;
+        int child_count;
+        int type;
+        char* attr_name;
+    } node;
+
+    bool is_leaf(node* leaf)
+    {
+        if(leaf == NULL) return false;
+        return (leaf->type == VAR || leaf->type == CONST);
+    }
+
+    node* create_node(int Type, char* Attr_name)
+    {
+        node* new_node = (node*)malloc(sizeof(node));
+        new_node->type = Type;
+        new_node->attr_name = Attr_name;
+        new_node->child_count = 0;
+        return new_node;
+    }
+
+    void insert_child(node* parent,node* child)
+    {
+        if(parent == NULL || child == NULL) return;
+        if(!parent->child_count) parent->children = (node**) malloc(sizeof(node*) * sizeof(MAX_LEN));
+        parent->children[parent->child_count++] = child;
+    }
 
     typedef
     struct string_pair{
@@ -69,8 +103,10 @@
 
     char** read_record(FILE* fptr);
     bool cartesian_product(char *table_1 , char * table_2);
-    bool project(custom_list * c , char * tbl);
     bool equi_join(char* table_1 , char * table_2 , list_pair * l);
+    bool project(custom_list * c , char * tbl);
+    bool perform_select_op(char* tbl_name,node* root);
+    bool compare(node* parent, char** record, char** column_list);
 %}
 
 %union {
@@ -78,6 +114,7 @@
         void* attr_set;
         void* attr_pair;
         void* attr_pair_list;
+        void* root;
        }
 %start QUERY_LIST
 %token MORE
@@ -90,7 +127,7 @@
 %token MOREEQUAL
 %token NOTEQUAL
 %token WHITESPACE
-%token NUM
+%token <str>NUM
 %token QUOTE
 %token SEMI
 %token DOT
@@ -106,6 +143,12 @@
 %type <attr_set> ATTR_LIST
 %type <attr_pair> EQUI_COND 
 %type <attr_pair_list> JOIN_COND 
+%type <root> SELECT_COND 
+%type <root> COND 
+%type <root> OP 
+%type <root> NOT_COND 
+%type <root> OR_NOT_COND
+%type <root> CONST_OR_ID
 
 /* actual grammar implementation in C*/
 %%
@@ -114,6 +157,7 @@ QUERY_LIST : QUERY SEMI | QUERY SEMI QUERY_LIST
 
 
 QUERY : SELECT LESS SELECT_COND MORE LP TABLE RP {
+            if(!perform_select_op($6,(node*) $3)) yyerror("Select operation failed\n");
         }
 
        | PROJECT LESS ATTR_LIST MORE LP TABLE RP {
@@ -161,35 +205,84 @@ ATTR_LIST : ID {
 
 
 SELECT_COND : OR_NOT_COND {
-              }
+                node* and_node = create_node(AND_op,NULL);
+                insert_child(and_node,(node*)$1);
+                $$ = (void*) and_node;
+            }
 
             | OR_NOT_COND AND SELECT_COND {
-              }
+                insert_child((node*)$3,(node*)$1);
+                $$ = $3;
+            }
 ;
 
 
 OR_NOT_COND : NOT_COND {
-              }
+                node* or_node = create_node(OR_op,NULL);
+                insert_child(or_node,(node*)$1);
+                $$ = (void*) or_node;
+            }
 
             | NOT_COND OR OR_NOT_COND {
-              }
+                insert_child((node*)$3,(node*)$1);
+                $$ = $3;
+            }
 ;
 
 
-NOT_COND : NOT COND 
-           | COND
+NOT_COND : NOT COND {
+            node* not_node = create_node(NOT_op,NULL);
+            insert_child(not_node,$2);
+            $$ = (void*) not_node;
+        }
+
+        | COND {
+            $$ = $1;
+        }
+           
 ;
 
 
-COND : CONST_OR_ID OP CONST_OR_ID 
+COND : CONST_OR_ID OP CONST_OR_ID {
+    insert_child((node*)$2,(node*)$1);
+    insert_child((node*)$2,(node*)$3);
+    $$ = $2;
+}
 ;
 
 
-OP : EQUAL | LESS | MORE | LESSEQUAL | MOREEQUAL | NOTEQUAL 
+OP : EQUAL {
+        $$ = (void*) create_node(EQUAL,NULL);
+    }
+    | LESS {
+            $$ = (void*) create_node(LESS,NULL);
+    }
+    | MORE {
+            $$ = (void*) create_node(MORE,NULL);
+    }
+    | LESSEQUAL {
+            $$ = (void*) create_node(LESSEQUAL,NULL);
+    }
+    | MOREEQUAL {
+            $$ = (void*) create_node(MOREEQUAL,NULL);
+    }
+    | NOTEQUAL {
+            $$ = (void*) create_node(NOTEQUAL,NULL);
+    }
 ;
 
 
-CONST_OR_ID : ID | QUOTE ID QUOTE | NUM
+CONST_OR_ID : ID {
+        $$ = (void*)create_node(VAR,$1);
+    }
+
+    | QUOTE ID QUOTE {
+        $$ = (void*)create_node(CONST,$2);
+    }
+
+    | NUM {
+        $$ = (void*)create_node(CONST,$1);
+    }
 ;
 
 
@@ -604,4 +697,164 @@ bool equi_join(char* table_1 , char * table_2 , list_pair * l){
     }
     printf("equi_join succesful\n");
     return true;
+}
+
+//DFS
+void traverse_root(node* root)
+{
+    if(root == NULL) return;
+    printf("type %d : ",root->type);
+    if(root->attr_name) printf("attr %s\n",root->attr_name);
+    else printf("NULL\n");
+    for(int i = 0;i < root->child_count;i++)
+    {
+        traverse_root((root->children)[i]);
+    }
+}
+
+bool perform_select_op(char* tbl_name,node* root)
+{
+    // traverse_root(root);
+    char* path = is_valid_table(tbl_name);
+    char error_string[MAX_LEN];
+    strcmp(error_string,tbl_name);
+    strcat(error_string," not found\n");
+    if(path == NULL) {
+        yyerror(error_string);
+        return false;
+    }
+    FILE* fptr = fopen(path,"r");
+    char output_path[MAX_LEN];
+    strcpy(output_path,tbl_name);
+    strcat(output_path,"_select.csv");
+    FILE* output = fopen(output_path,"w");
+    char** column_list = read_record(fptr);
+    fprintf(output,"%s\n",coma_separated_string(column_list));
+    char** record;
+    while(record = read_record(fptr))
+    {
+        if(compare(root,record,column_list)) fprintf(output,"%s\n",coma_separated_string(record));
+    }
+    fclose(fptr);
+    fclose(output);
+    return true;
+}
+
+bool is_num(char* attr_name)
+{
+    if(attr_name == NULL) return false;
+    int iter = 0;
+    char v;
+    while((v = attr_name[iter++]) != '\0'){
+        if(v < '0' || v > '9') return false;
+    }
+    return true;
+}
+
+void get_values(node* child,char** val, int* value, bool* is_int, char** record, char** column_list)
+{
+    if(child->type == VAR)
+    {
+        int col_index = -1;
+        char* var;
+        int index = 0;
+        while(var = column_list[index++])
+        {
+            if(strcmp(var,child->attr_name) == 0) {
+                col_index = index - 1;
+                break;
+            }
+        }
+        char error_string[MAX_LEN] = {'\0'};
+        strcpy(error_string,child->attr_name);
+        strcat(error_string," not found\n");
+        if(col_index == -1) {
+            yyerror(error_string);
+            return;
+        }
+        *val = record[col_index];
+        *is_int = is_num(*val);
+        if(*is_int) *value = atoi(*val);
+    }
+    else if(child->type == CONST)
+    {
+        *val = child->attr_name;
+        *is_int = is_num(*val);
+        if(*is_int) *value = atoi(*val);
+    }
+    else yyerror("Wrong node type for leaf\n");
+}
+
+bool calculate_arith(node* parent, char** record, char** column_list)
+{
+    if(parent->child_count != 2) return false;
+
+    char *val1, *val2;
+    int value1, value2;
+    bool is_int1 = false, is_int2 = false;
+
+    node* child1 = parent->children[0];
+    node* child2 = parent->children[1];
+    if(child1 == NULL || child2 == NULL) return false;
+
+    get_values(child1,&val1, &value1, &is_int1, record, column_list);
+    get_values(child2,&val2, &value2, &is_int2, record, column_list);
+    switch(parent->type){
+        case EQUAL:
+                    return !strcmp(val1, val2);
+                   break; 
+        case LESS:
+                    if(is_int1 && is_int2) {
+                        return value1 < value2;
+                    }
+                    else {
+                        return strcmp(val1,val2) > 0;
+                    }
+                   break;
+        case MORE:
+                    if(is_int1 && is_int2) return value1 > value2;
+                    else return strcmp(val1,val2) < 0;
+                   break;
+        case LESSEQUAL:
+                    if(is_int1 && is_int2) return value1 <= value2;
+                    else return strcmp(val1,val2) >= 0;
+                   break;
+        case MOREEQUAL:
+                    if(is_int1 && is_int2) return value1 >= value2;
+                    else return strcmp(val1,val2) <= 0;
+                   break;
+    }
+}
+
+bool calculate_logic(node* parent, char** record, char** column_list)
+{
+    bool ans = parent->type == AND_op ? true : false;
+
+    for(int i = 0;i <parent->child_count;i++)
+    {
+        if(parent->type == AND_op) ans = ans && compare((parent->children)[i],record, column_list);
+        else ans = ans || compare((parent->children)[i],record, column_list);
+    }
+    return ans;
+}
+
+bool compare(node* parent, char** record, char** column_list)
+{
+    if(parent == NULL) return false;
+    switch(parent->type)
+    {
+        case EQUAL: 
+        case LESS:
+        case MORE:
+        case LESSEQUAL:
+        case MOREEQUAL: return calculate_arith(parent, record, column_list);
+        break;
+        case AND_op:
+        case OR_op: return calculate_logic(parent, record, column_list);
+        break;
+        case NOT_op: return (parent->child_count > 0 && !compare(parent->children[0], record, column_list));
+        break;
+        default: return false;
+        break;
+    }
 }

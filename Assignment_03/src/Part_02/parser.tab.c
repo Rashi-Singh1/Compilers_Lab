@@ -84,6 +84,7 @@
         char * arr[MAX_ATTR_LIST];
         int last;
     } custom_list;
+
     void list_insert_string( custom_list* lst , char * str){
         // NULL check
         if(lst == NULL){
@@ -95,12 +96,14 @@
         (lst->last)++;
         return; 
     }
+
     void copy_list( custom_list *list1 ,  custom_list list2){
         for(int i = 0; i < list2.last; ++i){
             list_insert_string(list1, (list2.arr)[i]);
         }
         return;
     }
+
     void list_show(const char * name, custom_list* lst){
         if(lst == NULL){
             yyerror("Inserting into NULL");
@@ -115,6 +118,37 @@
         return;
     }
 
+    enum TYPE{AND_op, OR_op, NOT_op, VAR, CONST};
+
+    typedef
+    struct node{
+        struct node** children;
+        int child_count;
+        int type;
+        char* attr_name;
+    } node;
+
+    bool is_leaf(node* leaf)
+    {
+        if(leaf == NULL) return false;
+        return (leaf->type == VAR || leaf->type == CONST);
+    }
+
+    node* create_node(int Type, char* Attr_name)
+    {
+        node* new_node = (node*)malloc(sizeof(node));
+        new_node->type = Type;
+        new_node->attr_name = Attr_name;
+        new_node->child_count = 0;
+        return new_node;
+    }
+
+    void insert_child(node* parent,node* child)
+    {
+        if(parent == NULL || child == NULL) return;
+        if(!parent->child_count) parent->children = (node**) malloc(sizeof(node*) * sizeof(MAX_LEN));
+        parent->children[parent->child_count++] = child;
+    }
 
     typedef
     struct string_pair{
@@ -134,10 +168,12 @@
 
     char** read_record(FILE* fptr);
     bool cartesian_product(char *table_1 , char * table_2);
-    bool project(custom_list * c , char * tbl);
     bool equi_join(char* table_1 , char * table_2 , list_pair * l);
+    bool project(custom_list * c , char * tbl);
+    bool perform_select_op(char* tbl_name,node* root);
+    bool compare(node* parent, char** record, char** column_list);
 
-#line 141 "parser.tab.c" /* yacc.c:339  */
+#line 177 "parser.tab.c" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -202,15 +238,16 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 76 "parser.y" /* yacc.c:355  */
+#line 112 "parser.y" /* yacc.c:355  */
 
         char* str;
         void* attr_set;
         void* attr_pair;
         void* attr_pair_list;
+        void* root;
        
 
-#line 214 "parser.tab.c" /* yacc.c:355  */
+#line 251 "parser.tab.c" /* yacc.c:355  */
 };
 
 typedef union YYSTYPE YYSTYPE;
@@ -227,7 +264,7 @@ int yyparse (void);
 
 /* Copy the second part of user declarations.  */
 
-#line 231 "parser.tab.c" /* yacc.c:358  */
+#line 268 "parser.tab.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -524,11 +561,11 @@ static const yytype_uint8 yytranslate[] =
 
 #if YYDEBUG
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
-static const yytype_uint8 yyrline[] =
+static const yytype_uint16 yyrline[] =
 {
-       0,   112,   112,   112,   116,   119,   128,   137,   145,   151,
-     156,   163,   166,   171,   174,   179,   180,   184,   188,   188,
-     188,   188,   188,   188,   192,   192,   192,   196,   205,   217
+       0,   155,   155,   155,   159,   163,   172,   181,   189,   195,
+     200,   207,   213,   220,   226,   233,   239,   246,   254,   257,
+     260,   263,   266,   269,   275,   279,   283,   289,   298,   310
 };
 #endif
 
@@ -1339,14 +1376,15 @@ yyreduce:
   switch (yyn)
     {
         case 4:
-#line 116 "parser.y" /* yacc.c:1646  */
+#line 159 "parser.y" /* yacc.c:1646  */
     {
+            if(!perform_select_op((yyvsp[-1].str),(node*) (yyvsp[-4].root))) yyerror("Select operation failed\n");
         }
-#line 1346 "parser.tab.c" /* yacc.c:1646  */
+#line 1384 "parser.tab.c" /* yacc.c:1646  */
     break;
 
   case 5:
-#line 119 "parser.y" /* yacc.c:1646  */
+#line 163 "parser.y" /* yacc.c:1646  */
     {
            if(!project((custom_list *)(yyvsp[-4].attr_set) , (yyvsp[-1].str))){
                yyerror("unsuccesful project");
@@ -1355,11 +1393,11 @@ yyreduce:
            free((yyvsp[-1].str));
            free((yyvsp[-4].attr_set));
         }
-#line 1359 "parser.tab.c" /* yacc.c:1646  */
+#line 1397 "parser.tab.c" /* yacc.c:1646  */
     break;
 
   case 6:
-#line 128 "parser.y" /* yacc.c:1646  */
+#line 172 "parser.y" /* yacc.c:1646  */
     {
            if(!cartesian_product((yyvsp[-5].str) , (yyvsp[-1].str))){
                yyerror("unsuccesful cartesian_product\n");
@@ -1368,76 +1406,186 @@ yyreduce:
            free((yyvsp[-5].str));
            free((yyvsp[-1].str));
         }
-#line 1372 "parser.tab.c" /* yacc.c:1646  */
+#line 1410 "parser.tab.c" /* yacc.c:1646  */
     break;
 
   case 7:
-#line 137 "parser.y" /* yacc.c:1646  */
+#line 181 "parser.y" /* yacc.c:1646  */
     {
             if(!equi_join((yyvsp[-8].str) , (yyvsp[-1].str), (list_pair *) (yyvsp[-4].attr_pair_list))){
                 yyerror("unsuccesful equi_join operation\n");
             }
          }
-#line 1382 "parser.tab.c" /* yacc.c:1646  */
+#line 1420 "parser.tab.c" /* yacc.c:1646  */
     break;
 
   case 8:
-#line 145 "parser.y" /* yacc.c:1646  */
+#line 189 "parser.y" /* yacc.c:1646  */
     {
         (yyval.str) = (yyvsp[0].str);
     }
-#line 1390 "parser.tab.c" /* yacc.c:1646  */
+#line 1428 "parser.tab.c" /* yacc.c:1646  */
     break;
 
   case 9:
-#line 151 "parser.y" /* yacc.c:1646  */
+#line 195 "parser.y" /* yacc.c:1646  */
     {
                 custom_list * l_ptr = (custom_list *)malloc(sizeof(custom_list));
                 list_insert_string(l_ptr, (yyvsp[0].str));
                 (yyval.attr_set) = (void *)(l_ptr);
             }
-#line 1400 "parser.tab.c" /* yacc.c:1646  */
+#line 1438 "parser.tab.c" /* yacc.c:1646  */
     break;
 
   case 10:
-#line 156 "parser.y" /* yacc.c:1646  */
+#line 200 "parser.y" /* yacc.c:1646  */
     {
             list_insert_string((custom_list *) (yyvsp[0].attr_set), (yyvsp[-2].str));
             (yyval.attr_set) = (yyvsp[0].attr_set);
           }
-#line 1409 "parser.tab.c" /* yacc.c:1646  */
+#line 1447 "parser.tab.c" /* yacc.c:1646  */
     break;
 
   case 11:
-#line 163 "parser.y" /* yacc.c:1646  */
+#line 207 "parser.y" /* yacc.c:1646  */
     {
-              }
-#line 1416 "parser.tab.c" /* yacc.c:1646  */
+                node* and_node = create_node(AND_op,NULL);
+                insert_child(and_node,(node*)(yyvsp[0].root));
+                (yyval.root) = (void*) and_node;
+            }
+#line 1457 "parser.tab.c" /* yacc.c:1646  */
     break;
 
   case 12:
-#line 166 "parser.y" /* yacc.c:1646  */
+#line 213 "parser.y" /* yacc.c:1646  */
     {
-              }
-#line 1423 "parser.tab.c" /* yacc.c:1646  */
+                insert_child((node*)(yyvsp[0].root),(node*)(yyvsp[-2].root));
+                (yyval.root) = (yyvsp[0].root);
+            }
+#line 1466 "parser.tab.c" /* yacc.c:1646  */
     break;
 
   case 13:
-#line 171 "parser.y" /* yacc.c:1646  */
+#line 220 "parser.y" /* yacc.c:1646  */
     {
-              }
-#line 1430 "parser.tab.c" /* yacc.c:1646  */
+                node* or_node = create_node(OR_op,NULL);
+                insert_child(or_node,(node*)(yyvsp[0].root));
+                (yyval.root) = (void*) or_node;
+            }
+#line 1476 "parser.tab.c" /* yacc.c:1646  */
     break;
 
   case 14:
-#line 174 "parser.y" /* yacc.c:1646  */
+#line 226 "parser.y" /* yacc.c:1646  */
     {
-              }
-#line 1437 "parser.tab.c" /* yacc.c:1646  */
+                insert_child((node*)(yyvsp[0].root),(node*)(yyvsp[-2].root));
+                (yyval.root) = (yyvsp[0].root);
+            }
+#line 1485 "parser.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 15:
+#line 233 "parser.y" /* yacc.c:1646  */
+    {
+            node* not_node = create_node(NOT_op,NULL);
+            insert_child(not_node,(yyvsp[0].root));
+            (yyval.root) = (void*) not_node;
+        }
+#line 1495 "parser.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 16:
+#line 239 "parser.y" /* yacc.c:1646  */
+    {
+            (yyval.root) = (yyvsp[0].root);
+        }
+#line 1503 "parser.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 17:
+#line 246 "parser.y" /* yacc.c:1646  */
+    {
+    insert_child((node*)(yyvsp[-1].root),(node*)(yyvsp[-2].root));
+    insert_child((node*)(yyvsp[-1].root),(node*)(yyvsp[0].root));
+    (yyval.root) = (yyvsp[-1].root);
+}
+#line 1513 "parser.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 18:
+#line 254 "parser.y" /* yacc.c:1646  */
+    {
+        (yyval.root) = (void*) create_node(EQUAL,NULL);
+    }
+#line 1521 "parser.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 19:
+#line 257 "parser.y" /* yacc.c:1646  */
+    {
+            (yyval.root) = (void*) create_node(LESS,NULL);
+    }
+#line 1529 "parser.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 20:
+#line 260 "parser.y" /* yacc.c:1646  */
+    {
+            (yyval.root) = (void*) create_node(MORE,NULL);
+    }
+#line 1537 "parser.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 21:
+#line 263 "parser.y" /* yacc.c:1646  */
+    {
+            (yyval.root) = (void*) create_node(LESSEQUAL,NULL);
+    }
+#line 1545 "parser.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 22:
+#line 266 "parser.y" /* yacc.c:1646  */
+    {
+            (yyval.root) = (void*) create_node(MOREEQUAL,NULL);
+    }
+#line 1553 "parser.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 23:
+#line 269 "parser.y" /* yacc.c:1646  */
+    {
+            (yyval.root) = (void*) create_node(NOTEQUAL,NULL);
+    }
+#line 1561 "parser.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 24:
+#line 275 "parser.y" /* yacc.c:1646  */
+    {
+        (yyval.root) = (void*)create_node(VAR,(yyvsp[0].str));
+    }
+#line 1569 "parser.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 25:
+#line 279 "parser.y" /* yacc.c:1646  */
+    {
+        (yyval.root) = (void*)create_node(CONST,(yyvsp[-1].str));
+    }
+#line 1577 "parser.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 26:
+#line 283 "parser.y" /* yacc.c:1646  */
+    {
+        (yyval.root) = (void*)create_node(CONST,(yyvsp[0].str));
+    }
+#line 1585 "parser.tab.c" /* yacc.c:1646  */
     break;
 
   case 27:
-#line 196 "parser.y" /* yacc.c:1646  */
+#line 289 "parser.y" /* yacc.c:1646  */
     {
                     list_pair *l = (list_pair *)malloc(sizeof(list_pair));
                     string_pair* equi_c = (string_pair *) (yyvsp[0].attr_pair);
@@ -1447,11 +1595,11 @@ yyreduce:
                     list_insert_string(&(l->second_tbl) , equi_c->second_tbl);
                     (yyval.attr_pair_list) = (void *) l;
             }
-#line 1451 "parser.tab.c" /* yacc.c:1646  */
+#line 1599 "parser.tab.c" /* yacc.c:1646  */
     break;
 
   case 28:
-#line 205 "parser.y" /* yacc.c:1646  */
+#line 298 "parser.y" /* yacc.c:1646  */
     {
                     list_pair *l = (list_pair *) (yyvsp[0].attr_pair_list);
                     string_pair* equi_c = (string_pair *) (yyvsp[-2].attr_pair);
@@ -1461,11 +1609,11 @@ yyreduce:
                     list_insert_string(&(l->second_tbl) , equi_c->second_tbl);
                     (yyval.attr_pair_list) = (void *)l;
              }
-#line 1465 "parser.tab.c" /* yacc.c:1646  */
+#line 1613 "parser.tab.c" /* yacc.c:1646  */
     break;
 
   case 29:
-#line 217 "parser.y" /* yacc.c:1646  */
+#line 310 "parser.y" /* yacc.c:1646  */
     {
                   string_pair *s = (string_pair*) malloc(sizeof(string_pair));
                   s->first_attr = (yyvsp[-4].str);
@@ -1474,11 +1622,11 @@ yyreduce:
                   s->second_tbl = (yyvsp[-2].str);
                   (yyval.attr_pair) = (void *) s;
             }
-#line 1478 "parser.tab.c" /* yacc.c:1646  */
+#line 1626 "parser.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 1482 "parser.tab.c" /* yacc.c:1646  */
+#line 1630 "parser.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1706,7 +1854,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 228 "parser.y" /* yacc.c:1906  */
+#line 321 "parser.y" /* yacc.c:1906  */
 
 void print_record(char** record)
 {
@@ -2086,4 +2234,164 @@ bool equi_join(char* table_1 , char * table_2 , list_pair * l){
     }
     printf("equi_join succesful\n");
     return true;
+}
+
+//DFS
+void traverse_root(node* root)
+{
+    if(root == NULL) return;
+    printf("type %d : ",root->type);
+    if(root->attr_name) printf("attr %s\n",root->attr_name);
+    else printf("NULL\n");
+    for(int i = 0;i < root->child_count;i++)
+    {
+        traverse_root((root->children)[i]);
+    }
+}
+
+bool perform_select_op(char* tbl_name,node* root)
+{
+    // traverse_root(root);
+    char* path = is_valid_table(tbl_name);
+    char error_string[MAX_LEN];
+    strcmp(error_string,tbl_name);
+    strcat(error_string," not found\n");
+    if(path == NULL) {
+        yyerror(error_string);
+        return false;
+    }
+    FILE* fptr = fopen(path,"r");
+    char output_path[MAX_LEN];
+    strcpy(output_path,tbl_name);
+    strcat(output_path,"_select.csv");
+    FILE* output = fopen(output_path,"w");
+    char** column_list = read_record(fptr);
+    fprintf(output,"%s\n",coma_separated_string(column_list));
+    char** record;
+    while(record = read_record(fptr))
+    {
+        if(compare(root,record,column_list)) fprintf(output,"%s\n",coma_separated_string(record));
+    }
+    fclose(fptr);
+    fclose(output);
+    return true;
+}
+
+bool is_num(char* attr_name)
+{
+    if(attr_name == NULL) return false;
+    int iter = 0;
+    char v;
+    while((v = attr_name[iter++]) != '\0'){
+        if(v < '0' || v > '9') return false;
+    }
+    return true;
+}
+
+void get_values(node* child,char** val, int* value, bool* is_int, char** record, char** column_list)
+{
+    if(child->type == VAR)
+    {
+        int col_index = -1;
+        char* var;
+        int index = 0;
+        while(var = column_list[index++])
+        {
+            if(strcmp(var,child->attr_name) == 0) {
+                col_index = index - 1;
+                break;
+            }
+        }
+        char error_string[MAX_LEN] = {'\0'};
+        strcpy(error_string,child->attr_name);
+        strcat(error_string," not found\n");
+        if(col_index == -1) {
+            yyerror(error_string);
+            return;
+        }
+        *val = record[col_index];
+        *is_int = is_num(*val);
+        if(*is_int) *value = atoi(*val);
+    }
+    else if(child->type == CONST)
+    {
+        *val = child->attr_name;
+        *is_int = is_num(*val);
+        if(*is_int) *value = atoi(*val);
+    }
+    else yyerror("Wrong node type for leaf\n");
+}
+
+bool calculate_arith(node* parent, char** record, char** column_list)
+{
+    if(parent->child_count != 2) return false;
+
+    char *val1, *val2;
+    int value1, value2;
+    bool is_int1 = false, is_int2 = false;
+
+    node* child1 = parent->children[0];
+    node* child2 = parent->children[1];
+    if(child1 == NULL || child2 == NULL) return false;
+
+    get_values(child1,&val1, &value1, &is_int1, record, column_list);
+    get_values(child2,&val2, &value2, &is_int2, record, column_list);
+    switch(parent->type){
+        case EQUAL:
+                    return !strcmp(val1, val2);
+                   break; 
+        case LESS:
+                    if(is_int1 && is_int2) {
+                        return value1 < value2;
+                    }
+                    else {
+                        return strcmp(val1,val2) > 0;
+                    }
+                   break;
+        case MORE:
+                    if(is_int1 && is_int2) return value1 > value2;
+                    else return strcmp(val1,val2) < 0;
+                   break;
+        case LESSEQUAL:
+                    if(is_int1 && is_int2) return value1 <= value2;
+                    else return strcmp(val1,val2) >= 0;
+                   break;
+        case MOREEQUAL:
+                    if(is_int1 && is_int2) return value1 >= value2;
+                    else return strcmp(val1,val2) <= 0;
+                   break;
+    }
+}
+
+bool calculate_logic(node* parent, char** record, char** column_list)
+{
+    bool ans = parent->type == AND_op ? true : false;
+
+    for(int i = 0;i <parent->child_count;i++)
+    {
+        if(parent->type == AND_op) ans = ans && compare((parent->children)[i],record, column_list);
+        else ans = ans || compare((parent->children)[i],record, column_list);
+    }
+    return ans;
+}
+
+bool compare(node* parent, char** record, char** column_list)
+{
+    if(parent == NULL) return false;
+    switch(parent->type)
+    {
+        case EQUAL: 
+        case LESS:
+        case MORE:
+        case LESSEQUAL:
+        case MOREEQUAL: return calculate_arith(parent, record, column_list);
+        break;
+        case AND_op:
+        case OR_op: return calculate_logic(parent, record, column_list);
+        break;
+        case NOT_op: return (parent->child_count > 0 && !compare(parent->children[0], record, column_list));
+        break;
+        default: return false;
+        break;
+    }
 }

@@ -1,17 +1,9 @@
 
 <Token_id	 lexeme>
-	14	 hgdfghadv
-	11	 h1
-	8	 dhdhdh
-	12	 h2
-	9	 set
-	7	 sjdh
-	10	 stack
-	0	 Heap
-	2	 b
-	13	 h3
-	4	 Set
-	6	 abcd
-	1	 a
-	3	 c
-	5	 Animal
+	1	 B
+	6	 goo
+	4	 b
+	0	 hello
+	2	 world
+	3	 bye
+	5	 c
