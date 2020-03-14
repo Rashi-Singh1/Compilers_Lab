@@ -139,7 +139,6 @@ int match(int token)
 
 
 void lexically_analyse(void){
-    printf("lex.l wala lexically analyse\n");
     FILE *fptr;
 
    // opening file in writing mode

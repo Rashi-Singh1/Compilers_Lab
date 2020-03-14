@@ -67,3 +67,11 @@ test: a.out
 	$(PRINT_LINE)
 	@cat ./output/op_overload_file.txt
 	
+lexer_test: a.out
+	$(PRINT_LINE)
+	./a.out < ./tests/test$(N)
+
+	$(PRINT_LINE)
+	@printf "lex_output.txt"
+	$(PRINT_LINE)
+	@cat ./lex_output.txt
