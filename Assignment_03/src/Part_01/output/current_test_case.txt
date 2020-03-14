@@ -1,8 +1,0 @@
-class world{};
-world::world(){}
-int world::radius(){}
-world world::operator+(world a){}
-world xyz;
-int main(){
-    return 0;
-}

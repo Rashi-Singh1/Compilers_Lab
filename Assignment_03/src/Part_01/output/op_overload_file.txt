@@ -1,1 +1,0 @@
-4 world world::operator+(world a){}
