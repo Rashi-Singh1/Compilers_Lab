@@ -72,6 +72,11 @@ lexer_test: a.out
 	./a.out < ./tests/test$(N)
 
 	$(PRINT_LINE)
+	@printf "./tests/test$(N)"
+	$(PRINT_LINE)
+	@cat ./tests/test$(N)
+
+	$(PRINT_LINE)
 	@printf "lex_output.txt"
 	$(PRINT_LINE)
 	@cat ./lex_output.txt
