@@ -1,2 +1,1 @@
-1 class Heap{
-1 class Heap{
+3     Tree(){}

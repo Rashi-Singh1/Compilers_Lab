@@ -1,3 +1,2 @@
-1 class Heap{
-1 class Heap{
-1 class Heap{
+1  class Tree{
+6 class subtree: public Tree{

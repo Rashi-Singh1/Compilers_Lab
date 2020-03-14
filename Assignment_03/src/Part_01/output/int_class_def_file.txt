@@ -1,1 +1,1 @@
-1 class Heap{
+6 class subtree: public Tree{

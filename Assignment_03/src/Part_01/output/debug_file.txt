@@ -8,26 +8,41 @@ id : class
 Entering classDef
 Incremented cntclass to 1
 Entering getID
-id : Heap
+id : Tree
 Entering inherited
 Coming out of inherited
 Entering class_stmt_list
 Entering class_stmt
 Entering getID
-id : Heap
-id passed in class_stmt********************************************Heap
+id : Tree
+id passed in class_stmt********************************************Tree
+Entering nextFunc
+Entering getID
+id : operator
+Entering operator_overload
+Incremented cntOverload to 1
+Entering is_overload_operator
+Entering getID
+id : Tree
+Entering stmt_list
+Coming out of stmt_list
+Coming out of operator_overload
+Coming out of nextFunc
+Coming out of class_stmt
+Entering class_stmt_list_
+Entering getID
+id : Tree
+ curid in class stmt list : Tree
+Entering class_stmt
+Entering getID
+id : Tree
+id passed in class_stmt********************************************Tree
 Entering nextFunc
 Entering getID
 id : (
 Entering constructor
 Incremented cntconstructor to 1
 Entering parameter_list
-Entering opt_parameter
-Entering opt_parameter
-Entering opt_parameter
-Coming out of opt_parameter
-Coming out of opt_parameter
-Coming out of opt_parameter
 Coming out of parameter_list
 Entering stmt_list
 Coming out of stmt_list
@@ -36,12 +51,26 @@ Coming out of nextFunc
 Coming out of class_stmt
 Entering class_stmt_list_
 Entering getID
-id : class
- curid in class stmt list : class
-Entering class_stmt
+id : }
+ curid in class stmt list : }
+Coming out of class_stmt_list_
+Coming out of class_stmt_list_
+Coming out of class_stmt_list
+Coming out of classDef
+Coming out of prog2
+Entering getID
+id : Tree
+Entering getID
+id : tree
+Entering object_def
+Incremented cntobject to 1
+getID() IN object def is id : tree
+Entering ending
+Entering more_def
+Coming out of more_def
+Coming out of object_def
 Entering getID
 id : class
-id passed in class_stmt********************************************Heap
 Entering prog2
 Entering getID
 id : class
@@ -49,42 +78,19 @@ id : class
 Entering classDef
 Incremented cntclass to 2
 Entering getID
-id : Set
+id : subtree
 Entering inherited
 Incremented cntIclass to 1
 Entering getID
-id : Heap
-Entering multiple_inherited
-Entering getID
-id : Heap
-Entering multiple_inherited
-Entering getID
-id : Heap
+id : Tree
 Entering multiple_inherited
 Coming out of multiple_inherited
-Coming out of multiple_inherited
-Coming out of multiple_inherited
-Coming out of inherited
-Entering class_stmt_list
-Entering class_stmt
-Entering getID
-id : class
-id passed in class_stmt********************************************Set
-Entering prog2
-Entering getID
-id : class
- class name **********************************************************************
-Entering classDef
-Incremented cntclass to 3
-Entering getID
-id : Animal
-Entering inherited
 Coming out of inherited
 Entering class_stmt_list
 Entering class_stmt
 Entering getID
 id : }
-id passed in class_stmt********************************************Animal
+id passed in class_stmt********************************************subtree
 Entering prog2
 Entering getID
 id : }
@@ -99,74 +105,33 @@ Coming out of class_stmt_list_
 Coming out of class_stmt_list
 Coming out of classDef
 Coming out of prog2
-Coming out of class_stmt
-Entering class_stmt_list_
 Entering getID
-id : Set
- curid in class stmt list : Set
-Entering class_stmt
+id : subtree
 Entering getID
-id : Set
-id passed in class_stmt********************************************Set
-Entering nextFunc
-Entering getID
-id : (
-Entering constructor
-Incremented cntconstructor to 2
-Entering parameter_list
-Entering opt_parameter
-Entering opt_parameter
-Entering opt_parameter
-Coming out of opt_parameter
-Coming out of opt_parameter
-Coming out of opt_parameter
-Coming out of parameter_list
-Entering stmt_list
-Coming out of stmt_list
-Coming out of constructor
-Coming out of nextFunc
-Coming out of class_stmt
-Entering class_stmt_list_
-Entering getID
-id : }
- curid in class stmt list : }
-Coming out of class_stmt_list_
-Coming out of class_stmt_list_
-Coming out of class_stmt_list
-Coming out of classDef
-Coming out of prog2
-Coming out of class_stmt
-Entering class_stmt_list_
-Entering getID
-id : Set
- curid in class stmt list : Set
-Entering class_stmt
-Entering getID
-id : Set
-id passed in class_stmt********************************************Heap
-Entering prog2
-Entering getID
-id : Set
- class name **********************************************************************
+id : ST
 Entering object_def
-Incremented cntobject to 1
-getID() IN object def is id : set
+Incremented cntobject to 2
+getID() IN object def is id : ST
 Entering ending
-Coming out of ending
+Entering getID
+id : subtree
 Entering more_def
-class Heap{
-	Heap(char a, int b, bool c)
-	{
-	}
-	
-	class Set:public Heap, private Heap, protected Heap{
-		class Animal{};
-		Set(int abcd, char sjdh, string dhdhdh){}
-	};
-	Set set = Set();
-	class stack{
-		stack(){}
-	};
-	stack h1 = stack(), h2(),h3(hgdfghadv);
+Coming out of more_def
+Coming out of object_def
+Coming out of prog
+
+Number of Class Definitions: 2
+Number of Inherited Class Definitions: 1
+Number of Object Declarations: 2
+Number of Constructors: 1
+Number of Operator Overloaded Functions: 1
+
+ class Tree{
+    Tree operator -(Tree a){}
+    Tree(){}
 };
-Entering lexical_analyse
+Tree tree();
+class subtree: public Tree{
+
+};
+subtree ST = subtree();
