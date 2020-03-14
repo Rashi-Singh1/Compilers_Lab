@@ -22,7 +22,8 @@ extern int Lookahead = -1;
 [/]                                                     return DIV;
 [,]                                                     return COMMA;
 [<]                                                     return LESS;
-[ \n\t]                                                 ;
+[ \t]                                                   ;
+[\n]                                                    yylineno++;
 "if"                                                    return IF;
 "else"                                                  return ELSE;
 "main"                                                  return MAIN;
@@ -132,12 +133,12 @@ int match(int token)
 {
     if(Lookahead == -1)
         Lookahead = yylex();
+    //printf("match: Lookahead is %d, token is %d\n", Lookahead, token);
     return token == Lookahead;
 }
 
 
 void lexically_analyse(void){
-    printf("lex.l wala lexically analyse\n");
     FILE *fptr;
 
    // opening file in writing mode

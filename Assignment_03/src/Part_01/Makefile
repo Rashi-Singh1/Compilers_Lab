@@ -1,3 +1,5 @@
+PRINT_LINE = @printf "\n------------------------------------------\n"
+
 .PHONY=all clean test
 .DEFAULT=all
 
@@ -9,9 +11,9 @@ a.out: main.cpp code_gen.cpp name.cpp hashtable2.cpp lex.l
 	g++ *.o
 
 clean: 
-	-rm -f *.o a.out token_stream.txt lex_output.txt symbol_table.txt debug_file.txt output_file.txt
+	-rm -f *.o a.out token_stream.txt lex_output.txt symbol_table.txt debug_file.txt output_file.txt lex.yy.c main
 
-test: all
+test: a.out
 	-rm -f ./output/*.txt
 	@mkdir -p output
 	@touch output/debug_file.txt
@@ -22,14 +24,59 @@ test: all
 	@touch output/int_class_def_file.txt
 	@touch output/object_def_file.txt
 	@touch output/op_overload_file.txt
+	
+	$(PRINT_LINE)
 	./a.out $(N) code_gen < ./tests/test$(N)
+	$(PRINT_LINE)
 	@cat ./tests/test$(N) >> output/current_test_case.txt
 	@cat ./tests/test$(N) >> output/debug_file.txt
-	@cat ./tests/test$(N) >> output/output_file.txt
-	@echo "Please go to the output directory and check output_file.txt 		for a short summary"
-	@echo "\t\t\t\t\t    class_def_file.txt 		for detailed info about classes"
-	@echo "\t\t\t\t\t    constructor_def_file.txt 	for detailed info about consructors"
-	@echo "\t\t\t\t\t    int_class_def_file.txt 	for detailed info about intermediate classes"
-	@echo "\t\t\t\t\t    object_def_file.txt 	for detailed info about objects"
-	@echo "\t\t\t\t\t    op_overload_file.txt 	for detailed info about operator overloading functions"
-	# cat ./tests/test$(N)
+	@echo "Output is in output/ directory."
+
+	$(PRINT_LINE)
+	@printf "./tests/test$(N)"
+	$(PRINT_LINE)
+	@cat -n ./tests/test$(N)	
+
+	$(PRINT_LINE)
+	@printf "./output/output_file.txt"
+	$(PRINT_LINE)
+	@cat ./output/output_file.txt
+
+	$(PRINT_LINE)
+	@printf "./output/class_def_file.txt"
+	$(PRINT_LINE)
+	@cat ./output/class_def_file.txt
+
+	$(PRINT_LINE)
+	@printf "./output/int_class_def_file.txt"
+	$(PRINT_LINE)
+	@cat ./output/int_class_def_file.txt
+	
+	$(PRINT_LINE)
+	@printf "./output/object_def_file.txt"
+	$(PRINT_LINE)
+	@cat ./output/object_def_file.txt
+
+	$(PRINT_LINE)
+	@printf "./output/constructor_def_file.txt"
+	$(PRINT_LINE)
+	@cat ./output/constructor_def_file.txt
+	
+	$(PRINT_LINE)
+	@printf "./output/op_overload_file.txt"
+	$(PRINT_LINE)
+	@cat ./output/op_overload_file.txt
+	
+lexer_test: a.out
+	$(PRINT_LINE)
+	./a.out < ./tests/test$(N)
+
+	$(PRINT_LINE)
+	@printf "./tests/test$(N)"
+	$(PRINT_LINE)
+	@cat ./tests/test$(N)
+
+	$(PRINT_LINE)
+	@printf "lex_output.txt"
+	$(PRINT_LINE)
+	@cat ./lex_output.txt

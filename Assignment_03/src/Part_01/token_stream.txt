@@ -1,1 +1,0 @@
-<kw,class>  <id,0>  <op,{>  <id,0>  <kw,operator>  <op,+>  <op,(>  <id,0>  <id,1>  <op,)>  <op,{>  <kw,class>  <id,2>  <op,:>  <kw,private>  <id,3>  <op,{>  <id,2>  <op,(>  <kw,int>  <id,4>  <op,,>  <kw,char>  <id,5>  <op,)>  <op,{>  <kw,class>  <id,6>  <op,{>  <op,}>  <semi,;>  <op,}>  <op,}>  <semi,;>  <op,}>  <op,}>  <semi,;>  

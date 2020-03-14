@@ -1,9 +1,0 @@
-class hello{
-    hello operator + (hello B){
-        class world:private bye{
-            world (int b, char c){
-                class goo{};
-            }
-        };
-    }
-};

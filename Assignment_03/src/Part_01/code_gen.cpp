@@ -27,6 +27,7 @@ void inc(int &v, string name, string output_file_name){
     debugFile.close();
     testFile.open(test_file,std::ios_base::app);
     string curLine;
+    // cout << "inc: yylineno is " << yylineno << endl;
     for(int i = 0;i < yylineno;i++) std::getline(testFile,curLine);
     testFile.close();
     ofstream out_file;
@@ -61,19 +62,14 @@ bool prog(string test){
             advance();
             string new_id = getID();
             if(match(NUM_OR_ID) && class_names.count(new_id)){
+                // scoped function
                 advance();
-                if(match(COLON)){
+                if(match(SCOPE)){
                     advance();
-                    if(match(COLON)){
-                        advance();
                         debugFile.open("output/debug_file.txt",std::ios_base::app);
                         debugFile << "normal _ function -----------------\n";                        
                         debugFile.close();
                         if(!normal_function()) return false;
-                    } else{
-                        fprintf( stderr, "%d: scope operator incomplete \n", yylineno );
-                        return false;
-                    }
                 } else{
                     fprintf( stderr, "%d: expected scope operator\n", yylineno );
                     return false;
@@ -126,9 +122,7 @@ bool prog(string test){
              // object definition or scoped constructor or scoped operator overload 
             advance();
             // scoped constructor
-              if(match(COLON)){
-                    advance();
-                    if(match(COLON)){
+              if(match(SCOPE)){
                         advance();
                         string name_str = getID();
                         debugFile.open("output/debug_file.txt",std::ios_base::app);
@@ -142,21 +136,15 @@ bool prog(string test){
                             } else{
                                     fprintf( stderr, "%d: left parenthesis expected \n", yylineno );
                                     return false;        
-                                  }
+                            }
                         }
-                    } else{
-                        fprintf( stderr, "%d: scope operator incomplete \n", yylineno );
-                        return false;
-                    }
                 } else{
                      string name_str = getID();
                      if(id == name_str){
                           // may be a scoped operator
                           advance();
-                          if(match(COLON)){
+                          if(match(SCOPE)){
                                advance();
-                               if(match(COLON)){
-                                    advance();
                                    // operator operator_overload
                                    string op = getID();
                                    if(op == "operator"){
@@ -168,10 +156,6 @@ bool prog(string test){
          
                                    }
 
-                               } else{
-                                    fprintf( stderr, "%d: incomplete scope operator \n", yylineno );
-                                    return false;
-                               }
                           } else{
                                     fprintf( stderr, "%d: scope operator expected\n", yylineno );
                                     return false;
@@ -214,6 +198,8 @@ bool object_def(string id)
     debugFile << "getID() IN object def is " << getID() << endl;    
     debugFile.close();
 
+    // cout << "object_def: id is " << id << ", yytext is " << yytext << endl;
+
     if(match(NUM_OR_ID))
     {
         advance();
@@ -236,6 +222,11 @@ bool more_def(string id)
     debugFile.open("output/debug_file.txt",std::ios_base::app);
     debugFile<<"Entering more_def"<<endl;    
     debugFile.close();
+
+    // cout << "id passed to more_def is " << id << endl;
+    // cout << "and yytext is " << yytext << endl;
+
+
     if(match(SEMI))
     {
         advance();
@@ -271,10 +262,19 @@ bool ending(string id)
     debugFile.open("output/debug_file.txt",std::ios_base::app);
     debugFile<<"Entering ending"<<endl;    
     debugFile.close();
-    if(match(EQUAL))
+
+    // cout << "id passed to ending is " << id << endl;
+    // cout << "and yytext is " << yytext << endl;
+
+
+    if(match(ASSIGN))
     {
+        // cout << "equal matched" << endl;
         advance();
         string curClass = getID();
+        // cout << "after advancing '=' curClass is " << curClass << endl;
+        // cout << "and yytext is " << yytext << endl;
+
         if(id == curClass)
         {
             advance();
@@ -332,6 +332,7 @@ bool ending(string id)
             return true;
         }
     }
+    // cout << "outside if else if of ending" << endl;
     debugFile.open("output/debug_file.txt",std::ios_base::app);
     debugFile<<"Coming out of ending"<<endl;    
     debugFile.close();
@@ -403,7 +404,7 @@ bool classDef()
     if(match(NUM_OR_ID))
     {
         string id = getID();
-        cout<<"in code_gen inserting in class_names "<<id<<endl;
+        // cout<<"in code_gen inserting in class_names "<<id<<endl;
         class_names.insert(id);
         advance();
         if(!inherited()) return false;

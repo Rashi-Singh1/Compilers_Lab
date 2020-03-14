@@ -1,9 +1,0 @@
-
-<Token_id	 lexeme>
-	1	 B
-	6	 goo
-	4	 b
-	0	 hello
-	2	 world
-	3	 bye
-	5	 c
