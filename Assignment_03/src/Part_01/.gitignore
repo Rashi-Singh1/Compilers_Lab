@@ -1,0 +1,10 @@
+*.o
+a.out
+token_stream.txt
+lex_output.txt
+symbol_table.txt
+debug_file.txt
+output_file.txt
+lex.yy.c
+main
+output/*.txt
