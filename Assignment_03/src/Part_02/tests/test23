@@ -1,0 +1,4 @@
+select <name='rashi' and name='sparsh'> (t1);
+project <name,roll,city> (t1);
+(t1) equi_join <t1.name=t1.name> (t1);
+(t1) cartesian_product (t1);
