@@ -171,7 +171,7 @@ QUERY : SELECT LESS SELECT_COND MORE LP TABLE RP {
 
        | LP TABLE RP CARTESIAN_PRODUCT LP TABLE RP {
            if(!cartesian_product($2 , $6)){
-               yyerror("unsuccesful cartesian_product\n");
+               yyerror("Unsuccesful cartesian product\n");
            }
 
            free($2);
@@ -340,25 +340,25 @@ int main(void){
     return yyparse();
 }
 void yyerror(const char *s){
-    fprintf(stderr, "%s", s);
+    fprintf(stderr, "ERROR: %s", s);
     exit(1);
 }
 
 char* is_valid_table(char* table)
 {
-    char* path1 = (char*) malloc(sizeof(char)*MAX_LEN);
-    strcpy(path1,DB_PATH);
-    strcat(path1,table);
-    strcat(path1,".csv");
-    FILE *fptr1 = fopen(path1,"r");
+    char* path = (char*) malloc(sizeof(char)*MAX_LEN);
+    strcpy(path,DB_PATH);
+    strcat(path,table);
+    strcat(path,".csv");
+    FILE *fptr1 = fopen(path,"r");
     if(fptr1 == NULL) {
         char error_string[MAX_LEN] = {'\0'};
-        strcpy(error_string,path1);
-        strcat(error_string," does not exist\n");
+        strcpy(error_string,path);
+        strcat(error_string," not found. Table does not exist.\n");
         yyerror(error_string);
         return NULL;
     }
-    return path1;
+    return path;
 }
 
 char** read_record(FILE* fptr){
@@ -420,8 +420,8 @@ char*** read_all_records(FILE* fptr)
 }
 
 bool cartesian_product(char *table_1 , char * table_2){
-    printf("TABLE_1 = %s, TABLE_2 = %s\n", table_1, table_2);
-    
+    printf("Cartesian product of tables - %s and %s\n\n", table_1, table_2);
+
     // Check tables exist
     char* path1 = is_valid_table(table_1);
     char* path2 = is_valid_table(table_2);
@@ -439,21 +439,43 @@ bool cartesian_product(char *table_1 , char * table_2){
     
     // Write column names
     char** column_list1 = read_record(fptr1);
+    int num_of_columns_1 = 0;
+    char* val;
+    while(val = column_list1[num_of_columns_1]) num_of_columns_1++;
     char** column_list2 = read_record(fptr2);
-    char** all_columns = merge_arrays(column_list1,column_list2);
-    fprintf(output,"%s\n",coma_separated_string(all_columns));
+    int num_of_columns_2 = 0;
+    while(val = column_list2[num_of_columns_2]) num_of_columns_2++;
+    // printf("No. of columns in %s: %d\n", table_1, num_of_columns_1);
+    // printf("No. of columns in %s: %d\n", table_2, num_of_columns_2);
+    char** all_columns = merge_arrays(column_list1, column_list2);
+    fprintf(output,"%s\n", coma_separated_string(all_columns));
+    printf("%s\n", coma_separated_string(all_columns));
     
     // Read table 2 into memory
     char *** file2 = read_all_records(fptr2);
     
     // Print into output file
     char ** record1;
+    // int record_1_index = 0;
     while((record1 = read_record(fptr1))){
+        // record_1_index++;
+        // int num_cells_1 = 0;
+        // while(val = record1[num_cells_1]) num_cells_1++;
+        // if(num_cells_1 != num_of_columns_1) {
+        //     char error_string[MAX_LEN] = {'\0'};
+        //     sprintf(error_string, "")
+        //     strcpy(error_string,"Record ");
+        //     strcat()
+        //     strcat(error_string," not found. Table does not exist.\n");
+        //     yyerror(error_string);
+        // }
+
         char ** record2;
         int index = 0;
         while((record2 = file2[index++])){
           char** merged_record = merge_arrays(record1,record2);
-          fprintf(output,"%s\n",coma_separated_string(merged_record));    
+          fprintf(output,"%s\n",coma_separated_string(merged_record));
+          printf("%s\n",coma_separated_string(merged_record));
         }
     }
 
@@ -462,7 +484,7 @@ bool cartesian_product(char *table_1 , char * table_2){
     fclose(fptr2);
     fclose(output);
 
-    printf("cartesian_product succesful\n");
+    // printf("cartesian_product succesful\n");
     return true;
 }
 
