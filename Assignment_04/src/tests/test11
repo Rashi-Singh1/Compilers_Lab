@@ -1,0 +1,1 @@
+(t1) equi_join <t1.name = t2.name and t1.salary=t2.roll> (t2);
