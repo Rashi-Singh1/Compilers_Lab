@@ -340,7 +340,7 @@ int main(void){
     return yyparse();
 }
 void yyerror(const char *s){
-    fprintf(stderr, "ERROR: %s", s);
+    fprintf(stderr, "ERROR: %s\n", s);
     exit(1);
 }
 
@@ -489,6 +489,13 @@ bool cartesian_product(char *table_1 , char * table_2){
 }
 
 bool project(custom_list * c , char * tbl){
+    printf("Project fields (");
+    for(int i = c->last-1 ; i >= 0 ; i--) {
+        if(i == c->last-1) printf("%s", c->arr[i]);
+        else printf(", %s", c->arr[i]);
+    }
+    printf(") on table %s\n\n", tbl);
+    
     if(c->last == 0) return true;
     char* path = is_valid_table(tbl);
     if(path == NULL) return false;
@@ -512,9 +519,7 @@ bool project(custom_list * c , char * tbl){
         }
         if(indexes[i] == -1){
             char error_string[MAX_LEN];
-            strcpy(error_string,(c->arr)[i]);
-            strcat(error_string," not found in ");
-            strcat(error_string,tbl);
+            sprintf(error_string, "Field '%s' not found in table %s.", (c->arr)[i], tbl);
             yyerror(error_string);
             return false;
         }
@@ -523,8 +528,10 @@ bool project(custom_list * c , char * tbl){
     for(int i = c->last-1;i>0;i--)
     {
         fprintf(output,"%s,",(c->arr)[i]);
+        printf("%s,",(c->arr)[i]);
     }
     fprintf(output,"%s\n",(c->arr)[0]);
+    printf("%s\n",(c->arr)[0]);
     while(record = read_record(fptr))
     {
         int index = 0;
@@ -536,11 +543,12 @@ bool project(custom_list * c , char * tbl){
         }
         if(c->last > 0) newRecord[strlen(newRecord) - 1] = '\n';
         fprintf(output,"%s",newRecord);
+        printf("%s",newRecord);
     }
     fclose(fptr);
     fclose(output);
 
-    printf("project succesful\n");
+    // printf("project succesful\n");
     return true;
 }
 

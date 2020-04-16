@@ -28,7 +28,7 @@
 (?i:OR)                                                      { return OR; }  
 (?i:NOT)                                                   { return NOT; }  
 (?i:SELECT)                                                { return SELECT; }
-(?i:PROJECT)                                              { printf("Projection operation\n"); return PROJECT; }
+(?i:PROJECT)                                              { return PROJECT; }
 (?i:CARTESIAN_PRODUCT)                                     { return CARTESIAN_PRODUCT; }
 (?i:EQUI_JOIN)                                             { return EQUI_JOIN; }
 [a-zA-Z][a-zA-Z0-9_]*                                    {
