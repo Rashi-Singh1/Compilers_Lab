@@ -422,7 +422,6 @@ char*** read_all_records(FILE* fptr)
 }
 
 bool cartesian_product(char *table_1 , char * table_2){
-    printf("Cartesian product of tables - %s and %s\n\n", table_1, table_2);
 
     // Check tables exist
     char* path1 = is_valid_table(table_1);
@@ -439,6 +438,7 @@ bool cartesian_product(char *table_1 , char * table_2){
     strcat(output_path,table_2);
     strcat(output_path,"_cart.csv");
     FILE* output = fopen(output_path,"w");
+    printf("\nCartesian product of tables - %s and %s\n\n", table_1, table_2);
     
     // Write column names
     char** column_list1 = read_record(fptr1);
@@ -492,13 +492,6 @@ bool cartesian_product(char *table_1 , char * table_2){
 }
 
 bool project(custom_list * c , char * tbl){
-    printf("Project fields (");
-    for(int i = c->last-1 ; i >= 0 ; i--) {
-        if(i == c->last-1) printf("%s", c->arr[i]);
-        else printf(", %s", c->arr[i]);
-    }
-    printf(") on table %s\n\n", tbl);
-    
     if(c->last == 0) return true;
     char* path = is_valid_table(tbl);
     if(path == NULL) return false;
@@ -512,6 +505,13 @@ bool project(custom_list * c , char * tbl){
     strcat(output_path,tbl);
     strcat(output_path,"_proj.csv");
     FILE* output = fopen(output_path,"w");
+    printf("\nProject fields (");
+    for(int i = c->last-1 ; i >= 0 ; i--) {
+        if(i == c->last-1) printf("%s", c->arr[i]);
+        else printf(", %s", c->arr[i]);
+    }
+    printf(") on table %s\n\n", tbl);
+    
     char ** column_list = read_record(fptr);
     for(int i = c->last-1; i >=0 ; i--){
         int index = 0;
@@ -699,6 +699,7 @@ bool equi_join(char* table_1 , char * table_2 , list_pair * l){
     strcat(output_file,table_2);
     strcat(output_file,"_equi_join.csv");
     FILE* output = fopen(output_file,"w");
+    printf("\nEqui Join of tables - %s and %s\n\n", table_1, table_2);
     char ** record1 , **record2;
     fprintf(output,"%s,%s\n",coma_separated_string(column_list1),coma_separated_string(column_list2));
     printf("%s,%s\n",coma_separated_string(column_list1),coma_separated_string(column_list2));
@@ -732,7 +733,7 @@ bool equi_join(char* table_1 , char * table_2 , list_pair * l){
         }
         
     }
-    printf("equi_join successful\n");
+    // printf("equi_join successful\n");
     return true;
 }
 
@@ -766,6 +767,7 @@ bool perform_select_op(char* tbl_name,node* root)
     strcat(output_path,tbl_name);
     strcat(output_path,"_select.csv");
     FILE* output = fopen(output_path,"w");
+    printf("\nOutput of select operation\n\n");
     char** column_list = read_record(fptr);
     fprintf(output,"%s\n",coma_separated_string(column_list));
     printf("%s\n",coma_separated_string(column_list));
@@ -779,7 +781,7 @@ bool perform_select_op(char* tbl_name,node* root)
     }
     fclose(fptr);
     fclose(output);
-    printf("select operation successful\n");
+    // printf("select operation successful\n");
     return true;
 }
 
