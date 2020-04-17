@@ -768,10 +768,14 @@ bool perform_select_op(char* tbl_name,node* root)
     FILE* output = fopen(output_path,"w");
     char** column_list = read_record(fptr);
     fprintf(output,"%s\n",coma_separated_string(column_list));
+    printf("%s\n",coma_separated_string(column_list));
     char** record;
     while(record = read_record(fptr))
     {
-        if(compare(root,record,column_list)) fprintf(output,"%s\n",coma_separated_string(record));
+        if(compare(root,record,column_list)){
+            fprintf(output,"%s\n",coma_separated_string(record));
+            printf("%s\n",coma_separated_string(record));
+        } 
     }
     fclose(fptr);
     fclose(output);
