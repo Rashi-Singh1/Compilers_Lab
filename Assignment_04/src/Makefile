@@ -24,4 +24,4 @@ test: ./tests/test$(N) main
 	@./main < ./tests/test$(N)
 
 clean:
-	-rm -f main lex.yy.c parser.tab.c parser.tab.h *.csv
+	-rm -f main lex.yy.c parser.tab.c parser.tab.h output/*.csv
