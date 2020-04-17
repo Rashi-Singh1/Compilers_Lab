@@ -162,7 +162,7 @@ QUERY : SELECT LESS SELECT_COND MORE LP TABLE RP {
 
        | PROJECT LESS ATTR_LIST MORE LP TABLE RP {
            if(!project((custom_list *)$3 , $6)){
-               yyerror("unsuccesful project");
+               yyerror("unsuccessful project");
            }
 
            free($6);
@@ -171,7 +171,7 @@ QUERY : SELECT LESS SELECT_COND MORE LP TABLE RP {
 
        | LP TABLE RP CARTESIAN_PRODUCT LP TABLE RP {
            if(!cartesian_product($2 , $6)){
-               yyerror("Unsuccesful cartesian product\n");
+               yyerror("Unsuccessful cartesian product\n");
            }
 
            free($2);
@@ -180,7 +180,7 @@ QUERY : SELECT LESS SELECT_COND MORE LP TABLE RP {
        
        | LP TABLE RP EQUI_JOIN LESS JOIN_COND MORE LP TABLE RP{
             if(!equi_join($2 , $9, (list_pair *) $6)){
-                yyerror("unsuccesful equi_join operation\n");
+                yyerror("unsuccessful equi_join operation\n");
             }
          }
 ;
@@ -339,6 +339,7 @@ int main(void){
     // //yydebug = 1;
     return yyparse();
 }
+
 void yyerror(const char *s){
     fprintf(stderr, "ERROR: %s\n", s);
     exit(1);
@@ -376,8 +377,9 @@ char** read_record(FILE* fptr){
             token = strtok(NULL, delim);
         }
         return output_str;
-    } else NULL;
+    } else return NULL;
 }
+
 char** merge_arrays(char** array1 , char** array2){
         char ** output_str = malloc(sizeof(char *) * MAX_COL_LIMIT);
         char * val;
@@ -485,7 +487,7 @@ bool cartesian_product(char *table_1 , char * table_2){
     fclose(fptr2);
     fclose(output);
 
-    // printf("cartesian_product succesful\n");
+    // printf("cartesian_product successful\n");
     return true;
 }
 
@@ -550,7 +552,7 @@ bool project(custom_list * c , char * tbl){
     fclose(fptr);
     fclose(output);
 
-    // printf("project succesful\n");
+    // printf("project successful\n");
     return true;
 }
 
@@ -730,7 +732,7 @@ bool equi_join(char* table_1 , char * table_2 , list_pair * l){
         }
         
     }
-    printf("equi_join succesful\n");
+    printf("equi_join successful\n");
     return true;
 }
 
@@ -773,6 +775,7 @@ bool perform_select_op(char* tbl_name,node* root)
     }
     fclose(fptr);
     fclose(output);
+    printf("select operation successful\n");
     return true;
 }
 
