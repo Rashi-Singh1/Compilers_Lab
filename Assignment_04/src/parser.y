@@ -699,6 +699,7 @@ bool equi_join(char* table_1 , char * table_2 , list_pair * l){
     FILE* output = fopen(output_file,"w");
     char ** record1 , **record2;
     fprintf(output,"%s,%s\n",coma_separated_string(column_list1),coma_separated_string(column_list2));
+    printf("%s,%s\n",coma_separated_string(column_list1),coma_separated_string(column_list2));
     char*** file2 = read_all_records(fptr2);
     while(record1 = read_record(fptr1)){
         int idx = 0;
@@ -724,6 +725,7 @@ bool equi_join(char* table_1 , char * table_2 , list_pair * l){
             }
             if(result){
                 fprintf(output,"%s,%s\n",coma_separated_string(record1),coma_separated_string(record2));
+                printf("%s,%s\n",coma_separated_string(record1),coma_separated_string(record2));
             }
         }
         

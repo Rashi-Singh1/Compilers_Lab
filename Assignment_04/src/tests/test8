@@ -1,1 +1,1 @@
-(t1) Equi_join <t1.name = t2.name and t1.salary = t2.sal and t4.age = t5.age> (t2);
+(t1) Equi_join <t1.name = t2.name and t1.roll = t2.roll> (t2);
