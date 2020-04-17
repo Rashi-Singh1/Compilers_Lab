@@ -2,4 +2,4 @@ main
 lex.yy.c
 parser.tab.c
 parser.tab.h
-*.csv
+output/*.csv

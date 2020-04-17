@@ -339,6 +339,7 @@ int main(void){
     // //yydebug = 1;
     return yyparse();
 }
+
 void yyerror(const char *s){
     fprintf(stderr, "%s", s);
     exit(1);
@@ -376,8 +377,9 @@ char** read_record(FILE* fptr){
             token = strtok(NULL, delim);
         }
         return output_str;
-    } else NULL;
+    } else return NULL;
 }
+
 char** merge_arrays(char** array1 , char** array2){
         char ** output_str = malloc(sizeof(char *) * MAX_COL_LIMIT);
         char * val;
@@ -741,6 +743,7 @@ bool perform_select_op(char* tbl_name,node* root)
     }
     fclose(fptr);
     fclose(output);
+    printf("select operation succesful\n");
     return true;
 }
 
