@@ -431,7 +431,8 @@ bool cartesian_product(char *table_1 , char * table_2){
     FILE* fptr1 = fopen(path1,"r");
     FILE* fptr2 = fopen(path2,"r");
     char output_path[MAX_LEN] = {'\0'};
-    strcpy(output_path,table_1);
+    strcpy(output_path,"output/");
+    strcat(output_path,table_1);
     strcat(output_path,"_");
     strcat(output_path,table_2);
     strcat(output_path,"_cart.csv");
@@ -505,7 +506,8 @@ bool project(custom_list * c , char * tbl){
     }
     FILE* fptr = fopen(path,"r");
     char output_path[MAX_LEN];
-    strcpy(output_path,tbl);
+    strcpy(output_path,"output/");
+    strcat(output_path,tbl);
     strcat(output_path,"_proj.csv");
     FILE* output = fopen(output_path,"w");
     char ** column_list = read_record(fptr);
@@ -689,7 +691,8 @@ bool equi_join(char* table_1 , char * table_2 , list_pair * l){
     //     // printf("index : %d and indexes for second attr[0] : %d\n",i,indexes2[i][0]);
     // }
     char output_file[MAX_LEN];
-    strcpy(output_file,table_1);
+    strcpy(output_file,"output/");
+    strcat(output_file,table_1);
     strcat(output_file,"_");
     strcat(output_file,table_2);
     strcat(output_file,"_equi_join.csv");
@@ -755,7 +758,8 @@ bool perform_select_op(char* tbl_name,node* root)
     }
     FILE* fptr = fopen(path,"r");
     char output_path[MAX_LEN];
-    strcpy(output_path,tbl_name);
+    strcpy(output_path,"output/");
+    strcat(output_path,tbl_name);
     strcat(output_path,"_select.csv");
     FILE* output = fopen(output_path,"w");
     char** column_list = read_record(fptr);
