@@ -1,11 +1,13 @@
-# Execute language subset of Relational Algebra on CSV files
+# Compile language subset of C to MIPS code
 
-Use flex, bison to analyse, execute the following language subset of Relational Algebra on CSV files
-- ```SELECT <condition> (Table_Name)```
-- ```PROJECT <attribute_list> (Table_Name)```
-- ```(Table_Name_1) CARTESIAN_PRODUCT (Table_Name_2)```
-- ```(Table_Name_1) EQUI_JOIN <condition> (Table_Name_2)```
-- ```<condition>``` may be simple or compound condition
+Use flex, bison to lexically analyse, parse, sematically analyse, generate intermediate code in 3 address code Quadruple format and generate MIPS output code (runnable on SPIM simulator).
+
+Language subset of C to target:
+- ```int``` and ```float``` variable declarations
+- Arithmetic, logical and relational expressions with short circuit evaluation
+- Function calls and function definitions
+- Conditional expressions - ```if-else``` and ```switch-case``` statements
+- Loops - ```for``` and ```while```
 
 ## Instructions to run
 ```
@@ -23,6 +25,12 @@ $ make
 ```
 $ make test N=TEST_NO
 $ make test N=3             # Run test3
+```
+
+### 3. Test lexer only
+```
+$ make test_lex N=TEST_NO
+$ make test_lex N=3			# Lexically analyse test3
 ```
 
 ## Information about files
