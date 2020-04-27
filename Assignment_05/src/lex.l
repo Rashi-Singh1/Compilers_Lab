@@ -30,7 +30,8 @@
 ">="                                                    { return MOREEQUAL; }
 "=="                                                    { return EQUAL; }
 "!="                                                    { return NOTEQUAL; }
-[ \n\t]                                                 ; 
+[\n]                                                    { yylineno++; } 
+[ \t]                                                    ;
 [0-9]+                                                  { 
                                                           char *new_str = (char*) malloc(sizeof(char) * MAX_LEN);
                                                           strcpy(new_str , yytext);

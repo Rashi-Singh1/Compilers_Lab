@@ -9,6 +9,7 @@ Use flex, bison to analyse, execute the following language subset of Relational 
 
 ## Instructions to run
 ```
+$ sudo apt install bison flex
 $ make test N=<test number>
 $ make test N=13 	# To run ./tests/test13
 ```
