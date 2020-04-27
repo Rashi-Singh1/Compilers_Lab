@@ -29,7 +29,7 @@ int main(int argc, char const *argv[])
         }
 
         char *s = yytext;
-        printf("%d,%d,%s    ", yylineno, token, s);
+        printf("%d,%s    ", token, s);
     }
     printf("\n");
     return 0;
