@@ -1,1 +1,0 @@
-(t1) Equi_join <t1.name = t2.name and t1.roll = t2.roll> (t2);

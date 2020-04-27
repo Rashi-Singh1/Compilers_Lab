@@ -1,1 +1,0 @@
-select <roll<1002 and age<101 and name='shivam' or name='rashi' or name='sparsh' or name='bansal'> (t1);

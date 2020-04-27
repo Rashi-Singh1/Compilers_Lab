@@ -1,4 +1,0 @@
-select <name='rashi' or name='sparsh'> (t1);
-project <name,roll> (t2);
-(t1) equi_join <t1.name=t2.name> (t2);
-(t1) cartesIAN_PROduct (t2);

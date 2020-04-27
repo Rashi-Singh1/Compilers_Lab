@@ -1,3 +1,0 @@
-(t1) equi_JOIN <t1.name = t2.name and x.z = y.w> (t2);
-select <name = 'Rashi'> (t3);
-(t4) cartesian_ProducT (t6);

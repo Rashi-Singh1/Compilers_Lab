@@ -1,1 +1,0 @@
-select <name = 'sparsh' or name = 'rashi' and not roll < 100> (t1);
