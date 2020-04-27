@@ -2,4 +2,5 @@ main
 lex.yy.c
 parser.tab.c
 parser.tab.h
-output/*.csv
+parser.tab.h.gch
+./tests/lex/test_lex
