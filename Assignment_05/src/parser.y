@@ -227,7 +227,7 @@ FUNC_CALL : ID LP PARAM_LIST_WO_DATATYPE RP SEMI{}
 PARAM_LIST_WO_DATATYPE : PARAM_WO_DATATYPE COMMA PARAM_LIST_WO_DATATYPE | PARAM_WO_DATATYPE{}
 ;
 
-//EXP is for part 2 (grammar written by Sparsh)
+//EXP is for part 2 (grammar written by Sparsh Sinha)
 PARAM_WO_DATATYPE : null | BITAND EXP | BITAND LP EXP RP | EXP
 ;
 
