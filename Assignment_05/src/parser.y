@@ -71,12 +71,13 @@ PROGRAM :
         | FUNC_DEFINITION PROGRAM
 ;
 
+
 VAR: INT MULTI_DECLARATION SEMI{ printf("matched int declaration\n");}
     | FLOAT MULTI_DECLARATION SEMI{printf("matched float declaration\n");}
 ;
 
 MULTI_DECLARATION : DECLARATION COMMA MULTI_DECLARATION{} 
-                  | DECLARATION {}
+                  | DECLARATION {printf("matched declaration\n");}
 ;
 
 
@@ -96,6 +97,8 @@ DATA_TYPE : VOID
 ;
 
 FUNC_DECLARATION : INT ID LP PARAM_LIST_WITH_DATATYPE RP SEMI{printf("matched function declaration\n");}
+                 | FLOAT ID LP PARAM_LIST_WITH_DATATYPE RP SEMI{printf("matched function declaration\n");}
+                 | VOID ID LP PARAM_LIST_WITH_DATATYPE RP SEMI{printf("matched function declaration\n");}
 ;
 
 PARAM_LIST_WITH_DATATYPE : 
