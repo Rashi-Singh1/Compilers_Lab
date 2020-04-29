@@ -66,20 +66,19 @@
 %%
 
 PROGRAM : 
-        | VAR PROGRAM
-        | FUNC_DECLARATION PROGRAM
-        | FUNC_DEFINITION PROGRAM
+        | VAR PROGRAM              { printf("matched a variable declaration\n"); }
+        | FUNC_DECLARATION PROGRAM { printf("matched function declaration\n");   }
+        | FUNC_DEFINITION PROGRAM  { printf("matched function definition\n");    }
 ;
 
 
-VAR: INT MULTI_DECLARATION SEMI{ printf("matched int declaration\n");}
-    | FLOAT MULTI_DECLARATION SEMI{printf("matched float declaration\n");}
+VAR: INT MULTI_DECLARATION SEMI     { printf("matched int declaration\n");   }
+     | FLOAT MULTI_DECLARATION SEMI { printf("matched float declaration\n"); }
 ;
 
 MULTI_DECLARATION : DECLARATION COMMA MULTI_DECLARATION{} 
-                  | DECLARATION {printf("matched declaration\n");}
+                  | DECLARATION {}
 ;
-
 
 DECLARATION : ID
             | ID ASSIGN TYPECAST ID{} 
@@ -87,7 +86,8 @@ DECLARATION : ID
 ;
 
 TYPECAST :
-         | LP DATA_TYPE RP {}
+         | LP INT RP 
+         | LP FLOAT RP
 ;
 
 
@@ -96,9 +96,9 @@ DATA_TYPE : VOID
           | FLOAT
 ;
 
-FUNC_DECLARATION : INT ID LP PARAM_LIST_WITH_DATATYPE RP SEMI{printf("matched function declaration\n");}
-                 | FLOAT ID LP PARAM_LIST_WITH_DATATYPE RP SEMI{printf("matched function declaration\n");}
-                 | VOID ID LP PARAM_LIST_WITH_DATATYPE RP SEMI{printf("matched function declaration\n");}
+FUNC_DECLARATION : INT ID LP PARAM_LIST_WITH_DATATYPE RP SEMI   { printf("matched function declaration\n");}
+                 | FLOAT ID LP PARAM_LIST_WITH_DATATYPE RP SEMI { printf("matched function declaration\n");}
+                 | VOID ID LP PARAM_LIST_WITH_DATATYPE RP SEMI  { printf("matched function declaration\n");}
 ;
 
 PARAM_LIST_WITH_DATATYPE : 
@@ -109,7 +109,9 @@ PARAM_LIST_WITH_DATATYPE :
 PARAM_WITH_DATATYPE : DATA_TYPE ID{}
 ;
 
-FUNC_DEFINITION : DATA_TYPE ID LP PARAM_LIST_WITH_DATATYPE RP CLP STMT_LIST CRP{printf("matched function definition\n");}
+FUNC_DEFINITION : INT ID LP PARAM_LIST_WITH_DATATYPE RP CLP STMT_LIST CRP   { printf("matched int   function definition\n");}
+                | FLOAT ID LP PARAM_LIST_WITH_DATATYPE RP CLP STMT_LIST CRP { printf("matched float function definition\n");}
+                | VOID ID LP PARAM_LIST_WITH_DATATYPE RP CLP STMT_LIST CRP  { printf("matched void  function definition\n"); }
 ;
 
 STMT_LIST : STMT STMT_LIST{} 
@@ -119,25 +121,24 @@ STMT_LIST : STMT STMT_LIST{}
 //more additions needed here
 STMT : VAR 
      | FUNC_CALL{}
+     | LOOP
 ;
 
-FUNC_CALL : ID LP PARAM_LIST_WO_DATATYPE RP SEMI{}
+FUNC_CALL : ID LP PARAM_LIST_WO_DATATYPE RP SEMI { printf("matched function call\n"); }
 ;
 
-//WO : WITHOUT
 PARAM_LIST_WO_DATATYPE : PARAM_WO_DATATYPE COMMA PARAM_LIST_WO_DATATYPE 
                        | PARAM_WO_DATATYPE{}
 ;
 
-//EXP is for part 2 (grammar written by Sparsh Sinha)
 PARAM_WO_DATATYPE : null 
                   | BITAND EXP 
                   | BITAND LP EXP RP 
                   | EXP
 ;
 
-LOOP : FOR FORLOOP BODY 
-     | WHILE LP EXP RP BODY 
+LOOP : FOR FORLOOP BODY     { printf("for loop matched\n"); }
+     | WHILE LP EXP RP BODY { printf("while loop matched\n"); }
 ;
 
 BODY : CLP STMT_LIST CRP 
@@ -185,15 +186,6 @@ OTHER : MOD
 //more additions for part 2 of question
 EXP : CONST_OR_ID 
 ;
-
-OP : EQUAL {}
-    | LESS {}
-    | MORE {}
-    | LESSEQUAL {}
-    | MOREEQUAL {}
-    | NOTEQUAL {}
-;
-
 
 CONST_OR_ID : ID {}
             | QUOTE ID QUOTE {}

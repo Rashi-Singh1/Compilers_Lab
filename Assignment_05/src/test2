@@ -1,4 +1,0 @@
-int x;
-int y , z = 4;
-
-int x();

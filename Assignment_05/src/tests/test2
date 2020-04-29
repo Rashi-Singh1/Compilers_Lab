@@ -1,4 +1,12 @@
 int x;
 int y , z = 4;
-
+float x = 25 , y = 45 , t = 54;
 int x();
+int threeargfunc(int arg1 , int arg2 , int arg3);
+int noargfunc();
+void function();
+
+int function_def(){
+    int x ;
+    int y;
+}
