@@ -7,6 +7,12 @@
     void yyerror(const char *s);
     #define YYDEBUG 1
 
+    char* names[] = { 
+                    "t0" , "t1" , "t2" , "t3" , "t4" , "t5", "t6", "t7", 
+                    "t8" , "t9" , "t10", "t11", "t12", "t13", "t14", "t15", 
+                    "t16", "t17", "t18", "t19", "t20", "t21", "t22", "t23", 
+                    "t24", "t25", "t26", "t27", "t28", "t29", "t30", "t31"
+                    };
     typedef
     struct quadruple{
         int    operation;
@@ -78,6 +84,7 @@ PROGRAM
         | FUNC_DECLARATION PROGRAM 
         | FUNC_DEFINITION PROGRAM  
         | EXP SEMI PROGRAM
+        | IF_AND_SWICH_STATEMENTS PROGRAM
         ;
 
 VAR
@@ -289,6 +296,10 @@ CONST_OR_ID
         | NUM {}
         ;
 
+IF_AND_SWICH_STATEMENTS
+        : IF LP EXP RP STMT
+        | IF LP EXP RP CLP STMT_LIST CRP
+        ;
 %%
 
 
