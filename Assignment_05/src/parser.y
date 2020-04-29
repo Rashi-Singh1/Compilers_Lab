@@ -139,6 +139,7 @@ STMT
         | VAR                                                       { printf("variable declaration matched\n"); }
         | FUNC_CALL                                                 { printf("function call statement matched\n"); }
         | LOOP                                                      { printf("loop statement matched\n"); }
+        | EXP SEMI                                                  { printf("expression matched\n"); }
         ;
 
 FUNC_CALL 
@@ -277,7 +278,7 @@ MULTIPLICATION_EXPR
         ;
 
 BASIC_EXPR 
-        : ID
+        : ID                                                    { printf("id matched %s \n", $1); }
         | NUM
         | QUOTE ID QUOTE
         | LP EXP RP
