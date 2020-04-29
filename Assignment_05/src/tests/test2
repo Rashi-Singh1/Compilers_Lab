@@ -3,6 +3,14 @@ int y , z = 4;
 float x = 25 , y = 45 , t = 54;
 int x();
 
+
+a = c;
+
+y = z = (x && t || y || z | x || x && t) , z = 5 , x = t + t * x;
+t = 5 * x;
+x != (t = 4) && 4;
+
+
 int threeargfunc(int arg1 , int arg2 , int arg3);
 int noargfunc();
 void function();
