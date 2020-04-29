@@ -1,3 +1,5 @@
-(32.52 + 29)
-if switch >= ^
-== !=
+int func(){
+	while (a == b || a==c){
+		a = d;
+	}
+}
