@@ -66,18 +66,18 @@
 %%
 
 PROGRAM : 
-        | VAR PROGRAM              { printf("matched a variable declaration\n"); }
-        | FUNC_DECLARATION PROGRAM { printf("matched function declaration\n");   }
-        | FUNC_DEFINITION PROGRAM  { printf("matched function definition\n");    }
+        | VAR PROGRAM              
+        | FUNC_DECLARATION PROGRAM 
+        | FUNC_DEFINITION PROGRAM  
 ;
 
 
-VAR: INT MULTI_DECLARATION SEMI     { printf("matched int declaration\n");   }
-     | FLOAT MULTI_DECLARATION SEMI { printf("matched float declaration\n"); }
+VAR: INT MULTI_DECLARATION SEMI     { printf("matched int declaration\n\n");   }
+     | FLOAT MULTI_DECLARATION SEMI { printf("matched float declaration\n\n"); }
 ;
 
 MULTI_DECLARATION : DECLARATION COMMA MULTI_DECLARATION{} 
-                  | DECLARATION {}
+                  | DECLARATION 
 ;
 
 DECLARATION : ID
@@ -96,9 +96,9 @@ DATA_TYPE : VOID
           | FLOAT
 ;
 
-FUNC_DECLARATION : INT ID LP PARAM_LIST_WITH_DATATYPE RP SEMI   { printf("matched function declaration\n");}
-                 | FLOAT ID LP PARAM_LIST_WITH_DATATYPE RP SEMI { printf("matched function declaration\n");}
-                 | VOID ID LP PARAM_LIST_WITH_DATATYPE RP SEMI  { printf("matched function declaration\n");}
+FUNC_DECLARATION : INT ID LP PARAM_LIST_WITH_DATATYPE RP SEMI   { printf("matched int function declaration\n");}
+                 | FLOAT ID LP PARAM_LIST_WITH_DATATYPE RP SEMI { printf("matched float function declaration\n");}
+                 | VOID ID LP PARAM_LIST_WITH_DATATYPE RP SEMI  { printf("matched void function declaration\n");}
 ;
 
 PARAM_LIST_WITH_DATATYPE : 
@@ -119,9 +119,10 @@ STMT_LIST : STMT STMT_LIST{}
 ;
 
 //more additions needed here
-STMT : VAR 
-     | FUNC_CALL{}
-     | LOOP
+STMT :
+     | VAR { printf("variable declaration matched\n"); }
+     | FUNC_CALL{ printf("function call statement matched\n"); }
+     | LOOP { printf("loop statement matched\n"); }
 ;
 
 FUNC_CALL : ID LP PARAM_LIST_WO_DATATYPE RP SEMI { printf("matched function call\n"); }
@@ -131,14 +132,12 @@ PARAM_LIST_WO_DATATYPE : PARAM_WO_DATATYPE COMMA PARAM_LIST_WO_DATATYPE
                        | PARAM_WO_DATATYPE{}
 ;
 
-PARAM_WO_DATATYPE : null 
-                  | BITAND EXP 
-                  | BITAND LP EXP RP 
-                  | EXP
+PARAM_WO_DATATYPE :
+                  | EXP 
 ;
 
 LOOP : FOR FORLOOP BODY     { printf("for loop matched\n"); }
-     | WHILE LP EXP RP BODY { printf("while loop matched\n"); }
+     | WHILE LP CONDITION RP BODY { printf("while loop matched\n"); }
 ;
 
 BODY : CLP STMT_LIST CRP 
@@ -162,10 +161,12 @@ COMMA_SEP_INIT_PRIME : ID ASSIGN EXP COMMA COMMA_SEP_INIT_PRIME
 ;
 
 //change this later to the logical part of EXP (yet to be written)
-CONDITION : EXP
+CONDITION : 
+          | EXP
 ;
 
-COMMA_SEP_INCR : ADD ADD ID 
+COMMA_SEP_INCR :
+               | ADD ADD ID 
                | MINUS MINUS ID 
                | ID ADD ADD 
                | ID MINUS MINUS 
@@ -183,8 +184,8 @@ OTHER : MOD
       | BITXOR 
 ;
 
-//more additions for part 2 of question
-EXP : CONST_OR_ID 
+// arithmetic
+EXP : CONST_OR_ID
 ;
 
 CONST_OR_ID : ID {}
