@@ -1,0 +1,14 @@
+void hello(int a, int b){	
+	switch(c+a) {
+			case 2:
+				break;
+			case 33:
+				a=45;
+				break;
+			case 56:
+				b=100;
+			default:
+				a=b;
+				break;
+	}
+}

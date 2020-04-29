@@ -1,0 +1,12 @@
+int hello() {
+	if(a == 2) a=2;
+	else if(b == 3) {
+		c = 3;
+	}
+	else if(d == a) c = 34;
+	else break;
+
+	
+
+	
+}

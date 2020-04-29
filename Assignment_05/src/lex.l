@@ -55,6 +55,8 @@
 (else)                                                  { return ELSE; }
 (switch)                                                { return SWITCH; }
 (case)                                                  { return CASE; }
+(default)                                               { return DEFAULT; }
+(break)                                               { return BREAK; }
 [a-zA-Z][a-zA-Z0-9_]*                                    {
                                                           char *new_str = (char*) malloc(sizeof(char) * MAX_LEN);
                                                           strcpy(new_str , yytext);

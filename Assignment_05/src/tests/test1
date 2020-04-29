@@ -1,5 +1,14 @@
 int func(){
-	while (a == b || a==c){
-		a = d;
+	if(a == b) {
+	 int c =2;
+	}
+
+	switch(c){
+		case 2:
+			a = 1;
+		case 3:
+			b=2;
+		default:
+			b=a;
 	}
 }

@@ -72,6 +72,8 @@
 %token ELSE
 %token SWITCH
 %token CASE
+%token DEFAULT
+%token BREAK
 %token <str>NUM
 %token <str> ID 
 
@@ -84,7 +86,6 @@ PROGRAM
         | FUNC_DECLARATION PROGRAM 
         | FUNC_DEFINITION PROGRAM  
         | EXP SEMI PROGRAM
-        | IF_AND_SWICH_STATEMENTS PROGRAM
         ;
 
 VAR
@@ -147,6 +148,8 @@ STMT
         | FUNC_CALL                                                 { printf("function call statement matched\n"); }
         | LOOP                                                      { printf("loop statement matched\n"); }
         | EXP SEMI                                                  { printf("expression matched\n"); }
+        | IF_AND_SWICH_STATEMENTS                                   { printf("if/switch statement matched\n"); }
+        | BREAK SEMI                                                { printf("break statement matched\n"); }
         ;
 
 FUNC_CALL 
@@ -298,8 +301,19 @@ CONST_OR_ID
         ;
 
 IF_AND_SWICH_STATEMENTS
-        : IF LP EXP RP STMT
-        | IF LP EXP RP CLP STMT_LIST CRP
+        : IF LP EXP RP BODY ELSE_OR_ELSE_IF
+        | SWITCH LP EXP RP CLP CASE_STMTS CRP
+        ;
+
+ELSE_OR_ELSE_IF
+        :
+        | ELSE BODY
+        ;
+
+CASE_STMTS
+        :
+        | CASE NUM COLON STMT_LIST CASE_STMTS
+        | DEFAULT COLON STMT_LIST
         ;
 %%
 
