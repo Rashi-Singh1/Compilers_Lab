@@ -9,6 +9,7 @@
     #define MAX_SYMBOL_TABLE_SIZE 100
     #define MAX_DECLARATIONS_PER_STATEMENT 10
     #define MAX_VAR_LEN 20
+    #define MAX_ERROR_STRING_LEN 100
 
     int yylex(); 
     void yyerror(const char *s);
@@ -31,12 +32,43 @@
     typedef
     struct symbol_table_entry{
         int scope;
-        char* type;
+        int type;       // 0: int, 1: float, 2: void
         char* name;
     } symbol_table_entry;
     symbol_table_entry * symbol_table[MAX_SYMBOL_TABLE_SIZE];
     int symbol_table_top = 0;
     int curr_scope = 0;
+
+    void symbol_table_append(int scope, int type, char * name) {
+        symbol_table_entry * entry_ptr = (symbol_table_entry *)malloc(sizeof(symbol_table_entry));
+        entry_ptr->scope = scope;
+        entry_ptr->type = type;
+        entry_ptr->name = name;
+
+        if(symbol_table_top >= MAX_SYMBOL_TABLE_SIZE) yyerror("MAX_SYMBOL_TABLE_SIZE limit exceeded.");
+        else {
+            symbol_table[symbol_table_top] = entry_ptr;
+            symbol_table_top++;
+            return;
+        }
+    }
+
+    bool symbol_table_lookup(char * name) {
+        for(int i = 0 ; i < symbol_table_top ; i++) {
+            if(strcmp(symbol_table[i]->name, name) == 0) return true;
+        }
+        return false;
+    }
+
+    void print_symbol_table() {
+        printf("symbol_table (stack top to bottom) : ");
+        for(int i = symbol_table_top-1 ; i >= 0 ; i--) {
+            char * type = symbol_table[i]->type == 0 ? "int" : (symbol_table[i]->type == 1 ? "float" : "void");
+            printf("(%d, %s, %s), ", symbol_table[i]->scope, type, symbol_table[i]->name);
+        }
+        printf("\n");
+        return;
+    }
 
     /* var_declaration_list */
     typedef
@@ -46,7 +78,7 @@
     } var_declaration_list;
 
     void var_declaration_list_append(var_declaration_list * list_ptr, char * name) {
-        if(list_ptr->index == MAX_DECLARATIONS_PER_STATEMENT) yyerror("MAX_DECLARATIONS_PER_STATEMENT limit broken.");
+        if(list_ptr->index >= MAX_DECLARATIONS_PER_STATEMENT) yyerror("MAX_DECLARATIONS_PER_STATEMENT limit exceeded.");
         else {
             int name_len = strlen(name);
             // printf("appending id %s at index %d\n", name, list_ptr->index);
@@ -164,13 +196,37 @@ PROGRAM
         ;
 
 VAR
-        : INT MULTI_DECLARATION SEMI                                { 
+        : INT MULTI_DECLARATION SEMI                                {
                                                                         printf("matched int declaration\n\n");
-                                                                        print_var_declaration_list((var_declaration_list *)$2);
+                                                                        var_declaration_list * list_ptr = (var_declaration_list *) $2;
+                                                                        print_var_declaration_list(list_ptr);
+                                                                        for(int i = 0 ; i < list_ptr->index ; i++) {
+                                                                            // check var is not already declared in current scope
+                                                                            if(symbol_table_lookup(list_ptr->names[i])) {
+                                                                                char error_str[MAX_ERROR_STRING_LEN];
+                                                                                sprintf(error_str, "Redeclaration of variable '%s'.", list_ptr->names[i]);
+                                                                                yyerror(error_str);
+                                                                            }
+                                                                            // insert into symbol table
+                                                                            symbol_table_append(curr_scope, 0, list_ptr->names[i]);
+                                                                        }
+                                                                        print_symbol_table();
                                                                     }
         | FLOAT MULTI_DECLARATION SEMI                              {
                                                                         printf("matched float declaration\n\n");
-                                                                        print_var_declaration_list((var_declaration_list *)$2);
+                                                                        var_declaration_list * list_ptr = (var_declaration_list *) $2;
+                                                                        print_var_declaration_list(list_ptr);
+                                                                        for(int i = 0 ; i < list_ptr->index ; i++) {
+                                                                            // check var is not already declared in current scope
+                                                                            if(symbol_table_lookup(list_ptr->names[i])) {
+                                                                                char error_str[MAX_ERROR_STRING_LEN];
+                                                                                sprintf(error_str, "Redeclaration of variable '%s'.", list_ptr->names[i]);
+                                                                                yyerror(error_str);
+                                                                            }
+                                                                            // insert into symbol table
+                                                                            symbol_table_append(curr_scope, 1, list_ptr->names[i]);
+                                                                        }
+                                                                        print_symbol_table();
                                                                     }
         ;
 

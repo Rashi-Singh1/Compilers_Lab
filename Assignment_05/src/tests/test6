@@ -1,1 +1,5 @@
-float abc, bc, d;
+int abc, bc, d;
+
+float helol;
+
+float bro;
