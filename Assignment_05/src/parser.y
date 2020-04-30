@@ -6,10 +6,15 @@
     #include <assert.h>
 
     #define INTERMEDIATE_VARIABLES_MAX_COUNT 32
+    #define MAX_SYMBOL_TABLE_SIZE 100
+    #define MAX_DECLARATIONS_PER_STATEMENT 10
+    #define MAX_VAR_LEN 20
 
     int yylex(); 
     void yyerror(const char *s);
     #define YYDEBUG 1
+
+    void string_copy(char *dest , char* src);
 
     char* names[] = { 
                     "t0" , "t1" , "t2" , "t3" , "t4" , "t5", "t6", "t7", 
@@ -18,6 +23,67 @@
                     "t24", "t25", "t26", "t27", "t28", "t29", "t30", "t31"
                     };
     int name_ptr = 0;
+
+    /* 
+    ** symbol_table: Array of pointers to symbol_table_entry objects
+    ** symbol_table_top: Index of topmost empty slot in table. 0 means empty stack.
+     */
+    typedef
+    struct symbol_table_entry{
+        int scope;
+        char* type;
+        char* name;
+    } symbol_table_entry;
+    symbol_table_entry * symbol_table[MAX_SYMBOL_TABLE_SIZE];
+    int symbol_table_top = 0;
+    int curr_scope = 0;
+
+    /* var_declaration_list */
+    typedef
+    struct var_declaration_list{
+        char* names[MAX_DECLARATIONS_PER_STATEMENT];
+        int index;
+    } var_declaration_list;
+
+    void var_declaration_list_append(var_declaration_list * list_ptr, char * name) {
+        if(list_ptr->index == MAX_DECLARATIONS_PER_STATEMENT) yyerror("MAX_DECLARATIONS_PER_STATEMENT limit broken.");
+        else {
+            int name_len = strlen(name);
+            // printf("appending id %s at index %d\n", name, list_ptr->index);
+            char * new_name = malloc(name_len+1);
+            strcpy(new_name, name);
+            list_ptr->names[list_ptr->index] = new_name;
+            list_ptr->index++;
+            return;
+        }
+    }
+
+    void var_declaration_list_union(var_declaration_list * dest_ptr, var_declaration_list * src_ptr) {
+        // Append all elements of src_ptr into dest_ptr
+        // printf("unioning\n");
+        for(int i = 0 ; i < src_ptr->index ; i++) {
+            var_declaration_list_append(dest_ptr, src_ptr->names[i]);
+        }
+        return;
+    }
+
+    void print_var_declaration_list(var_declaration_list * list_ptr) {
+        printf("var_declaration_list: ");
+        
+        if(list_ptr == NULL) {
+            printf("NULL\n");
+            return;
+        }
+        else {
+            printf("index = %d, names = ", list_ptr->index);
+            for(int i = 0 ; i < list_ptr->index ; i++) {
+                assert(i < MAX_DECLARATIONS_PER_STATEMENT);
+                assert(list_ptr->names[i] != NULL);
+                printf("%s, ", list_ptr->names[i]);
+            }
+            printf("\n");
+        }
+    }
 
     typedef
     struct quadruple{
@@ -31,6 +97,7 @@
 %union {
         char* str;
         float val;
+        void* var_declaration_list;
        }
 
 
@@ -84,6 +151,7 @@
 %token <val> NUM
 %token <str> ID 
 
+%type <var_declaration_list> DECLARATION MULTI_DECLARATION
 /* actual grammar implementation in C*/
 %%
 
@@ -96,18 +164,33 @@ PROGRAM
         ;
 
 VAR
-        : INT MULTI_DECLARATION SEMI                               { printf("matched int declaration\n\n");   }
-        | FLOAT MULTI_DECLARATION SEMI                             { printf("matched float declaration\n\n"); }
+        : INT MULTI_DECLARATION SEMI                                { 
+                                                                        printf("matched int declaration\n\n");
+                                                                        print_var_declaration_list((var_declaration_list *)$2);
+                                                                    }
+        | FLOAT MULTI_DECLARATION SEMI                              {
+                                                                        printf("matched float declaration\n\n");
+                                                                        print_var_declaration_list((var_declaration_list *)$2);
+                                                                    }
         ;
 
 MULTI_DECLARATION 
-        : DECLARATION COMMA MULTI_DECLARATION                      {} 
-        | DECLARATION 
+        : DECLARATION COMMA MULTI_DECLARATION                       {
+                                                                        var_declaration_list_union((var_declaration_list *)$$, (var_declaration_list *)$3);
+                                                                        // print_var_declaration_list((var_declaration_list *)$$);
+                                                                    }
+        | DECLARATION                                               {
+                                                                        $$ = $1;
+                                                                        // print_var_declaration_list((var_declaration_list *)$$);
+                                                                    }
         ;
 
 DECLARATION 
-        : ID
-        | ID ASSIGN TYPECAST CONST_OR_ID                           {}
+        : ID                                                        {
+                                                                        printf("id matched in declaration %s\n", $1);
+                                                                        var_declaration_list_append((var_declaration_list *)$$, $1);
+                                                                    }
+        | ID ASSIGN TYPECAST CONST_OR_ID                            {}
         ;
 
 TYPECAST 
@@ -343,4 +426,15 @@ get_next_name(){
         ++name_ptr;
         if(name_ptr >= INTERMEDIATE_VARIABLES_MAX_COUNT) name_ptr = 0;
         return next_name;
+}
+
+void string_copy(char *dest , char* src){
+        if(src == NULL) return; // don't modify dest in case of null
+        char *temp_dest = dest;
+        char *temp_src  = src;
+        while(*temp_dest != '\0') ++temp_dest;
+        do{
+                *temp_dest = *temp_src , temp_src++ , temp_dest++;
+        } while(*temp_src != '\0');
+        assert(*temp_src == '\0'); 
 }
