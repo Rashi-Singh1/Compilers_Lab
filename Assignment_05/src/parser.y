@@ -3,6 +3,10 @@
     #include <stdlib.h>
     #include <stdbool.h>
     #include <string.h>
+    #include <assert.h>
+
+    #define INTERMEDIATE_VARIABLES_MAX_COUNT 32
+
     int yylex(); 
     void yyerror(const char *s);
     #define YYDEBUG 1
@@ -13,6 +17,8 @@
                     "t16", "t17", "t18", "t19", "t20", "t21", "t22", "t23", 
                     "t24", "t25", "t26", "t27", "t28", "t29", "t30", "t31"
                     };
+    int name_ptr = 0;
+
     typedef
     struct quadruple{
         int    operation;
@@ -24,12 +30,14 @@
 
 %union {
         char* str;
+        float val;
        }
 
 
 %start PROGRAM
 // %start START
 
+%token DOT
 %token RP
 %token LP
 %token CRP
@@ -56,7 +64,6 @@
 %token EQUAL
 %token NOTEQUAL
 %token QUOTE
-%token DOT
 %token SEMI
 %token COLON
 %token null
@@ -74,7 +81,7 @@
 %token CASE
 %token DEFAULT
 %token BREAK
-%token <str>NUM
+%token <val> NUM
 %token <str> ID 
 
 /* actual grammar implementation in C*/
@@ -289,7 +296,7 @@ MULTIPLICATION_EXPR
 
 BASIC_EXPR 
         : ID                                                    { printf("id matched %s \n", $1); }
-        | NUM
+        | NUM                                                   { printf("num matched %f\n", $1); }
         | QUOTE ID QUOTE
         | LP EXP RP
         ;
@@ -297,7 +304,7 @@ BASIC_EXPR
 CONST_OR_ID 
         : ID {}
         | QUOTE ID QUOTE {}
-        | NUM {}
+        | NUM
         ;
 
 IF_AND_SWICH_STATEMENTS
@@ -327,4 +334,13 @@ int main(void){
 void yyerror(const char *s){
     fprintf(stderr, "ERROR: %s\n", s);
     exit(1);
+}
+
+char* 
+get_next_name(){
+        assert(name_ptr < INTERMEDIATE_VARIABLES_MAX_COUNT);
+        char * next_name = names[name_ptr];
+        ++name_ptr;
+        if(name_ptr >= INTERMEDIATE_VARIABLES_MAX_COUNT) name_ptr = 0;
+        return next_name;
 }
