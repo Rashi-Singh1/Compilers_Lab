@@ -19,6 +19,7 @@
       2 void
       3 bool
     */
+    char * type_names[] =   { "int", "float", "void", "bool" };
 
     int yylex(); 
     void yyerror(const char *s);
@@ -72,8 +73,7 @@
     void print_symbol_table() {
         printf("symbol_table (stack top to bottom) : ");
         for(int i = symbol_table_top-1 ; i >= 0 ; i--) {
-            char * type = symbol_table[i]->type == 0 ? "int" : (symbol_table[i]->type == 1 ? "float" : "void");
-            printf("(%d, %s, %s), ", symbol_table[i]->scope, type, symbol_table[i]->name);
+            printf("(%d, %s, %s), ", symbol_table[i]->scope, type_names[symbol_table[i]->type], symbol_table[i]->name);
         }
         printf("\n");
         return;
@@ -81,7 +81,7 @@
 
     /* var_declaration_list
     ** names: array of ids of declared variables
-    ** assigned_types: array of ints denoting type of assigned value to var. Eg: int foo = 45.6 then names[i]="foo" and assigned_types[i]=1 for float
+    ** assigned_types: array of ints denoting type of assigned value to var. Eg: int foo = 45.6 then names[i]="foo" and assigned_types[i]=1 for float. -1 for uninitialized
     ** index: number of elements in list
     */
     typedef
@@ -126,7 +126,8 @@
             for(int i = 0 ; i < list_ptr->index ; i++) {
                 assert(i < MAX_DECLARATIONS_PER_STATEMENT);
                 assert(list_ptr->names[i] != NULL);
-                printf("(%s, %d)", list_ptr->names[i], list_ptr->assigned_types[i]);
+
+                printf("(%s, %s)", list_ptr->names[i], list_ptr->assigned_types[i] == -1 ? "uninitialized" : type_names[list_ptr->assigned_types[i]]);
             }
             printf("\n");
         }
