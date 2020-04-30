@@ -11,6 +11,15 @@
     #define MAX_VAR_LEN 20
     #define MAX_ERROR_STRING_LEN 100
 
+    /*
+    TYPES:
+     -1 unassigned
+      0 int
+      1 float
+      2 void
+      3 bool
+    */
+
     int yylex(); 
     void yyerror(const char *s);
     #define YYDEBUG 1
@@ -32,7 +41,7 @@
     typedef
     struct symbol_table_entry{
         int scope;
-        int type;       // 0: int, 1: float, 2: void
+        int type;
         char* name;
     } symbol_table_entry;
     symbol_table_entry * symbol_table[MAX_SYMBOL_TABLE_SIZE];
@@ -70,14 +79,19 @@
         return;
     }
 
-    /* var_declaration_list */
+    /* var_declaration_list
+    ** names: array of ids of declared variables
+    ** assigned_types: array of ints denoting type of assigned value to var. Eg: int foo = 45.6 then names[i]="foo" and assigned_types[i]=1 for float
+    ** index: number of elements in list
+    */
     typedef
     struct var_declaration_list{
         char* names[MAX_DECLARATIONS_PER_STATEMENT];
+        int assigned_types[MAX_DECLARATIONS_PER_STATEMENT];
         int index;
     } var_declaration_list;
 
-    void var_declaration_list_append(var_declaration_list * list_ptr, char * name) {
+    void var_declaration_list_append(var_declaration_list * list_ptr, char * name, int type) {
         if(list_ptr->index >= MAX_DECLARATIONS_PER_STATEMENT) yyerror("MAX_DECLARATIONS_PER_STATEMENT limit exceeded.");
         else {
             int name_len = strlen(name);
@@ -85,6 +99,7 @@
             char * new_name = malloc(name_len+1);
             strcpy(new_name, name);
             list_ptr->names[list_ptr->index] = new_name;
+            list_ptr->assigned_types[list_ptr->index] = type;
             list_ptr->index++;
             return;
         }
@@ -94,7 +109,7 @@
         // Append all elements of src_ptr into dest_ptr
         // printf("unioning\n");
         for(int i = 0 ; i < src_ptr->index ; i++) {
-            var_declaration_list_append(dest_ptr, src_ptr->names[i]);
+            var_declaration_list_append(dest_ptr, src_ptr->names[i], src_ptr->assigned_types[i]);
         }
         return;
     }
@@ -111,7 +126,7 @@
             for(int i = 0 ; i < list_ptr->index ; i++) {
                 assert(i < MAX_DECLARATIONS_PER_STATEMENT);
                 assert(list_ptr->names[i] != NULL);
-                printf("%s, ", list_ptr->names[i]);
+                printf("(%s, %d)", list_ptr->names[i], list_ptr->assigned_types[i]);
             }
             printf("\n");
         }
@@ -130,6 +145,7 @@
         char* str;
         float val;
         void* var_declaration_list;
+        int type;
        }
 
 
@@ -184,6 +200,7 @@
 %token <str> ID 
 
 %type <var_declaration_list> DECLARATION MULTI_DECLARATION
+%type <val> TYPECAST
 /* actual grammar implementation in C*/
 %%
 
@@ -209,6 +226,8 @@ VAR
                                                                             }
                                                                             // insert into symbol table
                                                                             symbol_table_append(curr_scope, 0, list_ptr->names[i]);
+
+                                                                            // TODO: convert from assigned type to int
                                                                         }
                                                                         print_symbol_table();
                                                                     }
@@ -225,6 +244,8 @@ VAR
                                                                             }
                                                                             // insert into symbol table
                                                                             symbol_table_append(curr_scope, 1, list_ptr->names[i]);
+
+                                                                            // TODO: convert from assigned type to int
                                                                         }
                                                                         print_symbol_table();
                                                                     }
@@ -244,15 +265,32 @@ MULTI_DECLARATION
 DECLARATION 
         : ID                                                        {
                                                                         printf("id matched in declaration %s\n", $1);
-                                                                        var_declaration_list_append((var_declaration_list *)$$, $1);
+                                                                        var_declaration_list_append((var_declaration_list *)$$, $1, -1);
                                                                     }
-        | ID ASSIGN TYPECAST CONST_OR_ID                            {}
+        | ID ASSIGN TYPECAST ASSIGNMENT_EXPR                        {
+                                                                        printf("id matched in declaration %s\n", $1);
+                                                                        int type;
+                                                                        if($3 == -1) {
+                                                                            type = 0; // TODO: type from expr
+                                                                        }
+                                                                        else {
+                                                                            // TODO: convert expr to $3 type.
+                                                                            type = $3;
+                                                                        }
+                                                                        var_declaration_list_append((var_declaration_list *)$$, $1, type);
+                                                                    }
         ;
 
 TYPECAST 
-        :
-        | LP INT RP 
-        | LP FLOAT RP
+        :                                                           {
+                                                                        $$ = -1;
+                                                                    }
+        | LP INT RP                                                 {
+                                                                        $$ = 0;
+                                                                    }
+        | LP FLOAT RP                                               {
+                                                                        $$ = 1;
+                                                                    }
         ;
 
 DATA_TYPE 
@@ -434,16 +472,9 @@ MULTIPLICATION_EXPR
         ;
 
 BASIC_EXPR 
-        : ID                                                    { printf("id matched %s \n", $1); }
-        | NUM                                                   { printf("num matched %f\n", $1); }
-        | QUOTE ID QUOTE
+        : ID                                                    { printf("id matched in basic expr %s \n", $1); }
+        | NUM                                                   { printf("num matched in basic expr %f\n", $1); }
         | LP EXP RP
-        ;
-
-CONST_OR_ID 
-        : ID {}
-        | QUOTE ID QUOTE {}
-        | NUM
         ;
 
 IF_AND_SWICH_STATEMENTS
