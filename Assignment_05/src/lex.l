@@ -33,10 +33,10 @@
 [\n]                                                    { yylineno++; } 
 [ \t]                                                    ;
 -?([0-9]+|[0-9]*\.[0-9]+)                               {
-                                                          // ; char *new_str = (char*) malloc(sizeof(char) * MAX_LEN);
-                                                          // ; strcpy(new_str , yytext);
-                                                          // ; yylval.str = new_str;
-                                                          yylval.val = atof(yytext);
+                                                          char *new_str = (char*) malloc(sizeof(char) * MAX_LEN);
+                                                          strcpy(new_str , yytext);
+                                                          yylval.str = new_str;
+                                                          // ; yylval.val = atof(yytext);
                                                           return NUM;
                                                         }
 [']                                                     { return QUOTE; }
