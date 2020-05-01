@@ -167,7 +167,11 @@ PROGRAM
         | VAR PROGRAM              
         | FUNC_DECLARATION PROGRAM 
         | FUNC_DEFINITION PROGRAM  
-        | EXP SEMI PROGRAM
+        | EXP { 
+                printf("expression matched in program\n");
+                print_code((buffer*) $1);
+              } 
+          SEMI PROGRAM   
         ;
 
 VAR
@@ -289,7 +293,10 @@ STMT
         | VAR                                                       { printf("variable declaration matched\n"); }
         | FUNC_CALL                                                 { printf("function call statement matched\n"); }
         | LOOP                                                      { printf("loop statement matched\n"); }
-        | EXP SEMI                                                  { printf("expression matched\n"); }
+        | EXP SEMI                                                  { 
+                                                                        printf("expression matched\n");
+                                                                        print_code((buffer *) $1);
+                                                                    }
         | IF_AND_SWICH_STATEMENTS                                   { printf("if/switch statement matched\n"); }
         | BREAK SEMI                                                { printf("break statement matched\n"); }
         ;
@@ -367,9 +374,9 @@ OTHER
 EXP 
         : ASSIGNMENT_EXPR                                       { 
                                                                         $$ = $1;
-                                                                        print_code( (buffer *) $1);
                                                                 }
         | EXP COMMA ASSIGNMENT_EXPR                             {   
+                                                                       printf("second\n");
                                                                         $$ = $3; // all assignment expressions already handled by children
                                                                         print_code( (buffer *) $3);
                                                                 }
@@ -391,7 +398,7 @@ ASSIGNMENT_EXPR
                                                                         strcat(assignment_code , assign_expr->result);
                                                                         strcat(assignment_code , "\n");
                                                                         $$ = (void *) create_buffer("=" , assign_expr->result , NULL , variable_name , assignment_code);
-                                                                        display_buffer((buffer *) $$);
+                                                                        // display_buffer((buffer *) $$);
                                                                     }
         ;
 
@@ -409,7 +416,7 @@ LOGICAL_OR_EXPR
                                                                        buffer * logical_or  = (buffer *) $1;
                                                                        buffer * logical_and = (buffer *) $3;
                                                                        $$ = (void *) combine_buffer(logical_or , logical_and , "||");
-                                                                       display_buffer((buffer *) $$);
+                                                                //        display_buffer((buffer *) $$);
                                                                     }
         ;
 LOGICAL_AND_EXPR 
@@ -420,7 +427,7 @@ LOGICAL_AND_EXPR
                                                                        buffer * Q_logical_and  = (buffer *) $1;
                                                                        buffer * Q_inclusive_or = (buffer *) $3;
                                                                        $$ = (void *) combine_buffer(Q_logical_and , Q_inclusive_or , "&&");
-                                                                       display_buffer((buffer *)$$);
+                                                                //        display_buffer((buffer *)$$);
                                                                     }
         ;
 
@@ -432,7 +439,7 @@ INCLUSIVE_OR_EXPR
                                                                         buffer * Q_inclusive_or = (buffer *) $1;
                                                                         buffer * Q_exclusive_or = (buffer *) $3;
                                                                         $$ = (void *)combine_buffer(Q_inclusive_or , Q_exclusive_or , "|");
-                                                                        display_buffer((buffer *)$$);
+                                                                        // display_buffer((buffer *)$$);
                                                                     }
         ;
 
@@ -444,7 +451,7 @@ EXCLUSIVE_OR_EXPR
                                                                         buffer * Q_exclusive_or = (buffer *) $1;
                                                                         buffer * Q_and          = (buffer *) $3;
                                                                         $$ = (void *)combine_buffer(Q_exclusive_or , Q_and , "^");
-                                                                        display_buffer((buffer *) $$);
+                                                                        // display_buffer((buffer *) $$);
                                                                     }
         ;
 
@@ -456,7 +463,7 @@ AND_EXPR
                                                                         buffer * Q_and = (buffer *) $1;
                                                                         buffer * Q_equality = (buffer *) $3;
                                                                         $$ = (void *) combine_buffer(Q_and , Q_equality , "&");
-                                                                        display_buffer((buffer *) $$);
+                                                                        // display_buffer((buffer *) $$);
                                                                    }
         ;
 
@@ -468,13 +475,13 @@ EQUALITY_EXPR
                                                                        buffer * Q_equality = (buffer *) $1;
                                                                        buffer * Q_relation = (buffer *) $3;
                                                                        $$ = (void *) combine_buffer(Q_equality , Q_relation , "==");
-                                                                       display_buffer((buffer *) $$); 
+                                                                //        display_buffer((buffer *) $$); 
                                                                    }
         | EQUALITY_EXPR NOTEQUAL RELATIONAL_EXPR                   {  // combine relational operations using equal
                                                                        buffer * Q_equality = (buffer *) $1;
                                                                        buffer * Q_relation = (buffer *) $3;
                                                                        $$ = (void *) combine_buffer(Q_equality , Q_relation , "!=");
-                                                                       display_buffer((buffer *) $$); 
+                                                                //        display_buffer((buffer *) $$); 
                                                                    }
         ;
 
@@ -486,27 +493,27 @@ RELATIONAL_EXPR
                                                                         buffer * Q_relation = (buffer *) $1;
                                                                         buffer * Q_addition = (buffer *) $3;
                                                                         $$ = (void *) combine_buffer(Q_relation , Q_addition , "<");
-                                                                        display_buffer((buffer *)$$);
+                                                                        // display_buffer((buffer *)$$);
                                                                    }
         | RELATIONAL_EXPR MORE ADDITION_EXPR                       {    // combine addition expressions using more
                                                                         buffer * Q_relation = (buffer *) $1;
                                                                         buffer * Q_addition = (buffer *) $3;
                                                                         $$ = (void *) combine_buffer(Q_relation , Q_addition , ">");
-                                                                        display_buffer((buffer *)$$);
+                                                                        // display_buffer((buffer *)$$);
 
                                                                    }
         | RELATIONAL_EXPR MOREEQUAL ADDITION_EXPR                  {    // combine addition expressions using more equals
                                                                         buffer * Q_relation = (buffer *) $1;
                                                                         buffer * Q_addition = (buffer *) $3;
                                                                         $$ = (void *) combine_buffer(Q_relation , Q_addition , ">=");
-                                                                        display_buffer((buffer *)$$);
+                                                                        // display_buffer((buffer *)$$);
                                                                    }
         | RELATIONAL_EXPR LESSEQUAL ADDITION_EXPR                  {
                                                                         // combine addition expressions using less equals
                                                                         buffer * Q_relation = (buffer *) $1;
                                                                         buffer * Q_addition = (buffer *) $3;
                                                                         $$ = (void *) combine_buffer(Q_relation , Q_addition , "<=");
-                                                                        display_buffer((buffer *)$$);
+                                                                        // display_buffer((buffer *)$$);
                                                                    }                  
         ;
 
@@ -518,13 +525,13 @@ ADDITION_EXPR
                                                                        buffer * Q_addition = (buffer *) $1;
                                                                        buffer * Q_multi = (buffer *) $3;
                                                                        $$ = (void *) combine_buffer(Q_addition , Q_multi , "+");
-                                                                       display_buffer((buffer *) $$);
+                                                                //        display_buffer((buffer *) $$);
                                                                    }
         | ADDITION_EXPR MINUS MULTIPLICATION_EXPR                  {   // combine multiplication expressions using minus
                                                                        buffer * Q_addition = (buffer *) $1;
                                                                        buffer * Q_multi =    (buffer *) $3;
                                                                        $$ = (void *) combine_buffer(Q_addition , Q_multi , "-");
-                                                                       display_buffer((buffer *) $$);
+                                                                //        display_buffer((buffer *) $$);
                                                                    }
         ;
 
@@ -537,57 +544,45 @@ MULTIPLICATION_EXPR
                                                                        buffer * Q_multi = (buffer *) $1;
                                                                        buffer * Q_basic = (buffer *) $3;
                                                                        $$ = (void *) combine_buffer(Q_multi , Q_basic , "*");
-                                                                       display_buffer((buffer *) $$);
+                                                                //        display_buffer((buffer *) $$);
                                                                    }
         | MULTIPLICATION_EXPR DIV BASIC_EXPR                       {
                                                                        // combine basic expr with division operation
                                                                        buffer * Q_multi = (buffer *) $1;
                                                                        buffer * Q_basic = (buffer *) $3;
                                                                        $$ = (void *) combine_buffer(Q_multi , Q_basic , "/");
-                                                                       display_buffer((buffer *) $$);
+                                                                //        display_buffer((buffer *) $$);
                                                                    }
         | MULTIPLICATION_EXPR MOD BASIC_EXPR                       {   
                                                                        // combine basic expr with modulo operation
                                                                        buffer * Q_multi = (buffer *) $1;
                                                                        buffer * Q_basic = (buffer *) $3;
                                                                        $$ = (void *) combine_buffer(Q_multi , Q_basic , "%");
-                                                                       display_buffer((buffer *) $$);
+                                                                //        display_buffer((buffer *) $$);
                                                                    }
         ;
 
 BASIC_EXPR 
         : ID                                                       {
                                                                         char* intermediate_var = get_next_name();
-                                                                        char * code = (char *) malloc(sizeof(char) * MAX_CODE_LEN);
-                                                                        code[0] = '\0';
-                                                                        strcat(code , intermediate_var);
-                                                                        strcat(code , " = ");
-                                                                        strcat(code , $1);
-                                                                        strcat(code , "\n");
-                                                                        $$ = (void *)create_buffer("=" , $1 , NULL , intermediate_var , code);
-                                                                        display_buffer((buffer *) $$);
+                                                                        $$ = (void *)create_buffer("=" , $1 , NULL , $1 , "");
+                                                                        // display_buffer((buffer *) $$);
                                                                    }                                                   
         | NUM                                                      {
                                                                         char* intermediate_var = get_next_name();
-                                                                        char * code = (char *) malloc(sizeof(char) * MAX_CODE_LEN);
-                                                                        code[0] = '\0';
-                                                                        strcat(code , intermediate_var);
-                                                                        strcat(code , " = ");
-                                                                        strcat(code , $1);
-                                                                        strcat(code , "\n");
-                                                                        $$ = (void *)create_buffer("=" , $1 , NULL , intermediate_var ,code);
-                                                                        display_buffer((buffer *) $$);
+                                                                        $$ = (void *)create_buffer("=" , $1 , NULL , $1 , "");
+                                                                        // display_buffer((buffer *) $$);
                                                                    }
         | LP EXP RP                                                {
                                                                         $$ = $2; // use code for expression
-                                                                        display_buffer((buffer *) $$); // may be redundant here
+                                                                        // display_buffer((buffer *) $$); // may be redundant here
                                                                    }
         ;
 
 IF_AND_SWICH_STATEMENTS
         : IF LP EXP RP BODY ELSE_OR_ELSE_IF                       {
-                                                                         printf("matched at if end\n");
-                                                                         print_code((buffer *) $3);
+                                                                        //  printf("matched at if end\n");
+                                                                        //  print_code((buffer *) $3);
                                                                   }
         | SWITCH LP EXP RP CLP CASE_STMTS CRP
         ;
