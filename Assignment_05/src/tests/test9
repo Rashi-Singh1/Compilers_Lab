@@ -1,0 +1,8 @@
+int ifelsebodytest(){
+    if(x > 5){
+        x = 5;
+        y = 7;
+        z = 8;
+        x = x * y + z;
+    }
+}

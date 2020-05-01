@@ -4,9 +4,6 @@
     #include <stdbool.h>
     #include <string.h>
     #include <assert.h>
-    int yylex(); 
-    void yyerror(const char *s);
-
     #define YYDEBUG 1
     #define INTERMEDIATE_VARIABLES_MAX_COUNT 32
     #define MAX_SYMBOL_TABLE_SIZE 100
@@ -15,6 +12,10 @@
     #define MAX_ERROR_STRING_LEN 100
     #define MAX_ARG_LEN 50
     #define MAX_CODE_LEN 1024
+    #define MAX_LABEL_COUNT 64
+    void yyerror(const char *s);
+    int yylex(); 
+
 
     /*
     TYPES:
@@ -25,7 +26,6 @@
       3 bool
     */
     char * type_names[] =   { "int", "float", "void", "bool" };
-    /* structures for intermediate code generation and buffer format output*/
     char* names[] = { 
                     "t0" , "t1" , "t2" , "t3" , "t4" , "t5", "t6", "t7", 
                     "t8" , "t9" , "t10", "t11", "t12", "t13", "t14", "t15", 
@@ -33,6 +33,18 @@
                     "t24", "t25", "t26", "t27", "t28", "t29", "t30", "t31"
                     };
     int name_ptr = 0; 
+    char * labels[] = { 
+                    "L0" , "L1" , "L2" , "L3" , "L4" , "L5" , "L6" , "L7" , 
+                    "L8" , "L9" , "L10", "L11", "L12", "L13", "L14", "L15", 
+                    "L16", "L17", "L18", "L19", "L20", "L21", "L22", "L23", 
+                    "L24", "L25", "L26", "L27", "L28", "L29", "L30", "L31",
+                    "L32", "L33", "L34", "L35", "L36", "L37", "L38", "L39", 
+                    "L40", "L41", "L42", "L43", "L44", "L45", "L46", "L47", 
+                    "L48", "L49", "L50", "L51", "L52", "L53", "L54", "L55", 
+                    "L56", "L57", "L58", "L59", "L60", "L61", "L62", "L63" 
+                    };
+    int label_ptr = 0;
+    /* structures for intermediate code generation and buffer format output*/
     /* 
     ** symbol_table: Array of pointers to symbol_table_entry objects
     ** symbol_table_top: Index of topmost empty slot in table. 0 means empty stack.
@@ -50,7 +62,6 @@
     bool symbol_table_lookup(char * name);
     void print_symbol_table();
 
-
     /* var_declaration_list
     ** names: array of ids of declared variables
     ** assigned_types: array of ints denoting type of assigned value to var. Eg: int foo = 45.6 then names[i]="foo" and assigned_types[i]=1 for float. -1 for uninitialized
@@ -67,19 +78,73 @@
     void print_var_declaration_list(var_declaration_list * list_ptr);
 
 
+    /* struct to store quadruple code for current operation and concatenated code for the subtree */
     typedef
     struct buffer{
         char*    operation; /* denotes operation */
-        char*  argument1;   /*  name of first argument */
-        char*  argument2;   /*  name of second argumen */
-        char*   result;    /*  name of the intermediate variable*/
-        char * code;       /*  code for the subtree contained */
+        char*    argument1;   /*  name of first argument */
+        char*    argument2;   /*  name of second argumen */
+        char*    result;    /*  name of the intermediate variable*/
+        char *   code;       /*  code for the subtree contained */
     } buffer;
     buffer* create_buffer(char *oper , char *arg1 , char *arg2 , char* result , char* code); /* create a new buffer and return it's reference */
     void display_buffer(buffer* Q); /* display the intermediate code from the buffer format */
     buffer* combine_buffer(buffer *Q1 , buffer *Q2 , char *operation); /* combining two buffers*/
     char* get_next_name(); /*returns the next available variable. Works cyclically*/
     void print_code(buffer* Q); /*prints the code of the */
+
+
+    /* special labelled nodes in syntax tree for boolean expressions and statements inside loops
+       and if statements 
+    */
+    typedef
+    struct labeled_node{
+            char* true_label;  /* label to go in case of true boolean expression  */
+            char* false_label; /* label to go in case of false boolean expression */ 
+            char* next_label;  /* label to skip to for statements */
+            char* code;        /* the code of the subtree in the syntax tree of the labeled_node*/
+    } labeled_node;
+
+    /* creates a new labeled node and returns it's address */
+    labeled_node*
+    create_labeled_node(char* true_label , char* false_label , char* next_label , char* code){
+            labeled_node* new_node = (labeled_node *) malloc(sizeof(labeled_node));
+            new_node->true_label = true_label;
+            new_node->false_label = false_label;
+            new_node->next_label = next_label;
+            if(code == NULL){
+                    new_node->code = NULL;
+                    return new_node;
+            }
+            new_node->code = (char *) malloc(sizeof(char) * MAX_CODE_LEN);
+            (new_node->code)[0] = '\0';
+            strcpy(new_node->code , code);
+            return new_node;
+    }
+    /* returns the name of the next label to be used */
+    char* 
+    get_new_label(){
+            char* next_label = labels[label_ptr];
+            ++label_ptr;
+            if(label_ptr >= MAX_LABEL_COUNT){
+                    yyerror("too many labels in use\n");
+            }
+            return next_label;
+    }
+    /* check label status -- only for debugging purpose */
+    void check_label(labeled_node* L){
+            if(L == NULL) {
+                    printf("NULL");
+                    return;
+            }
+            char* true_lbl  = "NULL";
+            char* false_lbl = "NULL";
+            char* next_lbl  = "NULL";
+            if(L->true_label != NULL)  true_lbl  = L->true_label;
+            if(L->false_label != NULL) false_lbl = L->false_label;  
+            if(L->next_label != NULL)  next_lbl  = L->next_label;
+            printf("Truelabel : %s , Falselabel : %s , next_lbl : %s\n" , true_lbl , false_lbl , next_lbl);  
+    }
 %}
 
 %union {
@@ -88,6 +153,7 @@
         void* var_declaration_list;
         int type;
         void* three_addr_code;
+        void* labeled_node_ptr;
        }
 
 
@@ -106,8 +172,8 @@
 %token DIV
 %token MOD
 %token QUES
-%token AND
-%token OR
+%left OR
+%left AND
 %token NOT
 %token BITAND
 %token BITOR
@@ -155,6 +221,13 @@
 %type <three_addr_code> MULTIPLICATION_EXPR
 %type <three_addr_code> BASIC_EXPR
 
+%type <labeled_node_ptr> BODY
+%type <labeled_node_ptr> STMT_LIST
+%type <labeled_node_ptr> STMT
+%type <labeled_node_ptr> IF_AND_SWICH_STATEMENTS
+%type <labeled_node_ptr> LABELED_BOOLEAN_OR_EXPR
+%type <labeled_node_ptr> LABELED_BOOLEAN_AND_EXPR
+
 
 
 %type <var_declaration_list> DECLARATION MULTI_DECLARATION
@@ -163,14 +236,14 @@
 %%
 
 PROGRAM 
-        : 
+        :
         | VAR PROGRAM              
         | FUNC_DECLARATION PROGRAM 
         | FUNC_DEFINITION PROGRAM  
         | EXP { 
                 printf("expression matched in program\n");
                 print_code((buffer*) $1);
-              } 
+              }
           SEMI PROGRAM   
         ;
 
@@ -278,27 +351,112 @@ PARAM_WITH_DATATYPE
         ;
 
 FUNC_DEFINITION 
-        : INT ID LP PARAM_LIST_WITH_DATATYPE RP CLP STMT_LIST CRP   { printf("matched int   function definition\n");}
+        : INT ID LP PARAM_LIST_WITH_DATATYPE RP CLP STMT_LIST CRP   { 
+                                                                        printf("matched int   function definition\n");
+                                                                        printf("-------------------testing----------------------\n");
+                                                                        printf("------ code for stmt list of this function -----\n");
+                                                                        char * cd = ((labeled_node *) $7)->code;
+                                                                        printf("%s", cd);
+                                                                        char * lbl = ((labeled_node *)$7)->next_label;
+                                                                        printf("label for stmt_list = %s\n", lbl);
+                                                                    }
         | FLOAT ID LP PARAM_LIST_WITH_DATATYPE RP CLP STMT_LIST CRP { printf("matched float function definition\n");}
         | VOID ID LP PARAM_LIST_WITH_DATATYPE RP CLP STMT_LIST CRP  { printf("matched void  function definition\n"); }
         ;
 
 STMT_LIST 
-        : STMT STMT_LIST{} 
-        | STMT{}
+        : STMT STMT_LIST                                            { 
+                                                                        // use  the label name from statement list
+                                                                        char* concatenated_code = (char *) malloc(sizeof(char) * MAX_CODE_LEN);
+                                                                        concatenated_code[0] = '\0';
+                                                                        char* stmt_list_code = ((labeled_node *)$2)->code;
+                                                                        char* stmt_code = ((labeled_node *)$1)->code;
+                                                                        if(stmt_code != NULL){
+                                                                            strcat(concatenated_code , stmt_code); 
+                                                                        }
+                                                                        if( stmt_list_code != NULL)
+                                                                            strcat(concatenated_code , stmt_list_code);
+                                                                        $$ = (void *) create_labeled_node(
+                                                                                NULL,
+                                                                                NULL,
+                                                                                ((labeled_node*) $2)->next_label,
+                                                                                concatenated_code
+                                                                        );
+                                                                    }      
+        | STMT                                                      { 
+                                                                         labeled_node * lbl = (labeled_node *) $1;
+                                                                         lbl->next_label = get_new_label();
+                                                                         $$ = (void *) lbl;
+                                                                    }
         ;
 
 STMT 
-        :
-        | VAR                                                       { printf("variable declaration matched\n"); }
-        | FUNC_CALL                                                 { printf("function call statement matched\n"); }
-        | LOOP                                                      { printf("loop statement matched\n"); }
-        | EXP SEMI                                                  { 
-                                                                        printf("expression matched\n");
-                                                                        print_code((buffer *) $1);
+        :                                                           {
+                                                                        labeled_node* new_labeled_node = create_labeled_node(
+                                                                                NULL, 
+                                                                                NULL,
+                                                                                NULL,
+                                                                                "empty code\n"
+                                                                        );
+                                                                        $$ = (void *) new_labeled_node;
                                                                     }
-        | IF_AND_SWICH_STATEMENTS                                   { printf("if/switch statement matched\n"); }
-        | BREAK SEMI                                                { printf("break statement matched\n"); }
+        | VAR                                                       {
+                                                                        //create a new_labeled_node
+                                                                        labeled_node* new_labeled_node = create_labeled_node(
+                                                                                NULL, 
+                                                                                NULL,
+                                                                                NULL,
+                                                                                "var_declaration\n"
+                                                                        );
+                                                                        $$ = (void *) new_labeled_node;
+                                                                    }
+        | FUNC_CALL                                                 { 
+                                                                        //create a new_labeled_node
+                                                                        labeled_node* new_labeled_node = create_labeled_node(
+                                                                                NULL, 
+                                                                                NULL,
+                                                                                NULL,
+                                                                                "func_call\n"
+                                                                        );
+                                                                        $$ = (void *) new_labeled_node;
+                                                                    }
+        | LOOP                                                      { 
+                                                                        labeled_node* new_labeled_node = create_labeled_node(
+                                                                                NULL, 
+                                                                                NULL,
+                                                                                NULL,
+                                                                                "loop matched\n"
+                                                                        );
+                                                                        $$ = (void *) new_labeled_node;
+                                                                    }
+        | EXP SEMI                                                  { 
+                                                                        labeled_node* new_labeled_node = create_labeled_node(
+                                                                                NULL, 
+                                                                                NULL,
+                                                                                NULL,
+                                                                                ((buffer*)$1)->code
+                                                                        );
+                                                                        $$ = (void *) new_labeled_node;
+                                                                        // print_code((buffer *) $1);
+                                                                    }
+        | IF_AND_SWICH_STATEMENTS                                   { 
+                                                                        labeled_node* new_labeled_node = create_labeled_node(
+                                                                                NULL, 
+                                                                                NULL,
+                                                                                NULL,
+                                                                                ((labeled_node *)$1)->code
+                                                                        );
+                                                                        $$ = (void *) new_labeled_node;
+                                                                    }
+        | BREAK SEMI                                                { 
+                                                                        labeled_node* new_labeled_node = create_labeled_node(
+                                                                                NULL, 
+                                                                                NULL,
+                                                                                NULL,
+                                                                                "break\n"
+                                                                        );
+                                                                        $$ = (void *) new_labeled_node;
+                                                                    }
         ;
 
 FUNC_CALL 
@@ -321,8 +479,16 @@ LOOP
         ;
 
 BODY 
-        : CLP STMT_LIST CRP 
-        | STMT
+        : CLP STMT_LIST CRP                                         {
+                                                                        // in case we match a statement list
+                                                                        $$ = $2;
+                                                                    }
+        | STMT                                                      {
+                                                                        // if we match a single statement
+                                                                         labeled_node * lbl = (labeled_node *) $1;
+                                                                         lbl->next_label = get_new_label();
+                                                                         $$ = (void *) lbl;    
+                                                                    }
         ;
 
 FORLOOP 
@@ -580,11 +746,14 @@ BASIC_EXPR
         ;
 
 IF_AND_SWICH_STATEMENTS
-        : IF LP EXP RP BODY ELSE_OR_ELSE_IF                       {
+        : IF LP LABELED_BOOLEAN_OR_EXPR RP BODY ELSE_OR_ELSE_IF   {
                                                                         //  printf("matched at if end\n");
-                                                                        //  print_code((buffer *) $3);
+                                                                          check_label((labeled_node *) $5);
                                                                   }
-        | SWITCH LP EXP RP CLP CASE_STMTS CRP
+        | SWITCH LP EXP RP CLP CASE_STMTS CRP                     {
+                                                                        // printf("matched switch case :\n");
+                                                                        print_code((buffer *) $3);
+                                                                  }
         ;
 
 ELSE_OR_ELSE_IF
@@ -596,6 +765,20 @@ CASE_STMTS
         :
         | CASE NUM COLON STMT_LIST CASE_STMTS
         | DEFAULT COLON STMT_LIST
+        ;
+
+
+LABELED_BOOLEAN_OR_EXPR
+        : LABELED_BOOLEAN_AND_EXPR                                  {
+                                                                    }
+        | LABELED_BOOLEAN_OR_EXPR OR LABELED_BOOLEAN_AND_EXPR       { 
+                                                                    }
+        ;
+LABELED_BOOLEAN_AND_EXPR 
+        : INCLUSIVE_OR_EXPR                                         {
+                                                                    }
+        | LABELED_BOOLEAN_AND_EXPR AND INCLUSIVE_OR_EXPR            { 
+                                                                    }
         ;
 %%
 

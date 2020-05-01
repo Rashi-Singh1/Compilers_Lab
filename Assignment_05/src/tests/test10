@@ -1,2 +1,29 @@
-int x;
-x = a + b || c && d ;
+
+x + y && t + k && z || y > 5;
+
+int labelTestForStatementList(){
+    int x;
+    int d;
+    x = x + y;
+}
+
+int labelTestForStatementList2(){
+    x = x + b * c;
+    x = x * x * x * x % d % d % d;
+    x = x || y;
+    x = x & x;
+    x || y;
+    x = x + y;
+}
+
+int labelTestForStatementList3(){
+    x = x + y;
+}
+
+int labelTestForStatementList4(){
+    x = x + y;
+    if(x > 5 || y & z == 5 || x != 5){
+        x = x + y;
+        dd = dd + x & k;
+    }
+}

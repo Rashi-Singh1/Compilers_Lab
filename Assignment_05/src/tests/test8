@@ -1,6 +1,55 @@
-x = (x > y || y > z) && (y > z);
-int funct(){
-    x = 1;
-    y = 33;
-    x = x > y;
+x & y && 1;
+
+x = (x && y || z);
+
+x = a + b * c;
+
+x = a * (b - c) + c + d * e;
+
+y = (x > y) && y - x == 1 && t > 5;
+
+t = (x & 1) == 5 && (y & z) == 5;
+
+x = (x + y * z + x == 5) && (y + z == 5);
+
+x = a != 6 && b + c != 5 && t + 5 != 8 || y > 0;
+
+a = b = c = d = e;
+
+a = b = c > d;
+
+a = b = c = d = e = f = g = h = i = (a + b % d + e);
+
+a = a + b % c % d % e + x / 5;
+
+a = b + c & 13;
+
+x = x + y + (z + w) * (x - y);
+
+x = (x + y + z) * (z * (x - y));
+
+x = (x - y) * (x - y) + (y - z) * (z - y) + (x + t) * (x - y);
+
+(x * x * x + y * y * y + z * z * z - 3 * x * y * z);
+
+x = x - y - z - w - t - z - z - z - z + t;
+
+x = x + y + w - t;
+
+y = z + 1.0 + tt * t + 1;
+
+(x && y || z && t);
+
+x = (x & y || y & t || t & z);
+
+y = (x & y + t ^ k);
+
+y = (x ^ y) + (t ^ k);
+
+int f(){
+    x = x & k;
+
+    y = y + w - z * t;
+
+    
 }
