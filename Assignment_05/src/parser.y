@@ -4,8 +4,26 @@
     #include <stdbool.h>
     #include <string.h>
     #include <assert.h>
-    #define MAX_ARG_LEN 50
+
     #define INTERMEDIATE_VARIABLES_MAX_COUNT 32
+    #define MAX_SYMBOL_TABLE_SIZE 100
+    #define MAX_DECLARATIONS_PER_STATEMENT 10
+    #define MAX_VAR_LEN 20
+    #define MAX_ERROR_STRING_LEN 100
+    #define MAX_ARG_LEN 50
+
+
+    /*
+    TYPES:
+     -1 unassigned
+      0 int
+      1 float
+      2 void
+      3 bool
+    */
+    char * type_names[] =   { "int", "float", "void", "bool" };
+
+    
     int yylex(); 
     void yyerror(const char *s);
     #define YYDEBUG 1
@@ -17,7 +35,106 @@
                     "t16", "t17", "t18", "t19", "t20", "t21", "t22", "t23", 
                     "t24", "t25", "t26", "t27", "t28", "t29", "t30", "t31"
                     };
-    int name_ptr;         /* pointer to the name */  
+    int name_ptr = 0;
+
+    /* 
+    ** symbol_table: Array of pointers to symbol_table_entry objects
+    ** symbol_table_top: Index of topmost empty slot in table. 0 means empty stack.
+     */
+    typedef
+    struct symbol_table_entry{
+        int scope;
+        int type;
+        char* name;
+    } symbol_table_entry;
+    symbol_table_entry * symbol_table[MAX_SYMBOL_TABLE_SIZE];
+    int symbol_table_top = 0;
+    int curr_scope = 0;
+
+    void symbol_table_append(int scope, int type, char * name) {
+        symbol_table_entry * entry_ptr = (symbol_table_entry *)malloc(sizeof(symbol_table_entry));
+        entry_ptr->scope = scope;
+        entry_ptr->type = type;
+        entry_ptr->name = name;
+
+        if(symbol_table_top >= MAX_SYMBOL_TABLE_SIZE) yyerror("MAX_SYMBOL_TABLE_SIZE limit exceeded.");
+        else {
+            symbol_table[symbol_table_top] = entry_ptr;
+            symbol_table_top++;
+            return;
+        }
+    }
+
+    bool symbol_table_lookup(char * name) {
+        for(int i = 0 ; i < symbol_table_top ; i++) {
+            if(strcmp(symbol_table[i]->name, name) == 0) return true;
+        }
+        return false;
+    }
+
+    void print_symbol_table() {
+        printf("symbol_table (stack top to bottom) : ");
+        for(int i = symbol_table_top-1 ; i >= 0 ; i--) {
+            printf("(%d, %s, %s), ", symbol_table[i]->scope, type_names[symbol_table[i]->type], symbol_table[i]->name);
+        }
+        printf("\n");
+        return;
+    }
+
+    /* var_declaration_list
+    ** names: array of ids of declared variables
+    ** assigned_types: array of ints denoting type of assigned value to var. Eg: int foo = 45.6 then names[i]="foo" and assigned_types[i]=1 for float. -1 for uninitialized
+    ** index: number of elements in list
+    */
+    typedef
+    struct var_declaration_list{
+        char* names[MAX_DECLARATIONS_PER_STATEMENT];
+        int assigned_types[MAX_DECLARATIONS_PER_STATEMENT];
+        int index;
+    } var_declaration_list;
+
+    void var_declaration_list_append(var_declaration_list * list_ptr, char * name, int type) {
+        if(list_ptr->index >= MAX_DECLARATIONS_PER_STATEMENT) yyerror("MAX_DECLARATIONS_PER_STATEMENT limit exceeded.");
+        else {
+            int name_len = strlen(name);
+            // printf("appending id %s at index %d\n", name, list_ptr->index);
+            char * new_name = malloc(name_len+1);
+            strcpy(new_name, name);
+            list_ptr->names[list_ptr->index] = new_name;
+            list_ptr->assigned_types[list_ptr->index] = type;
+            list_ptr->index++;
+            return;
+        }
+    }
+
+    void var_declaration_list_union(var_declaration_list * dest_ptr, var_declaration_list * src_ptr) {
+        // Append all elements of src_ptr into dest_ptr
+        // printf("unioning\n");
+        for(int i = 0 ; i < src_ptr->index ; i++) {
+            var_declaration_list_append(dest_ptr, src_ptr->names[i], src_ptr->assigned_types[i]);
+        }
+        return;
+    }
+
+    void print_var_declaration_list(var_declaration_list * list_ptr) {
+        printf("var_declaration_list: ");
+        
+        if(list_ptr == NULL) {
+            printf("NULL\n");
+            return;
+        }
+        else {
+            printf("index = %d, names = ", list_ptr->index);
+            for(int i = 0 ; i < list_ptr->index ; i++) {
+                assert(i < MAX_DECLARATIONS_PER_STATEMENT);
+                assert(list_ptr->names[i] != NULL);
+
+                printf("(%s, %s)", list_ptr->names[i], list_ptr->assigned_types[i] == -1 ? "uninitialized" : type_names[list_ptr->assigned_types[i]]);
+            }
+            printf("\n");
+        }
+    }
+
     typedef
     struct quadruple{
         char*    operation; /* denotes operation */
@@ -34,6 +151,9 @@
 
 %union {
         char* str;
+        float val;
+        void* var_declaration_list;
+        int type;
         void* three_addr_code;
        }
 
@@ -41,6 +161,7 @@
 %start PROGRAM
 // %start START
 
+%token DOT
 %token RP
 %token LP
 %token CRP
@@ -67,7 +188,6 @@
 %token EQUAL
 %token NOTEQUAL
 %token QUOTE
-%token DOT
 %token SEMI
 %token COLON
 %token null
@@ -85,6 +205,7 @@
 %token CASE
 %token DEFAULT
 %token BREAK
+
 %token <str> NUM
 %token <str> ID
 %type <three_addr_code> EXP
@@ -103,6 +224,8 @@
 
 
 
+%type <var_declaration_list> DECLARATION MULTI_DECLARATION
+%type <val> TYPECAST
 /* actual grammar implementation in C*/
 %%
 
@@ -115,24 +238,84 @@ PROGRAM
         ;
 
 VAR
-        : INT MULTI_DECLARATION SEMI                               { printf("matched int declaration\n\n");   }
-        | FLOAT MULTI_DECLARATION SEMI                             { printf("matched float declaration\n\n"); }
+        : INT MULTI_DECLARATION SEMI                                {
+                                                                        printf("matched int declaration\n\n");
+                                                                        var_declaration_list * list_ptr = (var_declaration_list *) $2;
+                                                                        print_var_declaration_list(list_ptr);
+                                                                        for(int i = 0 ; i < list_ptr->index ; i++) {
+                                                                            // check var is not already declared in current scope
+                                                                            if(symbol_table_lookup(list_ptr->names[i])) {
+                                                                                char error_str[MAX_ERROR_STRING_LEN];
+                                                                                sprintf(error_str, "Redeclaration of variable '%s'.", list_ptr->names[i]);
+                                                                                yyerror(error_str);
+                                                                            }
+                                                                            // insert into symbol table
+                                                                            symbol_table_append(curr_scope, 0, list_ptr->names[i]);
+
+                                                                            // TODO: convert from assigned type to int
+                                                                        }
+                                                                        print_symbol_table();
+                                                                    }
+        | FLOAT MULTI_DECLARATION SEMI                              {
+                                                                        printf("matched float declaration\n\n");
+                                                                        var_declaration_list * list_ptr = (var_declaration_list *) $2;
+                                                                        print_var_declaration_list(list_ptr);
+                                                                        for(int i = 0 ; i < list_ptr->index ; i++) {
+                                                                            // check var is not already declared in current scope
+                                                                            if(symbol_table_lookup(list_ptr->names[i])) {
+                                                                                char error_str[MAX_ERROR_STRING_LEN];
+                                                                                sprintf(error_str, "Redeclaration of variable '%s'.", list_ptr->names[i]);
+                                                                                yyerror(error_str);
+                                                                            }
+                                                                            // insert into symbol table
+                                                                            symbol_table_append(curr_scope, 1, list_ptr->names[i]);
+
+                                                                            // TODO: convert from assigned type to int
+                                                                        }
+                                                                        print_symbol_table();
+                                                                    }
         ;
 
 MULTI_DECLARATION 
-        : DECLARATION COMMA MULTI_DECLARATION                      {} 
-        | DECLARATION 
+        : DECLARATION COMMA MULTI_DECLARATION                       {
+                                                                        var_declaration_list_union((var_declaration_list *)$$, (var_declaration_list *)$3);
+                                                                        // print_var_declaration_list((var_declaration_list *)$$);
+                                                                    }
+        | DECLARATION                                               {
+                                                                        $$ = $1;
+                                                                        // print_var_declaration_list((var_declaration_list *)$$);
+                                                                    }
         ;
 
 DECLARATION 
-        : ID
-        | ID ASSIGN TYPECAST CONST_OR_ID                           {}
+        : ID                                                        {
+                                                                        printf("id matched in declaration %s\n", $1);
+                                                                        var_declaration_list_append((var_declaration_list *)$$, $1, -1);
+                                                                    }
+        | ID ASSIGN TYPECAST ASSIGNMENT_EXPR                        {
+                                                                        printf("id matched in declaration %s\n", $1);
+                                                                        int type;
+                                                                        if($3 == -1) {
+                                                                            type = 0; // TODO: type from expr
+                                                                        }
+                                                                        else {
+                                                                            // TODO: convert expr to $3 type.
+                                                                            type = $3;
+                                                                        }
+                                                                        var_declaration_list_append((var_declaration_list *)$$, $1, type);
+                                                                    }
         ;
 
 TYPECAST 
-        :
-        | LP INT RP 
-        | LP FLOAT RP
+        :                                                           {
+                                                                        $$ = -1;
+                                                                    }
+        | LP INT RP                                                 {
+                                                                        $$ = 0;
+                                                                    }
+        | LP FLOAT RP                                               {
+                                                                        $$ = 1;
+                                                                    }
         ;
 
 DATA_TYPE 
@@ -445,12 +628,6 @@ BASIC_EXPR
                                                                    }
         ;
 
-CONST_OR_ID 
-        : ID {}
-        | QUOTE ID QUOTE {}
-        | NUM {}
-        ;
-
 IF_AND_SWICH_STATEMENTS
         : IF LP EXP RP BODY ELSE_OR_ELSE_IF
         | SWITCH LP EXP RP CLP CASE_STMTS CRP
@@ -490,6 +667,7 @@ void string_copy(char *dest , char* src){
                 *temp_dest = *temp_src , temp_src++ , temp_dest++;
         } while(*temp_src != '\0');
         assert(*temp_src == '\0'); 
+
 }
 
           /* operations on quadruple struct */

@@ -32,11 +32,12 @@
 "!="                                                    { return NOTEQUAL; }
 [\n]                                                    { yylineno++; } 
 [ \t]                                                    ;
-[0-9]+                                                  { 
+-?([0-9]+|[0-9]*\.[0-9]+)                               {
                                                           char *new_str = (char*) malloc(sizeof(char) * MAX_LEN);
                                                           strcpy(new_str , yytext);
                                                           yylval.str = new_str;
-                                                          return NUM; 
+                                                          // ; yylval.val = atof(yytext);
+                                                          return NUM;
                                                         }
 [']                                                     { return QUOTE; }
 [.]                                                     { return DOT; }
@@ -56,16 +57,16 @@
 (switch)                                                { return SWITCH; }
 (case)                                                  { return CASE; }
 (default)                                               { return DEFAULT; }
-(break)                                               { return BREAK; }
-[a-zA-Z][a-zA-Z0-9_]*                                    {
+(break)                                                 { return BREAK; }
+[a-zA-Z][a-zA-Z0-9_]*                                   {
                                                           char *new_str = (char*) malloc(sizeof(char) * MAX_LEN);
                                                           strcpy(new_str , yytext);
                                                           yylval.str = new_str;
-                                                          return ID; 
+                                                          return ID;
                                                         }
 %%
 
 int yywrap()
-{  
+{
     return 1; 
 }

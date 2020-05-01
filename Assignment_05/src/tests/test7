@@ -1,2 +1,2 @@
-x=1;
-x = (y || z && t || v1 && v2);
+int foo = (float)(4 > 5);
+float bar = (int)(4 > 5);
