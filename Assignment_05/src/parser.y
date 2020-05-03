@@ -122,8 +122,8 @@
      /* node for boolean expressions */
     typedef 
     struct node{
-            list* true_list;
-            list* false_list; 
+            list* truelist;
+            list* falselist; 
     } node;  
                               /*utility functions and variables */
     
@@ -131,19 +131,32 @@
     char* instruction_list[MAX_INSTRUCTION_LENGTH]; 
     
     /* pointer to the next instruction*/
-    int next_instruction = 0;
+    int next_instr = 0;
 
     /*allocate memory to a node and return its reference*/
     node* 
     create_node(){
             node* n = (node *) malloc(sizeof(node));
-            n->true_list  = create_list();
-            n->false_list = create_list();
+            n->truelist  = create_list();
+            n->falselist = create_list();
             return n;
     }
     /* backpatch the value = val at locations present in list */    
     void 
     backpatch(list* l , int val){
+            printf("val = %d\n",val);
+            for(int i = 0; i < l->size; i++){
+                int i=0;
+                char* str = instruction_list[(l->arr)[i]];
+                while(str[i]!='\0'){
+                        if(str[i]=='_'){
+                                str[i]=((val/10)+'0');
+                                str[i+1]=((val%10)+'0');
+                                break;
+                        }
+                        i++;
+                }
+            }
             return;
     }
     /* merge two lists l1 and l2*/
@@ -255,7 +268,13 @@
 
 PROGRAM 
         : 
-         BOOLEAN_EXPR  SEMI         
+         BOOLEAN_EXPR  SEMI {
+                 printf("------------matched boolean expression------------\n");
+                 printf("testing the instructions\n");
+                 for(int i = 0; i < next_instr; i++){
+                         printf("%d : %s",i, instruction_list[i]);
+                 }
+         }        
         ;
 
 
@@ -778,27 +797,76 @@ CASE_STMTS
 
 BOOLEAN_EXPR
         : BOOLEAN_EXPR OR M BOOLEAN_EXPR{
-               
+               backpatch(((node*)$1)->falselist,((M*)$3)->instruction_number);
+               node* n = (node*) malloc(sizeof(node));
+               n->truelist = merge(((node*)$1)->truelist,((node*)$4)->truelist);
+               n->falselist = ((node*)$4)->falselist;
+               $$ = (void*)n;
         }
         | BOOLEAN_EXPR AND M BOOLEAN_EXPR{
-                
+                backpatch(((node*)$1)->truelist,((M*)$3)->instruction_number);
+                node* n = (node*) malloc(sizeof(node));
+                n->truelist = ((node*)$4)->truelist;
+                n->falselist = merge(((node*)$1)->falselist,((node*)$4)->falselist);
+                $$=(void*)n;
         }
         | NOT BOOLEAN_EXPR{
-
+                node* n = (node*) malloc(sizeof(node));
+                n->truelist = ((node*)$2)->falselist;
+                n->falselist = ((node*)$2)->truelist;
+                $$=(void*)n;
+        }
+        | LP BOOLEAN_EXPR RP{
+                node* n = (node*) malloc(sizeof(node));
+                n->truelist = ((node*)$2)->truelist;
+                n->falselist = ((node*)$2)->falselist;
+                $$=(void*)n;
         }
         | ADDITION_EXPR RELOP ADDITION_EXPR{
-
+                node* n = (node*) malloc(sizeof(node));
+                n->truelist = makelist(next_instr);
+                n->falselist = makelist(next_instr + 1);
+                char* str=(char*)malloc(sizeof(char)*MAX_CODE_LEN);
+                str[0]='\0';
+                strcat(str,"if ");
+                strcat(str, ((buffer*)$1)->result);
+                strcat(str, " relop ");
+                strcat(str, ((buffer*)$3)->result);
+                strcat(str, " goto __ \n");
+                instruction_list[next_instr]=str;
+                ++next_instr;
+                char* str2=(char*)malloc(sizeof(char)*MAX_CODE_LEN);
+                str2[0]='\0';
+                strcpy(str2,"goto __\n");
+                instruction_list[next_instr]=str2;
+                ++next_instr;
+                $$=(void*)n;
         }
         | TRUE{
-
+                node* n = (node*) malloc(sizeof(node));
+                n->truelist = makelist(next_instr);
+                char* str=(char*)malloc(sizeof(char)*MAX_CODE_LEN);
+                str[0]='\0';
+                strcpy(str ," goto __\n");
+                instruction_list[next_instr]=str;
+                ++next_instr;
+                $$=(void*)n;
         }
         | FALSE{
-
+                node* n = (node*) malloc(sizeof(node));
+                n->falselist = makelist(next_instr);
+                char* str=(char*)malloc(sizeof(char)*MAX_CODE_LEN);
+                str[0]='\0';
+                strcpy(str," goto __\n");
+                instruction_list[next_instr]=str;
+                ++next_instr;
+                $$=(void*)n;
         }
         ;
 M       : %empty{
                 M* m = (M*) malloc(sizeof(M));
-                m->instruction_number = next_instruction;
+                m->instruction_number = next_instr;
+                $$=(void*)m;
         }
         ;
 RELOP   
