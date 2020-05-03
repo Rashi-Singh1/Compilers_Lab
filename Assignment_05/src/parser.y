@@ -119,6 +119,14 @@
             return;
     }
 
+    /* debuging list */
+    void debug_list(list *l){
+            printf("list : ");
+            for(int i = 0; i < l->size; i++){
+                    printf("%d " , (l->arr)[i]);
+            }
+            printf("\n");
+    }
      /* node for boolean expressions */
     typedef 
     struct node{
@@ -144,18 +152,23 @@
     /* backpatch the value = val at locations present in list */    
     void 
     backpatch(list* l , int val){
-            printf("val = %d\n",val);
+            printf("called to backpatch val = %d\n",val);
+            debug_list(l);
             for(int i = 0; i < l->size; i++){
-                int i=0;
+                int j=0;
                 char* str = instruction_list[(l->arr)[i]];
-                while(str[i]!='\0'){
-                        if(str[i]=='_'){
-                                str[i]=((val/10)+'0');
-                                str[i+1]=((val%10)+'0');
+
+                printf("inst : %s\n",str);
+                while(str[j]!='\0'){
+                        if(str[j]=='_'){
+                                str[j]=((val/10)+'0');
+                                str[j+1]=((val%10)+'0');
                                 break;
                         }
-                        i++;
+                        j++;
                 }
+                printf("mod inst : %s\n",str);
+
             }
             return;
     }
@@ -175,6 +188,13 @@
             return l;
     }
 
+    void
+    debug_node(node* n){
+            printf("true ");
+            debug_list(n->truelist);
+            printf("false ");
+            debug_list(n->falselist);
+    }
     typedef
     struct M{
             int instruction_number;
@@ -797,6 +817,13 @@ CASE_STMTS
 
 BOOLEAN_EXPR
         : BOOLEAN_EXPR OR M BOOLEAN_EXPR{
+               printf("found OR expression\n");
+                printf("left :");
+                debug_node( (node*)$1);
+
+                 printf("right :");
+                debug_node( (node*)$4);
+                printf("instruction number of next operation is %d\n",((M*)$3)->instruction_number);
                backpatch(((node*)$1)->falselist,((M*)$3)->instruction_number);
                node* n = (node*) malloc(sizeof(node));
                n->truelist = merge(((node*)$1)->truelist,((node*)$4)->truelist);
@@ -804,6 +831,13 @@ BOOLEAN_EXPR
                $$ = (void*)n;
         }
         | BOOLEAN_EXPR AND M BOOLEAN_EXPR{
+                printf("found and expression\n");
+                printf("left :");
+                debug_node( (node*)$1);
+
+                 printf("right :");
+                debug_node( (node*)$4);
+                printf("instruction number of next operation is %d\n",((M*)$3)->instruction_number);
                 backpatch(((node*)$1)->truelist,((M*)$3)->instruction_number);
                 node* n = (node*) malloc(sizeof(node));
                 n->truelist = ((node*)$4)->truelist;
@@ -826,6 +860,9 @@ BOOLEAN_EXPR
                 node* n = (node*) malloc(sizeof(node));
                 n->truelist = makelist(next_instr);
                 n->falselist = makelist(next_instr + 1);
+                printf("operation : %s - %s\n" , ((buffer*)$1)->result,((buffer*)$3)->result);
+                printf("true list : %d\n" , next_instr );
+                printf("fals list : %d\n" , next_instr + 1);
                 char* str=(char*)malloc(sizeof(char)*MAX_CODE_LEN);
                 str[0]='\0';
                 strcat(str,"if ");
