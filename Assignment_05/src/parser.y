@@ -13,6 +13,10 @@
     #define MAX_ARG_LEN 50
     #define MAX_CODE_LEN 1024
     #define MAX_LABEL_COUNT 64
+    #define MAX_LABEL_LENGTH 64
+    #define MAX_LIST_SIZE 20
+    #define MAX_INSTRUCTION_LENGTH 20
+
     void yyerror(const char *s);
     int yylex(); 
 
@@ -94,62 +98,74 @@
     void print_code(buffer* Q); /*prints the code of the */
 
 
-    /* special labelled nodes in syntax tree for boolean expressions and statements inside loops
-       and if statements 
-    */
-    typedef
-    struct labeled_node{
-            char* true_label;  /* label to go in case of true boolean expression  */
-            char* false_label; /* label to go in case of false boolean expression */ 
-            char* next_label;  /* label to skip to for statements */
-            char* code;        /* the code of the subtree in the syntax tree of the labeled_node*/
-    } labeled_node;
 
-    /* creates a new labeled node and returns it's address */
-    labeled_node*
-    create_labeled_node(char* true_label , char* false_label , char* next_label , char* code){
-            labeled_node* new_node = (labeled_node *) malloc(sizeof(labeled_node));
-            new_node->true_label = true_label;
-            new_node->false_label = false_label;
-            new_node->next_label = next_label;
-            if(code == NULL){
-                    new_node->code = NULL;
-                    return new_node;
-            }
-            new_node->code = (char *) malloc(sizeof(char) * MAX_CODE_LEN);
-            (new_node->code)[0] = '\0';
-            strcpy(new_node->code , code);
-            return new_node;
+     /* relevant structures for backpatching approach*/
+    typedef
+    struct list{
+            int* arr;
+            int size;
+    } list;
+    /*create an empty list and return it's reference */
+    list* create_list(){
+            list* l = (list *) malloc(sizeof(list));
+            l->arr = (int *) malloc(sizeof(int) * MAX_INSTRUCTION_LENGTH);
+            l->size = 0;
+            return l;
     }
-    /* returns the name of the next label to be used */
-    char* 
-    get_new_label(){
-            char* next_label = labels[label_ptr];
-            ++label_ptr;
-            if(label_ptr >= MAX_LABEL_COUNT){
-                    yyerror("too many labels in use\n");
-            }
-            return next_label;
+    /* insert value into list */
+    void insert_list(list *l , int value){
+            (l->arr)[l->size] = value;
+            ++(l->size);
+            return;
     }
-    /* check label status -- only for debugging purpose */
-    void check_label(labeled_node* L){
-            if(L == NULL) {
-                    printf("NULL");
-                    return;
-            }
-            char* true_lbl  = "NULL";
-            char* false_lbl = "NULL";
-            char* next_lbl  = "NULL";
-            if(L->true_label != NULL)  true_lbl  = L->true_label;
-            if(L->false_label != NULL) false_lbl = L->false_label;  
-            if(L->next_label != NULL)  next_lbl  = L->next_label;
-            printf("Truelabel : %s , Falselabel : %s , next_lbl : %s\n" , true_lbl , false_lbl , next_lbl);  
-    }
+
+     /* node for boolean expressions */
     typedef 
-    struct test{
-            int x;
-            int y;
-    } test;
+    struct node{
+            list* true_list;
+            list* false_list; 
+    } node;  
+                              /*utility functions and variables */
+    
+    /* instruction_list[i] is the ith instruction string */
+    char* instruction_list[MAX_INSTRUCTION_LENGTH]; 
+    
+    /* pointer to the next instruction*/
+    int next_instruction = 0;
+
+    /*allocate memory to a node and return its reference*/
+    node* 
+    create_node(){
+            node* n = (node *) malloc(sizeof(node));
+            n->true_list  = create_list();
+            n->false_list = create_list();
+            return n;
+    }
+    /* backpatch the value = val at locations present in list */    
+    void 
+    backpatch(list* l , int val){
+            return;
+    }
+    /* merge two lists l1 and l2*/
+    list* 
+    merge(list* l1 , list* l2){
+            for(int i = 0; i < (l2->size); i++){
+                    insert_list(l1 , (l2->arr)[i]);
+            }
+            return l1;
+    }   
+    /* create a list with value index and return its reference*/
+    list* 
+    makelist(int index){
+            list* l = create_list();
+            insert_list(l , index);
+            return l;
+    }
+
+    typedef
+    struct M{
+            int instruction_number;
+    } M;
 %}
 
 %union {
@@ -159,12 +175,12 @@
         int type;
         void* three_addr_code;
         void* labeled_node_ptr;
-        void* test_ptr;
+        void* node_ptr;
+        void* m_ptr;
        }
 
 
 %start PROGRAM
-// %start START
 %token DOT
 %token RP
 %token LP
@@ -230,21 +246,8 @@
 %type <labeled_node_ptr> STMT_LIST
 %type <labeled_node_ptr> STMT
 %type <labeled_node_ptr> IF_AND_SWICH_STATEMENTS
-%type <labeled_node_ptr> LABELED_BOOLEAN_EXPR
-
-// markers for handling preorder traversal of syntax tree
-%type <labeled_node_ptr> MARKER1
-%type <labeled_node_ptr> MARKER2
-%type <labeled_node_ptr> MARKER3
-%type <labeled_node_ptr> MARKER4
-%type <labeled_node_ptr> MARKER5
-%type <labeled_node_ptr> MARKER6
-%type <labeled_node_ptr> MARKER7
-%type <labeled_node_ptr> MARKER8
-%type <labeled_node_ptr> MARKER9
-%type <labeled_node_ptr> MARKER10
-%type <labeled_node_ptr> MARKER11
-
+%type <node_ptr> BOOLEAN_EXPR
+%type <m_ptr> M
 %type <var_declaration_list> DECLARATION MULTI_DECLARATION
 %type <val> TYPECAST
 /* actual grammar implementation in C*/
@@ -252,27 +255,7 @@
 
 PROGRAM 
         : 
-         MARKER11{
-                 labeled_node * pre = (labeled_node *) malloc(sizeof(labeled_node));
-                 pre->true_label = get_new_label();
-                 pre->false_label = get_new_label();
-                 $1 = (void* )pre;
-                 printf("matched marker11\n");
-         } LABELED_BOOLEAN_EXPR SEMI {
-                 printf("---matched labeled boolean expression---\n");
-                 printf("---testing the code for the labeled expression---\n");
-                 printf("---------------XXXX-----------------\n");
-                 printf("%s\n", ((labeled_node *) $3)->code);
-                 printf("---------------XXXX-----------------\n");
-         }
-        // | VAR PROGRAM              
-        // | FUNC_DECLARATION PROGRAM 
-        // | FUNC_DEFINITION PROGRAM  
-        // | EXP { 
-        //         printf("expression matched in program\n");
-        //         print_code((buffer*) $1);
-        //       }
-        //   SEMI PROGRAM   
+         BOOLEAN_EXPR  SEMI         
         ;
 
 
@@ -776,22 +759,8 @@ BASIC_EXPR
 
 // involves a marker 
 IF_AND_SWICH_STATEMENTS
-        : IF LP MARKER1                                          {
-                                                                         labeled_node* pre = (labeled_node *)malloc(sizeof(labeled_node));
-                                                                         pre->true_label = get_new_label();
-                                                                         pre->true_label = get_new_label();
-                                                                         $3 = (void *) pre; // store value in the previous node
-                                                                 }
-          LABELED_BOOLEAN_EXPR RP BODY ELSE_OR_ELSE_IF           {     
-                                                                        printf("matched labeled boolean expression\n");
-                                                                        printf("code -> \n");
-                                                                        printf("%s\n" , ((labeled_node *)$5)->code);
-                                                                        check_label((labeled_node *) $5);
-                                                                  }
-        | SWITCH LP EXP RP CLP CASE_STMTS CRP                     {
-                                                                        // printf("matched switch case :\n");
-                                                                        print_code((buffer *) $3);
-                                                                  }
+        : IF LP BOOLEAN_EXPR RP BODY ELSE_OR_ELSE_IF        
+        | SWITCH LP EXP RP CLP CASE_STMTS CRP 
         ;
 
 ELSE_OR_ELSE_IF
@@ -807,177 +776,45 @@ CASE_STMTS
 
 
 
-// special grammar (involves pre order traversal of syntax tree using markers)
-// LABELED_BOOLEAN_EXPR 
-//         : MARKER1 {
-//              labeled_node* pre = (labeled_node *) malloc(sizeof(labeled_node));
-//              pre->true_label = (char *) malloc(MAX_CODE_LEN);
-//              // B1.true = B.true
-//              strcpy(pre->true_label  , ((labeled_node *)$<labeled_node_ptr>-1)->true_label);
-//              // B1.false = newlabel()
-//              strcpy(pre->false_label , get_new_label());
-//              $1 = (void *) pre;
-//              printf("matched marker 1\n");
-//           }
-//           LABELED_BOOLEAN_EXPR OR  
-//           MARKER2{
-//              labeled_node* pre = (labeled_node *) malloc(sizeof(labeled_node));
-//              pre->true_label  = (char *) malloc(MAX_CODE_LEN);
-//              pre->false_label = (char *) malloc(MAX_CODE_LEN);
-//              // B2.true = B.true
-//              strcpy(pre->true_label  , ((labeled_node *)$<labeled_node_ptr>-1)->true_label);
-//              // B2.false = B.false
-//              strcpy(pre->false_label , ((labeled_node *)$<labeled_node_ptr>-1)->false_label);
-//              $5 = (void *) pre;
-//              printf("matched marker2\n");
-//           }
-//           LABELED_BOOLEAN_EXPR                                          
-//           {                                                  
-//              char *final_code = (char *) malloc(MAX_CODE_LEN);
-//              final_code[0] = '\0';
-//              // B.code = B1.code || label(B1.false) || B2.code
-//              strcat(final_code , ((labeled_node *) $3)->code);
-//              strcat(final_code , ((labeled_node *) $3)->false_label);
-//              strcat(final_code , ": \n");
-//              strcat(final_code , ((labeled_node *) $<labeled_node_ptr>6)->code);
-//              ((labeled_node *) $$)->code = final_code;
-//           }
-//         |
-//          MARKER4{
-//            labeled_node * pre = (labeled_node *) malloc(sizeof(labeled_node));
-//            // B1.true = newlabel()
-//            pre->true_label = get_new_label();
-//            // B1.false = B.false
-//            pre->false_label = ((labeled_node *)$<labeled_node_ptr>-1)->false_label;
-//            $1 = (void *) pre;
-//          } 
-//          LABELED_BOOLEAN_EXPR AND 
-//          MARKER5{
-//            labeled_node * pre = (labeled_node *) malloc(sizeof(labeled_node));
-//            pre->true_label = (char *) malloc(MAX_CODE_LEN);
-//            // B2.true = B.true
-//            strcpy(pre->true_label , ((labeled_node *)$<labeled_node_ptr>-1)->true_label);
-//            pre->false_label = (char *) malloc(MAX_CODE_LEN);
-//            // B2.false = B.false
-//            strcpy(pre->false_label , ((labeled_node *)$<labeled_node_ptr>-1)->false_label);
-//            $5 = (void * )pre;
-//          }
-//          LABELED_BOOLEAN_EXPR                 
-//          {
-//            char *final_code = (char *) malloc(MAX_CODE_LEN);
-//            final_code[0] = '\0';
-//            // B.code = B1.code || label(B1.true) || B2.code
-//            strcat(final_code , ((labeled_node *) $3)->code);
-//            strcat(final_code , ((labeled_node *) $3)->true_label);
-//            strcat(final_code , "\n");
-//            strcat(final_code , ((labeled_node *) $<labeled_node_ptr>6)->code);
-//            ((labeled_node *) $$)->code = final_code;
-//         }
-//         | NOT 
-//          MARKER6{
-//           labeled_node * pre = (labeled_node *) malloc(sizeof(labeled_node));
-//           pre->true_label = (char *) malloc(MAX_CODE_LEN);
-//           // B1.true = B.false
-//           strcpy(pre->true_label , ((labeled_node *) $<labeled_node_ptr>-1)->false_label);
-//           pre->false_label = (char *) malloc(MAX_CODE_LEN);
-//           // B1.false = B.true 
-//           strcpy(pre->false_label , ((labeled_node *) $<labeled_node_ptr>-1)->true_label);
-//           $2 = (void *) pre;
-//          }
-//          LABELED_BOOLEAN_EXPR                                          
-//          {     
-//            // B.code = B1.code
-//            ((labeled_node *) $$)->code = ((labeled_node*) $<labeled_node_ptr>3)->code;
-//          }
-//          | ADDITION_EXPR RELOP ADDITION_EXPR                             {
-//                                                                                 char * final_code = (char *) malloc(MAX_CODE_LEN);
-//                                                                                 strcat(final_code , ((buffer *) $1)->code);
-//                                                                                 strcat(final_code , ((buffer *) $3)->code);
-//                                                                                 strcat(final_code , "if ");
-//                                                                                 strcat(final_code , ((buffer *)$1)->result);
-//                                                                                 strcat(final_code , " relop ");
-//                                                                                 strcat(final_code , ((buffer *)$3)->result);
-//                                                                                 strcat(final_code , " goto ");
-//                                                                                 strcat(final_code , ((labeled_node *) $<labeled_node_ptr>-1)->true_label);
-//                                                                                 strcat(final_code , "\n goto ");
-//                                                                                 strcat(final_code , ((labeled_node *) $<labeled_node_ptr>-1)->false_label);
-//                                                                                 strcat(final_code , "\n");
-//                                                                                 ((labeled_node *) $$)->code = final_code;
-//                                                                         }
-//         | TRUE                                                          {       
-//                                                                                 char * final_code = (char *) malloc(MAX_CODE_LEN);
-//                                                                                 strcat(final_code , " goto ");
-//                                                                                 strcat(final_code , ((labeled_node *) $<labeled_node_ptr>-1)->true_label);
-//                                                                                 ((labeled_node *) $$)->code = final_code;
-//                                                                         }
-//         | FALSE                                                         {      
-//                                                                                 char * final_code = (char *) malloc(MAX_CODE_LEN);
-//                                                                                 strcat(final_code , " goto ");
-//                                                                                 strcat(final_code , ((labeled_node *) $<labeled_node_ptr>-1)->false_label);
-//                                                                                 ((labeled_node *) $$)->code = final_code;
-//                                                                         }
-//         ;
-// RELOP   
-//         : MORE    {printf("more\n");}
-//         | LESS    {printf("less\n");}
-//         | EQUAL{printf("eq\n");}
-//         | NOTEQUAL{printf("neq\n");}
-//         | LESSEQUAL{printf("leq\n");}
-//         | MOREEQUAL{printf("meq\n");}
-//         ;
+BOOLEAN_EXPR
+        : BOOLEAN_EXPR OR M BOOLEAN_EXPR{
+               
+        }
+        | BOOLEAN_EXPR AND M BOOLEAN_EXPR{
+                
+        }
+        | NOT BOOLEAN_EXPR{
 
+        }
+        | ADDITION_EXPR RELOP ADDITION_EXPR{
 
-LABELED_BOOLEAN_EXPR 
-        : MARKER1 LABELED_BOOLEAN_EXPR OR MARKER2 LABELED_BOOLEAN_EXPR                                          
-        | MARKER4 LABELED_BOOLEAN_EXPR AND MARKER5 LABELED_BOOLEAN_EXPR                 
-        | NOT MARKER6 LABELED_BOOLEAN_EXPR                                          
-        | ADDITION_EXPR RELOP ADDITION_EXPR  {
-                printf("reduced\n");
-        }                           
-        | TRUE                                                          
-        | FALSE                                                         
+        }
+        | TRUE{
+
+        }
+        | FALSE{
+
+        }
+        ;
+M       : %empty{
+                M* m = (M*) malloc(sizeof(M));
+                m->instruction_number = next_instruction;
+        }
         ;
 RELOP   
-        : MORE    {printf("more\n");}
-        | LESS    {printf("less\n");}
-        | EQUAL{printf("eq\n");}
-        | NOTEQUAL{printf("neq\n");}
-        | LESSEQUAL{printf("leq\n");}
-        | MOREEQUAL{printf("meq\n");}
-        ;
-
-
-
-MARKER1 :
-        ;
-MARKER2 :
-        ;
-MARKER3 :
-        ;
-MARKER4 :
-        ;
-MARKER5 :
-        ;
-MARKER6 :
-        ;
-MARKER7 :
-        ;
-MARKER8 :
-        ;
-MARKER9 :
-        ;
-MARKER10
-        :
-        ;
-MARKER11 
-        :
+        : MORE       {printf("more\n");}
+        | LESS       {printf("less\n");}
+        | EQUAL      {printf("eq\n");  }
+        | NOTEQUAL   {printf("neq\n"); }
+        | LESSEQUAL  {printf("leq\n"); }
+        | MOREEQUAL  {printf("meq\n"); }
         ;
 %%
 
 
                 // functions 
 int main(void){
-    // //yydebug = 1;
+    //yydebug = 1;
     return yyparse();
 }
 
