@@ -1,14 +1,13 @@
-int func(){
-	if(a == b) {
-	 int c =2;
-	}
+int funct(){
+	int x , y;
+}
+int main(){
+	int x = 1;
+	int z;
+	z = x * x;
+	if(z >= 1){
 
-	switch(c){
-		case 2:
-			a = 1;
-		case 3:
-			b=2;
-		default:
-			b=a;
+	} else{
+		
 	}
 }

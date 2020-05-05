@@ -1,72 +1,68 @@
-%{
-     #include "parser.tab.h"
-     #define MAX_LEN 1024
+%{    
+# include "parser.tab.h"
 %}
-
-
+%option noyywrap
 %%
-[)]                                                     { return RP; } 
-[(]                                                     { return LP; } 
-[}]                                                     { return CRP; } 
-[{]                                                     { return CLP; } 
-[=]                                                     { return ASSIGN; } 
-[+]                                                     { return ADD; } 
-[-]                                                     { return MINUS; } 
-[*]                                                     { return MUL; } 
-[/]                                                     { return DIV; } 
-[%]                                                     { return MOD; } 
-[&]                                                     { return BITAND; } 
-[|]                                                     { return BITOR; } 
-[~]                                                     { return BITNOT; } 
-"^"                                                     { return BITXOR; } 
-[?]                                                     { return QUES; } 
-"&&"                                                    { return AND; } 
-"||"                                                    { return OR; } 
-[!]                                                     { return NOT; } 
-[,]                                                     { return COMMA; }
-[>]                                                     { return MORE; } 
-[<]                                                     { return LESS; }
-"<="                                                    { return LESSEQUAL; }
-">="                                                    { return MOREEQUAL; }
-"=="                                                    { return EQUAL; }
-"!="                                                    { return NOTEQUAL; }
-[\n]                                                    { yylineno++; } 
-[ \t]                                                    ;
--?([0-9]+|[0-9]*\.[0-9]+)                               {
-                                                          char *new_str = (char*) malloc(sizeof(char) * MAX_LEN);
-                                                          strcpy(new_str , yytext);
-                                                          yylval.str = new_str;
-                                                          // ; yylval.val = atof(yytext);
-                                                          return NUM;
-                                                        }
-[']                                                     { return QUOTE; }
-[.]                                                     { return DOT; }
-[;]                                                     { return SEMI; }
-[:]                                                     { return COLON; }
-(NULL)                                                  { return null; }
-(false)                                                 { return FALSE; }
-(true)                                                  { return TRUE; }
-(for)                                                   { return FOR; }
-(while)                                                 { return WHILE; }
-(int)                                                   { return INT; }
-(float)                                                 { return FLOAT; }
-(void)                                                  { return VOID; }
-(main)                                                  { return MAIN; }
-(if)                                                    { return IF; }
-(else)                                                  { return ELSE; }
-(switch)                                                { return SWITCH; }
-(case)                                                  { return CASE; }
-(default)                                               { return DEFAULT; }
-(break)                                                 { return BREAK; }
-[a-zA-Z][a-zA-Z0-9_]*                                   {
-                                                          char *new_str = (char*) malloc(sizeof(char) * MAX_LEN);
-                                                          strcpy(new_str , yytext);
-                                                          yylval.str = new_str;
-                                                          return ID;
-                                                        }
-%%
+"int"                           { return INT; }
+"float"                         { return FLOAT; }
+"void"                          { return VOID; }
 
-int yywrap()
-{
-    return 1; 
-}
+"if"                            { return IF; }
+"else"                          { return ELSE; }
+"switch"                        { return SWITCH; }
+"case"                          { return CASE; }
+"break"                         { return BREAK; }
+
+"default"                       { return DEFAULT; }
+"continue"                      { return CONTINUE; }
+"while"                         { return WHILE; }
+"for"                           { return FOR; }
+"return"                        { return RETURN; }
+"main"                          { return MAIN; }
+"read"                          { return READ; }
+"print"                         { return PRINT; }
+
+"{"                             { return LCB; }
+"}"                             { return RCB; }
+";"                             { return SEMI; }
+"<="                            { return LE; }
+">="                            { return GE; }
+"=="                            { return EQUAL; }
+"!="                            { return NOTEQUAL; }
+"<<"                            { return LSHIFT; }
+">>"                            { return RSHIFT; }
+"&&"                            { return AND; }
+"||"                            { return OR; }
+"+="                            { return PLUSASG; }
+"-="                            { return MINASG; }
+"*="                            { return MULASG; }
+"%="                            { return MODASG; }
+"/="                            { return DIVASG; }
+"++"                            { return INCREMENT; }
+"--"                            { return DECREMENT; }
+":"                             { return COLON; }
+"["                             { return LSB; }
+"]"                             { return RSB; }
+"("                             { return LP; }
+")"                             { return RP; }
+","                             { return COMMA; }
+"="                             { return ASSIGN; }
+"<"                             { return LT; }
+">"                             { return GT; }
+"!"                             { return NOT; }
+"^"                             { return XOR; }
+"&"                             { return BITAND; }
+"|"                             { return BITOR; }
+"+"                             { return PLUS; }
+"-"                             { return MINUS; }
+"/"                             { return DIV; }
+"*"                             { return MUL; }
+"%"                             { return MOD; }
+
+[0-9]+\.[0-9]+                  { yylval.idName = (char *)malloc(100); memset(yylval.idName, 0, 100); memcpy(yylval.idName, yytext, yyleng); return NUMFLOAT; }
+[0-9]+                          { yylval.idName = (char *)malloc(100); memset(yylval.idName, 0, 100); memcpy(yylval.idName, yytext, yyleng); return NUMINT; }
+[a-zA-Z_][a-zA-Z_0-9]*          { yylval.idName = (char *)malloc(100); memset(yylval.idName, 0, 100); memcpy(yylval.idName, yytext, yyleng); return ID; }
+
+\n                              { yylineno++;}
+[ \t]                           {/* ignore whitespace */ }
+%%

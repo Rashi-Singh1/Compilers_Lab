@@ -1,45 +1,20 @@
-int x;
-int y , z = 4;
-float x = 25 , y = 45 , t = 54;
-int x();
-
-
-a = c;
-
-y = z = (x && t || y || z | x || x && t) , z = 5 , x = t + t * x;
-t = 5 * x;
-x != (t = 4) && 4;
-
-
-int threeargfunc(int arg1 , int arg2 , int arg3);
-int noargfunc();
-void function();
-float function(int x , float y , float z);
-
-int empty_function_body(){
-}
-int func(int x , int y){
-    int y;
-    for(int x = 2 , t = 3; 223 ; i++ ){
-
-    }
-    while(){
-        int x , y = 44;
-    }
-    for(;;){
-
-    }
-    for(int x = 3 , t = 3 , t3 = 33;  ; i--){
-
-    }
-    
+int glv;
+int funct(int x , float y){
+    int yy;
+    int z;
+    float xx;
 }
 
-int xx = 0;
-int yy = 0;
-
-int func(){
-    functioncall(x , t);
-    functioncall();
-    functioncall(dd, 1, 3,34);
+int main(){
+ int i;
+ for(i = 0; i < 4; i++){
+     int y=1;
+     int g = 1;
+ }
+ int x = 1;
+ if(x == 1){
+     x = x + x * x;
+ } else{
+     
+ }
 }

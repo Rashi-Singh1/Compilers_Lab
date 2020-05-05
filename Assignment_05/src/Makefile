@@ -4,7 +4,7 @@ PRINT_LINE = @printf "\n------------------------------------------\n"
 .DEFAULT: main
 
 main: lex.yy.c parser.tab.c
-	gcc -g --std=gnu11 lex.yy.c parser.tab.c -o main
+	g++ -g  lex.yy.c parser.tab.c datastructures.c helperfunctions.c -o main
 
 parser.tab.c parser.tab.h: parser.y
 	bison -d parser.y
@@ -39,3 +39,5 @@ test: ./tests/test$(N) main
 
 clean:
 	-rm -f main lex.yy.c parser.tab.c parser.tab.h parser.tab.h.gch ./tests/lex/test_lex 
+	-rm -f output/intermediate.txt
+	-rm -f output/symtab.txt
