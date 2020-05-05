@@ -1,4 +1,6 @@
 %{
+
+        
     #include <stdio.h>
     #include <stdlib.h>
     #include <stdbool.h>
@@ -15,7 +17,7 @@
     #define MAX_LABEL_COUNT 64
     #define MAX_LABEL_LENGTH 64
     #define MAX_LIST_SIZE 20
-    #define MAX_INSTRUCTION_LENGTH 20
+    #define MAX_INSTRUCTION_LENGTH 1024
 
     void yyerror(const char *s);
     int yylex(); 
@@ -36,18 +38,7 @@
                     "t16", "t17", "t18", "t19", "t20", "t21", "t22", "t23", 
                     "t24", "t25", "t26", "t27", "t28", "t29", "t30", "t31"
                     };
-    int name_ptr = 0; 
-    char * labels[] = { 
-                    "L0" , "L1" , "L2" , "L3" , "L4" , "L5" , "L6" , "L7" , 
-                    "L8" , "L9" , "L10", "L11", "L12", "L13", "L14", "L15", 
-                    "L16", "L17", "L18", "L19", "L20", "L21", "L22", "L23", 
-                    "L24", "L25", "L26", "L27", "L28", "L29", "L30", "L31",
-                    "L32", "L33", "L34", "L35", "L36", "L37", "L38", "L39", 
-                    "L40", "L41", "L42", "L43", "L44", "L45", "L46", "L47", 
-                    "L48", "L49", "L50", "L51", "L52", "L53", "L54", "L55", 
-                    "L56", "L57", "L58", "L59", "L60", "L61", "L62", "L63" 
-                    };
-    int label_ptr = 0;
+    int name_ptr = 0;
     /* structures for intermediate code generation and buffer format output*/
     /* 
     ** symbol_table: Array of pointers to symbol_table_entry objects
@@ -132,6 +123,7 @@
     struct node{
             list* truelist;
             list* falselist; 
+            char* code;
     } node;  
                               /*utility functions and variables */
     
@@ -140,6 +132,13 @@
     
     /* pointer to the next instruction*/
     int next_instr = 0;
+    int previous_instr = 0;
+    /* adding an instruction string */
+
+    void add_instruction(char * str){
+            instruction_list[next_instr] = str;
+            ++next_instr;
+    }
 
     /*allocate memory to a node and return its reference*/
     node* 
@@ -149,22 +148,56 @@
             n->falselist = create_list();
             return n;
     }
-    /* backpatch the value = val at locations present in list */    
+    /* backpatch the value = val at locations present in list */ 
+
+    int 
+    number_of_digits(int x){
+            int d = 0;
+            while(x){
+                    x /= 10;
+                    d++;
+            }
+            return d;
+    }   
+
+    void replace_with(char * str , int val){
+             // find first occurence of '_'
+             int f = 0;
+             while(str[f] != '\0'){
+                     if(str[f] == '_') break;
+                     ++f;
+             }
+
+            // calculate the number of digits
+             int ndigits = number_of_digits(val);
+
+            // write an L at the first location
+             str[f] = 'L';
+                
+            // copy the digits into string from f + ndigits backwards
+             int j = f + ndigits;
+
+             int temp = val;
+
+             while(temp){
+                     str[j] = (char)(temp % 10 + '0');
+                     temp /= 10;
+                     --j;
+             }
+
+            // remove any trailing '_' s if pres
+             j = f + ndigits + 1;
+             while(str[j] != '\0' && str[j] == '_'){
+                     str[j] = ' ';
+                     ++j;
+             }
+             str[j] = '\n';
+    }
     void 
     backpatch(list* l , int val){
             for(int i = 0; i < l->size; i++){
-                int j=0;
                 char* str = instruction_list[(l->arr)[i]];
-                 // to be modified 
-                while(str[j]!='\0'){
-                        if(str[j]=='_'){
-                                str[j]=((val/10)+'0');
-                                str[j+1]=((val%10)+'0');
-                                break;
-                        }
-                        j++;
-                }
-
+                replace_with(str , val);
             }
             return;
     }
@@ -195,6 +228,12 @@
     struct M{
             int instruction_number;
     } M;
+
+
+    typedef
+    struct statement{
+            list* nextlist;
+    } statement;
 %}
 
 %union {
@@ -206,6 +245,7 @@
         void* labeled_node_ptr;
         void* node_ptr;
         void* m_ptr;
+        void* stmt;
        }
 
 
@@ -257,6 +297,7 @@
 // %type<str> INT
 %token <str> NUM
 %token <str> ID
+%type <str> RELOP
 %type <three_addr_code> EXP
 %type <three_addr_code> ASSIGNMENT_EXPR
 %type <three_addr_code> CONDITIONAL_EXPR
@@ -271,9 +312,13 @@
 %type <three_addr_code> MULTIPLICATION_EXPR
 %type <three_addr_code> BASIC_EXPR
 
+
+%type <stmt> STMT
+%type <stmt> STMT_LIST
+%type <stmt> N
+
+
 %type <labeled_node_ptr> BODY
-%type <labeled_node_ptr> STMT_LIST
-%type <labeled_node_ptr> STMT
 %type <labeled_node_ptr> IF_AND_SWICH_STATEMENTS
 %type <node_ptr> BOOLEAN_EXPR
 %type <m_ptr> M
@@ -288,10 +333,10 @@ PROGRAM
          BOOLEAN_EXPR  SEMI{
                  printf("------------matched boolean expression------------\n");
                  printf("testing the instructions\n");
-                 for(int i = 0; i < next_instr; i++){
-                         printf("%d : %s",i, instruction_list[i]);
+                 for(int i = previous_instr; i < next_instr; i++){
+                         printf("L%d : %s",i, instruction_list[i]);
                  }
-                 next_instr = 0;
+                 previous_instr = next_instr ;
          } PROGRAM 
          
         ;
@@ -414,100 +459,78 @@ FUNC_DEFINITION
         | VOID ID LP PARAM_LIST_WITH_DATATYPE RP CLP STMT_LIST CRP  { printf("matched void  function definition\n"); }
         ;
 
-STMT_LIST 
-        : STMT STMT_LIST                                            { 
-                                                                        // use  the label name from statement list
-                                                                        char* concatenated_code = (char *) malloc(sizeof(char) * MAX_CODE_LEN);
-                                                                        concatenated_code[0] = '\0';
-                                                                        char* stmt_list_code = ((labeled_node *)$2)->code;
-                                                                        char* stmt_code = ((labeled_node *)$1)->code;
-                                                                        if(stmt_code != NULL){
-                                                                            strcat(concatenated_code , stmt_code); 
-                                                                        }
-                                                                        if( stmt_list_code != NULL)
-                                                                            strcat(concatenated_code , stmt_list_code);
-                                                                        $$ = (void *) create_labeled_node(
-                                                                                NULL,
-                                                                                NULL,
-                                                                                ((labeled_node*) $2)->next_label,
-                                                                                concatenated_code
-                                                                        );
-                                                                    }      
-        | STMT                                                      { 
-                                                                         labeled_node * lbl = (labeled_node *) $1;
-                                                                         lbl->next_label = get_new_label();
-                                                                         $$ = (void *) lbl;
-                                                                    }
-        ;
 
 STMT 
-        :                                                           {
-                                                                        labeled_node* new_labeled_node = create_labeled_node(
-                                                                                NULL, 
-                                                                                NULL,
-                                                                                NULL,
-                                                                                "empty code\n"
-                                                                        );
-                                                                        $$ = (void *) new_labeled_node;
-                                                                    }
-        | VAR                                                       {
-                                                                        //create a new_labeled_node
-                                                                        labeled_node* new_labeled_node = create_labeled_node(
-                                                                                NULL, 
-                                                                                NULL,
-                                                                                NULL,
-                                                                                "var_declaration\n"
-                                                                        );
-                                                                        $$ = (void *) new_labeled_node;
-                                                                    }
-        | FUNC_CALL                                                 { 
-                                                                        //create a new_labeled_node
-                                                                        labeled_node* new_labeled_node = create_labeled_node(
-                                                                                NULL, 
-                                                                                NULL,
-                                                                                NULL,
-                                                                                "func_call\n"
-                                                                        );
-                                                                        $$ = (void *) new_labeled_node;
-                                                                    }
-        | LOOP                                                      { 
-                                                                        labeled_node* new_labeled_node = create_labeled_node(
-                                                                                NULL, 
-                                                                                NULL,
-                                                                                NULL,
-                                                                                "loop matched\n"
-                                                                        );
-                                                                        $$ = (void *) new_labeled_node;
-                                                                    }
-        | EXP SEMI                                                  { 
-                                                                        labeled_node* new_labeled_node = create_labeled_node(
-                                                                                NULL, 
-                                                                                NULL,
-                                                                                NULL,
-                                                                                ((buffer*)$1)->code
-                                                                        );
-                                                                        $$ = (void *) new_labeled_node;
-                                                                        // print_code((buffer *) $1);
-                                                                    }
-        | IF_AND_SWICH_STATEMENTS                                   { 
-                                                                        labeled_node* new_labeled_node = create_labeled_node(
-                                                                                NULL, 
-                                                                                NULL,
-                                                                                NULL,
-                                                                                ((labeled_node *)$1)->code
-                                                                        );
-                                                                        $$ = (void *) new_labeled_node;
-                                                                    }
-        | BREAK SEMI                                                { 
-                                                                        labeled_node* new_labeled_node = create_labeled_node(
-                                                                                NULL, 
-                                                                                NULL,
-                                                                                NULL,
-                                                                                "break\n"
-                                                                        );
-                                                                        $$ = (void *) new_labeled_node;
-                                                                    }
+        :
+         IF LP BOOLEAN_EXPR RP M STMT{
+                 backpatch((node*)$3)->truelist , ((M*)$5)->instruction_number);
+                 statement * stmt = (statement*) malloc(sizeof(statement));
+                 stmt->nextlist = merge(((node*)$3)->falselist, ((statement*)$6)->nextlist);
+                 $$=stmt;
+         }
+        | IF LP BOOLEAN_EXPR RP M STMT N ELSE M STMT{
+                 backpatch((node*)$3)->truelist , ((M*)$5)->instruction_number);
+                 backpatch((node*)$3)->falselist ,((M*)$9)->instruction_number);
+                 list* temp = merge(((statement*)$6)->nextlist,((statement*)$7)->nextlist);
+                 statement* stmt= (statement*)malloc(sizeof(statement));
+                 stmt->nextlist=merge(temp, ((statement*)$10)->nextlist);
+                 $$=(void*)stmt;
+        }
+        | WHILE M LP BOOLEAN_EXPR RP M STMT{
+                backpatch( ((statement *)$7)->nextlist, ((M*)$2)->instruction_number);
+                backpatch( ((statement*)$4)->truelist , ((M*)$6)->instruction_number);
+                statement * stmt = (statement *) malloc(sizeof(statement));
+                stmt->nextlist = ((node*)$4)->falselist;
+                char* str=(char*) malloc(sizeof(char) * MAX_INSTRUCTION_LENGTH);
+                strcpy(str,"goto Lcap\n");
+                add_instruction(str);
+                $$=(void*)stmt;
+        }
+        | CLP STMT_LIST CRP{
+                statement * stmt = (statement *) malloc(sizeof(statement));
+                stmt->nextlist = ((node*)$2)->falselist;
+                $$=(void*)stmt;
+        }
+        | VAR {
+                statement * stmt = (statement *) malloc(sizeof(statement));
+                stmt->nextlist = NULL;
+                $$=(void*)stmt;
+        }                                     
+        | FUNC_CALL{
+                statement * stmt = (statement *) malloc(sizeof(statement));
+                stmt->nextlist = NULL;
+                $$=(void*)stmt;
+
+        }                                                                                          
+        | EXP {
+                statement * stmt = (statement *) malloc(sizeof(statement));
+                stmt->nextlist = NULL;
+                $$=(void*)stmt;
+        }                                     
         ;
+STMT_LIST
+        : STMT_LIST M STMT{
+                backpatch( ((statement *)$1)->nextlist, ((M*)$2)->instruction_number);
+                statement * stmt = (statement *) malloc(sizeof(statement));
+                stmt->nextlist = ((statement *)$3)->nextlist;
+                $$ = (void*)stmt;
+        }
+        | STMT{
+                statement * stmt = (statement *) malloc(sizeof(statement));
+                stmt->nextlist = ((statement *)$1)->nextlist;
+                $$ = (void*) stmt;
+        }
+        ;
+N : %empty{
+        statement* stmt = (statement *) malloc(sizeof(statement));
+        stmt->nextlist = makelist(next_instr);
+        char *str= (char *) malloc(sizeof(char) * MAX_INSTRUCTION_LENGTH);
+        strcpy(str, "goto _");
+        add_instruction(str);
+        $$ = (void *) stmt;     
+     }
+  ;
+
 
 FUNC_CALL 
         : ID LP PARAM_LIST_WO_DATATYPE RP SEMI                      { printf("matched function call\n"); }
@@ -529,16 +552,8 @@ LOOP
         ;
 
 BODY 
-        : CLP STMT_LIST CRP                                         {
-                                                                        // in case we match a statement list
-                                                                        $$ = $2;
-                                                                    }
-        | STMT                                                      {
-                                                                        // if we match a single statement
-                                                                         labeled_node * lbl = (labeled_node *) $1;
-                                                                         lbl->next_label = get_new_label();
-                                                                         $$ = (void *) lbl;    
-                                                                    }
+        : CLP STMT_LIST CRP                                         
+        | STMT                                                      
         ;
 
 FORLOOP 
@@ -816,13 +831,6 @@ CASE_STMTS
 
 BOOLEAN_EXPR
         : BOOLEAN_EXPR OR M BOOLEAN_EXPR{
-               printf("found OR expression\n");
-                printf("left :");
-                debug_node( (node*)$1);
-
-                 printf("right :");
-                debug_node( (node*)$4);
-                printf("instruction number of next operation is %d\n",((M*)$3)->instruction_number);
                backpatch(((node*)$1)->falselist,((M*)$3)->instruction_number);
                node* n = (node*) malloc(sizeof(node));
                n->truelist = merge(((node*)$1)->truelist,((node*)$4)->truelist);
@@ -830,13 +838,6 @@ BOOLEAN_EXPR
                $$ = (void*)n;
         }
         | BOOLEAN_EXPR AND M BOOLEAN_EXPR{
-                // printf("found and expression\n");
-                // printf("left :");
-                // debug_node( (node*)$1);
-
-                //  printf("right :");
-                // debug_node( (node*)$4);
-                // printf("instruction number of next operation is %d\n",((M*)$3)->instruction_number);
                 backpatch(((node*)$1)->truelist,((M*)$3)->instruction_number);
                 node* n = (node*) malloc(sizeof(node));
                 n->truelist = ((node*)$4)->truelist;
@@ -844,8 +845,6 @@ BOOLEAN_EXPR
                 $$=(void*)n;
         }
         | NOT BOOLEAN_EXPR{
-                printf("found not expressions\n");
-                debug_node((node*)$2);
                 node* n = (node*) malloc(sizeof(node));
                 n->truelist = ((node*)$2)->falselist;
                 n->falselist = ((node*)$2)->truelist;
@@ -863,18 +862,21 @@ BOOLEAN_EXPR
                 n->falselist = makelist(next_instr + 1);
                 char* str=(char*)malloc(sizeof(char)*MAX_CODE_LEN);
                 str[0]='\0';
+                strcat(str,((buffer*)$1)->code);
+                strcat(str,((buffer*)$3)->code);
+
                 strcat(str,"if ");
                 strcat(str, ((buffer*)$1)->result);
-                strcat(str, " relop ");
+                strcat(str, " ");
+                strcat(str, $2);
+                strcat(str, " ");
                 strcat(str, ((buffer*)$3)->result);
-                strcat(str, " goto __ \n");
-                instruction_list[next_instr]=str;
-                ++next_instr;
+                strcat(str, " goto _ \n");
+                add_instruction(str);
                 char* str2=(char*)malloc(sizeof(char)*MAX_CODE_LEN);
                 str2[0]='\0';
-                strcpy(str2,"goto __\n");
-                instruction_list[next_instr]=str2;
-                ++next_instr;
+                strcpy(str2,"goto _\n");
+                add_instruction(str2);
                 $$=(void*)n;
         }
         | TRUE{
@@ -883,8 +885,7 @@ BOOLEAN_EXPR
                 char* str=(char*)malloc(sizeof(char)*MAX_CODE_LEN);
                 str[0]='\0';
                 strcpy(str ," goto __\n");
-                instruction_list[next_instr]=str;
-                ++next_instr;
+                add_instruction(str);
                 $$=(void*)n;
         }
         | FALSE{
@@ -893,8 +894,7 @@ BOOLEAN_EXPR
                 char* str=(char*)malloc(sizeof(char)*MAX_CODE_LEN);
                 str[0]='\0';
                 strcpy(str," goto __\n");
-                instruction_list[next_instr]=str;
-                ++next_instr;
+                add_instruction(str);
                 $$=(void*)n;
         }
         ;
@@ -905,12 +905,46 @@ M       : %empty{
         }
         ;
 RELOP   
-        : MORE       {printf("more\n");}
-        | LESS       {printf("less\n");}
-        | EQUAL      {printf("eq\n");  }
-        | NOTEQUAL   {printf("neq\n"); }
-        | LESSEQUAL  {printf("leq\n"); }
-        | MOREEQUAL  {printf("meq\n"); }
+        : MORE    {
+                char* str = (char* ) malloc(sizeof(char) * 4);
+                str[0] = '\0';
+                strcpy(str , ">");
+                $$ = str;
+        }   
+        | LESS{
+                char* str = (char* ) malloc(sizeof(char) * 4);
+                str[0] = '\0';
+                strcpy(str , "<");
+                $$ = str;
+
+        }       
+        | EQUAL {
+                char* str = (char* ) malloc(sizeof(char) * 4);
+                str[0] = '\0';
+                strcpy(str , "==");
+                $$ = str;
+
+        }     
+        | NOTEQUAL{
+                char* str = (char* ) malloc(sizeof(char) * 4);
+                str[0] = '\0';
+                strcpy(str , "!=");
+                $$ = str;
+
+        }   
+        | LESSEQUAL{
+                char* str = (char* ) malloc(sizeof(char) * 4);
+                str[0] = '\0';
+                strcpy(str , "<=");
+                $$ = str;
+
+        }  
+        | MOREEQUAL{
+                char* str = (char* ) malloc(sizeof(char) * 4);
+                str[0] = '\0';
+                strcpy(str , ">=");
+                $$ = str;
+        }  
         ;
 %%
 
