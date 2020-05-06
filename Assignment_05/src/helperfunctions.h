@@ -111,6 +111,7 @@ void add_global_var(vector<sym_tab_entry*> &sym_tab_entry_list, vector<sym_tab_e
 void look_up_global_var(string name, vector<sym_tab_entry*> &global_vars, int &found, sym_tab_entry *&rec, int scope);
 
 void set_offsets(vector<function_entry*> &sym_tab_func_entry, vector<sym_tab_entry*> &global_vars);
+void print_symbol_table(vector<function_entry*> &sym_tab_func_entry, vector<sym_tab_entry*> &global_vars);
 string get_string_from_data_type(data_type a);
 int get_int_from_data_type(data_type a);
 int get_string_from_var_type(var_type a);

@@ -282,5 +282,45 @@ void set_offsets(vector<function_entry*> &sym_tab_func_entry, vector<sym_tab_ent
         }
         fr->function_offset = ofs;
     }
+    print_symbol_table(sym_tab_func_entry, global_vars);
 }
 
+void print_symbol_table(  vector<function_entry*> &sym_tab_func_entry, vector<sym_tab_entry*> &global_vars){
+    ofstream symbolTable;
+    symbolTable.open("output/symtab.txt");
+    symbolTable.flush();
+
+    // Printing Global Variables
+    symbolTable << "$$" << endl;
+    symbolTable << "GLOBAL " << "EMPTY " << global_vars.size() << " 0 " << endl;
+    symbolTable << "$1" << endl;
+    for(auto &varRecord : global_vars){
+        symbolTable << "_" << varRecord->name << "_" << get_string_from_data_type(varRecord->data_type_obj) << "_" << varRecord->scope << " " << get_int_from_data_type(varRecord->data_type_obj) << " " ;
+        symbolTable << varRecord->scope << " " << varRecord->max_dim_offset << endl;
+    }
+    symbolTable << "$2 0" << endl;
+
+    // Printing Local Function Variables
+    for(auto &funcRecord : sym_tab_func_entry){
+        symbolTable << "$$" << endl;
+        if(funcRecord->name != "main"){
+            symbolTable << "_" << funcRecord->name << " " << get_string_from_data_type(funcRecord->return_type) << " ";
+        }
+        else{
+            symbolTable << funcRecord->name << " " << get_string_from_data_type(funcRecord->return_type) << " ";
+        }
+        symbolTable << funcRecord->param_num << " " << funcRecord->function_offset << endl;
+        symbolTable << "$1" << endl;
+        for(auto &varRecord : funcRecord->param_list){
+            symbolTable << "_" << varRecord->name << "_" << get_string_from_data_type(varRecord->data_type_obj) << "_" << varRecord->scope << " " << get_int_from_data_type(varRecord->data_type_obj) << " " ;
+            symbolTable << varRecord->scope << " " << varRecord->variable_offset << endl;
+        }
+        symbolTable << "$2 " << funcRecord->list_of_variables.size() << endl;
+        for(auto &varRecord : funcRecord->list_of_variables){
+            symbolTable << "_" << varRecord->name << "_" << get_string_from_data_type(varRecord->data_type_obj) << "_" << varRecord->scope << " " << get_int_from_data_type(varRecord->data_type_obj) << " " ;
+            symbolTable << varRecord->scope << " " << varRecord->variable_offset << endl;
+        }
+    }
+    symbolTable.flush();
+    symbolTable.close();
+}
