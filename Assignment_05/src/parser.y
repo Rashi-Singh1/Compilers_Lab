@@ -19,32 +19,25 @@ extern char* yytext;
 extern int yyleng;
 void yyerror(const char* s);
 
-int offsetCalc;
 string text;
-data_type resultType;
+data_type result_data_type;
 vector<sym_tab_entry*> sym_tab_entry_list;
-stack<vector<sym_tab_entry*> > paramListStack;
+stack<vector<sym_tab_entry*> > params_stack;
 sym_tab_entry* var_rec;
 vector<int> decdimlist;
 vector<sym_tab_entry*> global_vars;
 
-int nextquad;
-vector<string> functionInstruction;
-register_handler_class tempSet;
+int next_quad;
+vector<string> all_instructions;
+register_handler_class register_handler;
 
 vector<function_entry*> sym_tab_func_entry;
 function_entry* current_function;
 function_entry* func_call_ptr;
 int scope;
 int found;
-bool errorFound;
-int numberOfParameters;
-string conditionVar;
-vector<string> switchVar;
-vector<function_entry*> callFuncPtrList;
+bool found_error;
 vector<string> dimlist;
-
-vector<pair<string,int>> sVar;
 
 
 %} 
@@ -103,7 +96,7 @@ MAINFUNCTION: MAIN_HEAD LCB BODY RCB
         current_function=NULL;
         scope=0;
         string s = "function end";
-        generate_instr(functionInstruction, s, nextquad);
+        generate_instr(all_instructions, s, next_quad);
     }
 ;
 
@@ -128,7 +121,7 @@ MAIN_HEAD: INT MAIN LP RP
             function_append(current_function, sym_tab_func_entry);
             scope = 2; 
             string s = "function begin main";
-            generate_instr(functionInstruction, s, nextquad);
+            generate_instr(all_instructions, s, next_quad);
         }
     }
 ;
@@ -139,7 +132,7 @@ FUNC_DEF: FUNC_HEAD LCB BODY RCB
         current_function = NULL;
         scope = 0;
         string s = "function end";
-        generate_instr(functionInstruction, s, nextquad);
+        generate_instr(all_instructions, s, next_quad);
     }
 ;
 
@@ -149,7 +142,7 @@ FUNC_HEAD: RES_ID LP DECL_PLIST RP
         look_up_function(current_function, sym_tab_func_entry, found);
         if(found){
             cout << BOLD(FRED("ERROR : ")) << "Line no. " << yylineno << ": Function " << current_function->name <<  " already declared." << endl;
-            errorFound = true;
+            found_error = true;
             delete current_function;
             // cout<<"Function head me current_function deleted"<<endl;
         }   
@@ -161,7 +154,7 @@ FUNC_HEAD: RES_ID LP DECL_PLIST RP
             function_append(current_function, sym_tab_func_entry);
             scope = 2; 
             string s = "function begin _" + current_function->name;
-            generate_instr(functionInstruction, s, nextquad);
+            generate_instr(all_instructions, s, next_quad);
         }
     }
 ; 
@@ -171,7 +164,7 @@ RES_ID: T ID
         scope=1;
         current_function = new function_entry;
         current_function->name = string($2);
-        current_function->return_type = resultType;
+        current_function->return_type = result_data_type;
     } 
     | VOID ID
     {
@@ -223,7 +216,7 @@ DECL_PARAM: T ID
         var_rec->type = SIMPLE;
         var_rec->tag = VARIABLE;
         var_rec->scope = scope;
-        var_rec->data_type_obj = resultType;
+        var_rec->data_type_obj = result_data_type;
     }
 ;
 
@@ -279,7 +272,7 @@ STMT: VAR_DECL
         $$.break_list = new vector<int>;
         $$.continue_list = new vector <int>;
         if ($1.type != NULLVOID && $1.type != ERRORTYPE)
-            tempSet.free_reg(*($1.reg_name));
+            register_handler.free_reg(*($1.reg_name));
     } 
     | FORLOOP
     {
@@ -323,16 +316,16 @@ STMT: VAR_DECL
         $$.next_list = new vector<int>;
         $$.break_list = new vector<int>;
         $$.continue_list = new vector <int>;
-        $$.break_list->push_back(nextquad);  
-        generate_instr(functionInstruction, "goto L", nextquad);      
+        $$.break_list->push_back(next_quad);  
+        generate_instr(all_instructions, "goto L", next_quad);      
     }
     | CONTINUE SEMI
     {
         $$.next_list = new vector<int>;
         $$.break_list = new vector<int>;
         $$.continue_list = new vector <int>;
-        $$.continue_list->push_back(nextquad);
-        generate_instr(functionInstruction, "goto L", nextquad);
+        $$.continue_list->push_back(next_quad);
+        generate_instr(all_instructions, "goto L", next_quad);
     }
     | RETURN ASG1 SEMI 
     {
@@ -350,39 +343,39 @@ STMT: VAR_DECL
                 string s;
                 if (current_function->return_type != NULLVOID && $2.type != NULLVOID) {
                     if ($2.type == INTEGER && current_function->return_type == FLOATING)  {
-                        string floatReg = tempSet.get_float_reg();
+                        string floatReg = register_handler.get_float_reg();
                         s = floatReg + " = " + "convertToFloat(" + *($2.reg_name) + ")";
                         cout << BOLD(FBLU("Warning : ")) << FCYN("Line No. "+to_string(yylineno)+":Implicit Type Conversion") << endl;
-                        generate_instr(functionInstruction, s, nextquad);
+                        generate_instr(all_instructions, s, next_quad);
                         s = "return " + floatReg;
-                        generate_instr(functionInstruction, s, nextquad);
-                        tempSet.free_reg(*($2.reg_name));
-                        tempSet.free_reg(floatReg);
+                        generate_instr(all_instructions, s, next_quad);
+                        register_handler.free_reg(*($2.reg_name));
+                        register_handler.free_reg(floatReg);
                     }
                     else if ($2.type == FLOATING && current_function->return_type == INTEGER) {
-                        string intReg = tempSet.get_temp_reg();
+                        string intReg = register_handler.get_temp_reg();
                         s = intReg + " = " + "convertToInt(" + *($2.reg_name) + ")";
                         cout << BOLD(FBLU("Warning : ")) << FCYN("Line No. "+to_string(yylineno)+":Implicit Type Conversion") << endl;
-                        generate_instr(functionInstruction, s, nextquad);
+                        generate_instr(all_instructions, s, next_quad);
                         s = "return " + intReg;
-                        generate_instr(functionInstruction, s, nextquad);
-                        tempSet.free_reg(*($2.reg_name));
-                        tempSet.free_reg(intReg);                        
+                        generate_instr(all_instructions, s, next_quad);
+                        register_handler.free_reg(*($2.reg_name));
+                        register_handler.free_reg(intReg);                        
                     }
                     else {
                         s = "return " + *($2.reg_name);
-                        generate_instr(functionInstruction, s, nextquad);
-                        tempSet.free_reg(*($2.reg_name));
+                        generate_instr(all_instructions, s, next_quad);
+                        register_handler.free_reg(*($2.reg_name));
                     }
                 }
                 else if (current_function->return_type == NULLVOID && $2.type == NULLVOID) {
                     s = "return";
-                    generate_instr(functionInstruction, s, nextquad);
+                    generate_instr(all_instructions, s, next_quad);
                 }
                 else {
-                    errorFound = 1;
+                    found_error = 1;
                     cout << BOLD(FRED("ERROR : ")) << "Line no. " << yylineno << ": Exactly one of function " << current_function->name << "and this return statement has void return type" << endl;
-                    if ($2.type != NULLVOID) tempSet.free_reg(*($2.reg_name));
+                    if ($2.type != NULLVOID) register_handler.free_reg(*($2.reg_name));
                 } 
             }
         }
@@ -393,23 +386,23 @@ STMT: VAR_DECL
         $$.break_list = new vector<int>;
         $$.continue_list = new vector <int>;
         if($2.type == ERRORTYPE){
-            errorFound = true;
+            found_error = true;
         }
         else{
             string reg_name;
             if ($2.type == INTEGER){
-                reg_name = tempSet.get_temp_reg();
+                reg_name = register_handler.get_temp_reg();
             }
             else {
-                reg_name = tempSet.get_float_reg();
+                reg_name = register_handler.get_float_reg();
             }
             string s;
             s = "read " + reg_name;
-            generate_instr(functionInstruction, s, nextquad);
+            generate_instr(all_instructions, s, next_quad);
             s = (*($2.reg_name)) + " = " +  reg_name;
-            generate_instr(functionInstruction, s, nextquad);
-            tempSet.free_reg(reg_name);
-            if ($2.offset_reg_name != NULL) tempSet.free_reg(*($2.offset_reg_name));
+            generate_instr(all_instructions, s, next_quad);
+            register_handler.free_reg(reg_name);
+            if ($2.offset_reg_name != NULL) register_handler.free_reg(*($2.offset_reg_name));
         }
     }
     | PRINT ID_ARR SEMI
@@ -418,27 +411,27 @@ STMT: VAR_DECL
         $$.break_list = new vector<int>;
         $$.continue_list = new vector <int>;
         if($2.type == ERRORTYPE){
-            errorFound = true;
+            found_error = true;
         }
         else{
             string reg_name;
             if ($2.type == INTEGER){
-                reg_name = tempSet.get_temp_reg();
+                reg_name = register_handler.get_temp_reg();
             }
             else {
-                reg_name = tempSet.get_float_reg();
+                reg_name = register_handler.get_float_reg();
             }
             string s = reg_name + " = " + (*($2.reg_name)) ;
-            generate_instr(functionInstruction, s, nextquad);
+            generate_instr(all_instructions, s, next_quad);
             s = "print " + reg_name;
-            generate_instr(functionInstruction, s, nextquad);
-            tempSet.free_reg(reg_name);
-            if ($2.offset_reg_name != NULL) tempSet.free_reg(*($2.offset_reg_name));
+            generate_instr(all_instructions, s, next_quad);
+            register_handler.free_reg(reg_name);
+            if ($2.offset_reg_name != NULL) register_handler.free_reg(*($2.offset_reg_name));
         }
     }
     | error SEMI
     {
-        errorFound = 1;
+        found_error = 1;
         $$.next_list = new vector<int>;
         $$.break_list = new vector<int>;
         $$.continue_list = new vector <int>;
@@ -446,7 +439,7 @@ STMT: VAR_DECL
     }
     | error
     {
-        errorFound = 1;
+        found_error = 1;
         $$.next_list = new vector<int>;
         $$.break_list = new vector<int>;
         $$.continue_list = new vector <int>;
@@ -459,7 +452,7 @@ VAR_DECL: D SEMI
 
 D: T L
     { 
-        attach_data_type(resultType, sym_tab_entry_list, scope);
+        attach_data_type(result_data_type, sym_tab_entry_list, scope);
         if(scope > 1){
             symbol_table_append(sym_tab_entry_list, current_function);
             
@@ -471,8 +464,8 @@ D: T L
     }
 ;
 
-T:  INT         { resultType = INTEGER; }
-    | FLOAT     { resultType = FLOATING; }
+T:  INT         { result_data_type = INTEGER; }
+    | FLOAT     { result_data_type = FLOATING; }
 ;    
 
 L: DEC_ID_ARR
@@ -491,7 +484,7 @@ DEC_ID_ARR: ID
                     cout << BOLD(FRED("ERROR : ")) << "Line no. :" << yylineno << " Variable " << string($1) << " already declared at same level " << scope << endl ;
                 }
                 else{
-                    if(rec->data_type_obj == resultType){
+                    if(rec->data_type_obj == result_data_type){
                         rec->valid=true;
                         rec->max_dim_offset = max(rec->max_dim_offset,1);
                         rec->type=SIMPLE;
@@ -556,7 +549,7 @@ DEC_ID_ARR: ID
             }
         } 
         else {
-            errorFound = true;
+            found_error = true;
         }
         
     }
@@ -572,7 +565,7 @@ DEC_ID_ARR: ID
                     cout << BOLD(FRED("ERROR : ")) << "Line no. :" << yylineno << " Variable " << string($1) << " already declared at same level " << scope << endl ;
                 }
                 else{
-                    if(rec->data_type_obj == resultType){
+                    if(rec->data_type_obj == result_data_type){
                         rec->valid=true;
                         rec->max_dim_offset = max(rec->max_dim_offset,1);
                         rec->type=SIMPLE;
@@ -622,45 +615,45 @@ DEC_ID_ARR: ID
             }
             if(varCreated){
                 if ($3.type == ERRORTYPE) {
-                    errorFound = true;
+                    found_error = true;
                 }
                 else if ($3.type == NULLVOID) {
                     cout << BOLD(FRED("ERROR : ")) << "Line no. " << yylineno << ": Cannot assign void to non-void type " << string($1) << endl;
-                    errorFound = true;
+                    found_error = true;
                 }
                 else {
                     string reg_name;
-                    if (resultType == INTEGER && $3.type == FLOATING) {
-                        reg_name = tempSet.get_temp_reg();
+                    if (result_data_type == INTEGER && $3.type == FLOATING) {
+                        reg_name = register_handler.get_temp_reg();
                         string s = reg_name + " = convertToInt(" + (*($3.reg_name)) + ")";   
                         cout << BOLD(FBLU("Warning : ")) << FCYN("Line No. "+to_string(yylineno)+":Implicit Type Conversion") << endl;
-                        generate_instr(functionInstruction, s, nextquad);
-                        tempSet.free_reg(*($3.reg_name));
+                        generate_instr(all_instructions, s, next_quad);
+                        register_handler.free_reg(*($3.reg_name));
                     }
-                    else if(resultType == FLOATING && ($3.type == INTEGER || $3.type == BOOLEAN)) {
-                        reg_name = tempSet.get_float_reg();
+                    else if(result_data_type == FLOATING && ($3.type == INTEGER || $3.type == BOOLEAN)) {
+                        reg_name = register_handler.get_float_reg();
                         string s = reg_name + " = convertToFloat(" + (*($3.reg_name)) + ")"; 
                         cout << BOLD(FBLU("Warning : ")) << FCYN("Line No. "+to_string(yylineno)+":Implicit Type Conversion") << endl;
-                        generate_instr(functionInstruction, s, nextquad); 
-                        tempSet.free_reg(*($3.reg_name));
+                        generate_instr(all_instructions, s, next_quad); 
+                        register_handler.free_reg(*($3.reg_name));
                     }
                     else {
                         reg_name = *($3.reg_name);
                     }
-                    string dataType = get_string_from_data_type(resultType);
+                    string dataType = get_string_from_data_type(result_data_type);
                     dataType += "_" + to_string(scope);
                     string s =  "_" + string($1) + "_" + dataType + " = " + reg_name ;
-                    generate_instr(functionInstruction, s, nextquad);
-                    tempSet.free_reg(reg_name);
+                    generate_instr(all_instructions, s, next_quad);
+                    register_handler.free_reg(reg_name);
                 }   
             }
         }
         else if(scope == 0){
             cout << BOLD(FRED("ERROR : ")) << "Line No " << yylineno << ": ID assignments not allowed in global level : Variable " << string($1) << endl;
-            errorFound = true;
+            found_error = true;
         }
         else {
-            errorFound = true;
+            found_error = true;
         }
     }
     | ID DEC_BR_DIMLIST
@@ -674,7 +667,7 @@ DEC_ID_ARR: ID
                     cout << BOLD(FRED("ERROR : ")) << "Line no. " << yylineno << ": Variable " << string($1) << " already declared at same level " << scope << endl;
                 }
                 else{
-                    if(rec->data_type_obj == resultType){
+                    if(rec->data_type_obj == result_data_type){
                         rec->valid=true;
                         int a=1;
                         for(auto it : decdimlist){
@@ -767,7 +760,7 @@ DEC_ID_ARR: ID
             }
         }   
         else{
-            errorFound = 1;
+            found_error = 1;
         }
         decdimlist.clear();
     }
@@ -813,18 +806,18 @@ FUNC_CALL: ID LP PARAMLIST RP
             else {
                 $$.type = func_call_ptr->return_type;
                 if(func_call_ptr->return_type == INTEGER){
-                    $$.reg_name = new string(tempSet.get_temp_reg());
-                    generate_instr(functionInstruction, "refparam " + (*($$.reg_name)), nextquad);
-                    generate_instr(functionInstruction, "call _" + func_call_ptr->name + ", " + to_string(sym_tab_entry_list.size() + 1 ), nextquad);      
+                    $$.reg_name = new string(register_handler.get_temp_reg());
+                    generate_instr(all_instructions, "refparam " + (*($$.reg_name)), next_quad);
+                    generate_instr(all_instructions, "call _" + func_call_ptr->name + ", " + to_string(sym_tab_entry_list.size() + 1 ), next_quad);      
                 }
                 else if(func_call_ptr->return_type == FLOATING){
-                    $$.reg_name = new string(tempSet.get_float_reg());
-                    generate_instr(functionInstruction, "refparam " + (*($$.reg_name)), nextquad);
-                    generate_instr(functionInstruction, "call _" + func_call_ptr->name + ", " + to_string(sym_tab_entry_list.size() + 1 ), nextquad);      
+                    $$.reg_name = new string(register_handler.get_float_reg());
+                    generate_instr(all_instructions, "refparam " + (*($$.reg_name)), next_quad);
+                    generate_instr(all_instructions, "call _" + func_call_ptr->name + ", " + to_string(sym_tab_entry_list.size() + 1 ), next_quad);      
                 }
                 else if (func_call_ptr->return_type == NULLVOID) {
                     $$.reg_name = NULL;
-                    generate_instr(functionInstruction, "call _" + func_call_ptr->name + ", " + to_string(sym_tab_entry_list.size()), nextquad);      
+                    generate_instr(all_instructions, "call _" + func_call_ptr->name + ", " + to_string(sym_tab_entry_list.size()), next_quad);      
                 }
                 else {
                     cout << BOLD(FRED("ERROR : ")) << "Line no. " << yylineno << ": Illegal return type of function " << func_call_ptr->name << endl;
@@ -832,13 +825,13 @@ FUNC_CALL: ID LP PARAMLIST RP
             }
         }
         sym_tab_entry_list.clear();
-        sym_tab_entry_list.swap(paramListStack.top());
-        paramListStack.pop();
+        sym_tab_entry_list.swap(params_stack.top());
+        params_stack.pop();
     }
 ;
 
 PARAMLIST: PLIST
-    | {paramListStack.push(sym_tab_entry_list); sym_tab_entry_list.clear();} %empty 
+    | {params_stack.push(sym_tab_entry_list); sym_tab_entry_list.clear();} %empty 
 ;
 
 PLIST: PLIST COMMA ASG
@@ -846,28 +839,28 @@ PLIST: PLIST COMMA ASG
         var_rec = new sym_tab_entry;
         var_rec->data_type_obj = $3.type;
         if ($3.type == ERRORTYPE) {
-            errorFound = true;
+            found_error = true;
         }
         else {
             var_rec->name = *($3.reg_name);
             var_rec->type = SIMPLE;
-            generate_instr(functionInstruction, "param " +  *($3.reg_name), nextquad);   
-            tempSet.free_reg(*($3.reg_name));
+            generate_instr(all_instructions, "param " +  *($3.reg_name), next_quad);   
+            register_handler.free_reg(*($3.reg_name));
         }
         sym_tab_entry_list.push_back(var_rec);
     }
-    | {paramListStack.push(sym_tab_entry_list); sym_tab_entry_list.clear();} ASG
+    | {params_stack.push(sym_tab_entry_list); sym_tab_entry_list.clear();} ASG
     {
         var_rec = new sym_tab_entry;
         var_rec->data_type_obj = $2.type;
         if ($2.type == ERRORTYPE) {
-            errorFound = true;
+            found_error = true;
         }
         else {
             var_rec->name = *($2.reg_name);
             var_rec->type = SIMPLE; 
-            generate_instr(functionInstruction, "param " +  *($2.reg_name), nextquad);   
-            tempSet.free_reg(*($2.reg_name));
+            generate_instr(all_instructions, "param " +  *($2.reg_name), next_quad);   
+            register_handler.free_reg(*($2.reg_name));
         }
         sym_tab_entry_list.push_back(var_rec);
     }
@@ -880,14 +873,14 @@ ASG: CONDITION1
             $$.reg_name = $1.reg_name;
             if($1.jump_list!=NULL){
                 vector<int>* qList = new vector<int>;
-                qList->push_back(nextquad);
-                generate_instr(functionInstruction,"goto L",nextquad);
-                backpatch($1.jump_list, nextquad, functionInstruction);
-                generate_instr(functionInstruction, "L" + to_string(nextquad) + ":", nextquad);
-                generate_instr(functionInstruction,(*($$.reg_name)) + " = 1",nextquad) ;
-                backpatch(qList,nextquad,functionInstruction);
+                qList->push_back(next_quad);
+                generate_instr(all_instructions,"goto L",next_quad);
+                backpatch($1.jump_list, next_quad, all_instructions);
+                generate_instr(all_instructions, "L" + to_string(next_quad) + ":", next_quad);
+                generate_instr(all_instructions,(*($$.reg_name)) + " = 1",next_quad) ;
+                backpatch(qList,next_quad,all_instructions);
                 qList->clear();
-                generate_instr(functionInstruction, "L" + to_string(nextquad) + ":", nextquad);
+                generate_instr(all_instructions, "L" + to_string(next_quad) + ":", next_quad);
             }
         }
     }
@@ -895,298 +888,298 @@ ASG: CONDITION1
     {
         if ($1.type == ERRORTYPE || $3.type == ERRORTYPE) {
             $$.type = ERRORTYPE;
-            errorFound = true;
+            found_error = true;
         }
         else if ($3.type == NULLVOID) {
             cout << BOLD(FRED("ERROR : ")) << "Line no. " << yylineno << ":  ";
             cout << "Cannot assign void to non-void type " << *($1.reg_name) << endl;
             $$.type = ERRORTYPE;
-            errorFound = true;
+            found_error = true;
         }
         else {
             $$.type = $1.type;
             string reg_name;
             if ($1.type == INTEGER && $3.type == FLOATING) {
-                reg_name = tempSet.get_temp_reg();
+                reg_name = register_handler.get_temp_reg();
                 string s = reg_name + " = convertToInt(" + (*($3.reg_name)) + ")";   
                 cout << BOLD(FBLU("Warning : ")) << FCYN("Line No. "+to_string(yylineno)+":Implicit Type Conversion") << endl;
-                generate_instr(functionInstruction, s, nextquad);
-                tempSet.free_reg(*($3.reg_name));
+                generate_instr(all_instructions, s, next_quad);
+                register_handler.free_reg(*($3.reg_name));
             }
             else if($1.type == FLOATING && ($3.type == INTEGER || $3.type == BOOLEAN)) {
-                reg_name = tempSet.get_float_reg();
+                reg_name = register_handler.get_float_reg();
                 string s = reg_name + " = convertToFloat(" + (*($3.reg_name)) + ")";   
                 cout << BOLD(FBLU("Warning : ")) << FCYN("Line No. "+to_string(yylineno)+":Implicit Type Conversion") << endl;
-                generate_instr(functionInstruction, s, nextquad); 
-                tempSet.free_reg(*($3.reg_name));
+                generate_instr(all_instructions, s, next_quad); 
+                register_handler.free_reg(*($3.reg_name));
             }
             else {
                 reg_name = *($3.reg_name);
             }
             string s = (*($1.reg_name)) + " = " + reg_name ;
-            generate_instr(functionInstruction, s, nextquad);
+            generate_instr(all_instructions, s, next_quad);
             $$.reg_name = new string(reg_name);
-            if ($1.offset_reg_name != NULL) tempSet.free_reg(*($1.offset_reg_name));
+            if ($1.offset_reg_name != NULL) register_handler.free_reg(*($1.offset_reg_name));
         }
     }
     | LHS PLUSASG ASG
     {
         if ($1.type == ERRORTYPE || $3.type == ERRORTYPE) {
             $$.type = ERRORTYPE;
-            errorFound = true;
+            found_error = true;
         }
         else if ($3.type == NULLVOID) {
             cout << BOLD(FRED("ERROR : ")) << "Line no. " << yylineno << ":  ";
             cout << "Cannot assign void to non-void type " << *($1.reg_name) << endl;
             $$.type = ERRORTYPE;
-            errorFound = true;
+            found_error = true;
         }
         else {
             $$.type = $1.type;
             string reg_name;
             if ($1.type == INTEGER && $3.type == FLOATING) {
-                reg_name = tempSet.get_temp_reg();
+                reg_name = register_handler.get_temp_reg();
                 string s = reg_name + " = convertToInt(" + (*($3.reg_name)) + ")";  
                 cout << BOLD(FBLU("Warning : ")) << FCYN("Line No. "+to_string(yylineno)+":Implicit Type Conversion") << endl;
-                generate_instr(functionInstruction, s, nextquad);
-                tempSet.free_reg(*($3.reg_name));
+                generate_instr(all_instructions, s, next_quad);
+                register_handler.free_reg(*($3.reg_name));
             }
             else if($1.type == FLOATING && ($3.type == INTEGER || $3.type == BOOLEAN)) {
-                reg_name = tempSet.get_float_reg();
+                reg_name = register_handler.get_float_reg();
                 string s = reg_name + " = convertToFloat(" + (*($3.reg_name)) + ")";   
                 cout << BOLD(FBLU("Warning : ")) << FCYN("Line No. "+to_string(yylineno)+":Implicit Type Conversion") << endl;
-                generate_instr(functionInstruction, s, nextquad); 
-                tempSet.free_reg(*($3.reg_name));
+                generate_instr(all_instructions, s, next_quad); 
+                register_handler.free_reg(*($3.reg_name));
             }
             else {
                 reg_name = *($3.reg_name);
             }
             string s, tempReg;
             if($1.type == INTEGER){
-                tempReg = tempSet.get_temp_reg();
+                tempReg = register_handler.get_temp_reg();
                 s = tempReg + " = " + (*($1.reg_name));
-                generate_instr(functionInstruction, s, nextquad);
+                generate_instr(all_instructions, s, next_quad);
             }
             else{
-                tempReg = tempSet.get_float_reg();
+                tempReg = register_handler.get_float_reg();
                 s = tempReg + " = " + (*($1.reg_name));   
-                generate_instr(functionInstruction, s, nextquad);
+                generate_instr(all_instructions, s, next_quad);
             }
             s = reg_name + " = " + reg_name + " + " + tempReg;
-            generate_instr(functionInstruction, s, nextquad);
-            tempSet.free_reg(tempReg);
+            generate_instr(all_instructions, s, next_quad);
+            register_handler.free_reg(tempReg);
             s = (*($1.reg_name)) + " = " + reg_name ;
-            generate_instr(functionInstruction, s, nextquad);
+            generate_instr(all_instructions, s, next_quad);
             $$.reg_name = new string(reg_name);
-            if ($1.offset_reg_name != NULL) tempSet.free_reg(*($1.offset_reg_name));
+            if ($1.offset_reg_name != NULL) register_handler.free_reg(*($1.offset_reg_name));
         }
     }
     | LHS MINASG ASG
     {
         if ($1.type == ERRORTYPE || $3.type == ERRORTYPE) {
             $$.type = ERRORTYPE;
-            errorFound = true;
+            found_error = true;
         }
         else if ($3.type == NULLVOID) {
             cout << BOLD(FRED("ERROR : ")) << "Line no. " << yylineno << ":  ";
             cout << "Cannot assign void to non-void type " << *($1.reg_name) << endl;
             $$.type = ERRORTYPE;
-            errorFound = true;
+            found_error = true;
         }
         else {
             $$.type = $1.type;
             string reg_name;
             if ($1.type == INTEGER && $3.type == FLOATING) {
-                reg_name = tempSet.get_temp_reg();
+                reg_name = register_handler.get_temp_reg();
                 string s = reg_name + " = convertToInt(" + (*($3.reg_name)) + ")";   
                 cout << BOLD(FBLU("Warning : ")) << FCYN("Line No. "+to_string(yylineno)+":Implicit Type Conversion") << endl;
-                generate_instr(functionInstruction, s, nextquad);
-                tempSet.free_reg(*($3.reg_name));
+                generate_instr(all_instructions, s, next_quad);
+                register_handler.free_reg(*($3.reg_name));
             }
             else if($1.type == FLOATING && ($3.type == INTEGER || $3.type == BOOLEAN)) {
-                reg_name = tempSet.get_float_reg();
+                reg_name = register_handler.get_float_reg();
                 string s = reg_name + " = convertToFloat(" + (*($3.reg_name)) + ")"; 
                 cout << BOLD(FBLU("Warning : ")) << FCYN("Line No. "+to_string(yylineno)+":Implicit Type Conversion") << endl;
-                generate_instr(functionInstruction, s, nextquad); 
-                tempSet.free_reg(*($3.reg_name));
+                generate_instr(all_instructions, s, next_quad); 
+                register_handler.free_reg(*($3.reg_name));
             }
             else {
                 reg_name = *($3.reg_name);
             }
             string s, tempReg;
             if($1.type == INTEGER){
-                tempReg = tempSet.get_temp_reg();
+                tempReg = register_handler.get_temp_reg();
                 s = tempReg + " = " + (*($1.reg_name));
-                generate_instr(functionInstruction, s, nextquad);
+                generate_instr(all_instructions, s, next_quad);
             }
             else{
-                tempReg = tempSet.get_float_reg();
+                tempReg = register_handler.get_float_reg();
                 s = tempReg + " = " + (*($1.reg_name));   
-                generate_instr(functionInstruction, s, nextquad);
+                generate_instr(all_instructions, s, next_quad);
             }
             s = reg_name + " = " + reg_name + " - " + tempReg;
-            generate_instr(functionInstruction, s, nextquad);
-            tempSet.free_reg(tempReg);
+            generate_instr(all_instructions, s, next_quad);
+            register_handler.free_reg(tempReg);
             s = (*($1.reg_name)) + " = " + reg_name ;
-            generate_instr(functionInstruction, s, nextquad);
+            generate_instr(all_instructions, s, next_quad);
             $$.reg_name = new string(reg_name);
-            if ($1.offset_reg_name != NULL) tempSet.free_reg(*($1.offset_reg_name));
+            if ($1.offset_reg_name != NULL) register_handler.free_reg(*($1.offset_reg_name));
         }
     }
     | LHS MULASG ASG
     {
         if ($1.type == ERRORTYPE || $3.type == ERRORTYPE) {
             $$.type = ERRORTYPE;
-            errorFound = true;
+            found_error = true;
         }
         else if ($3.type == NULLVOID) {
             cout << BOLD(FRED("ERROR : ")) << "Line no. " << yylineno << ":  ";
             cout << "Cannot assign void to non-void type " << *($1.reg_name) << endl;
             $$.type = ERRORTYPE;
-            errorFound = true;
+            found_error = true;
         }
         else {
             $$.type = $1.type;
             string reg_name;
             if ($1.type == INTEGER && $3.type == FLOATING) {
-                reg_name = tempSet.get_temp_reg();
+                reg_name = register_handler.get_temp_reg();
                 string s = reg_name + " = convertToInt(" + (*($3.reg_name)) + ")"; 
                 cout << BOLD(FBLU("Warning : ")) << FCYN("Line No. "+to_string(yylineno)+":Implicit Type Conversion") << endl;
-                generate_instr(functionInstruction, s, nextquad);
-                tempSet.free_reg(*($3.reg_name));
+                generate_instr(all_instructions, s, next_quad);
+                register_handler.free_reg(*($3.reg_name));
             }
             else if($1.type == FLOATING && ($3.type == INTEGER || $3.type == BOOLEAN)) {
-                reg_name = tempSet.get_float_reg();
+                reg_name = register_handler.get_float_reg();
                 string s = reg_name + " = convertToFloat(" + (*($3.reg_name)) + ")";  
                 cout << BOLD(FBLU("Warning : ")) << FCYN("Line No. "+to_string(yylineno)+":Implicit Type Conversion") << endl;
-                generate_instr(functionInstruction, s, nextquad); 
-                tempSet.free_reg(*($3.reg_name));
+                generate_instr(all_instructions, s, next_quad); 
+                register_handler.free_reg(*($3.reg_name));
             }
             else {
                 reg_name = *($3.reg_name);
             }
             string s, tempReg;
             if($1.type == INTEGER){
-                tempReg = tempSet.get_temp_reg();
+                tempReg = register_handler.get_temp_reg();
                 s = tempReg + " = " + (*($1.reg_name));
-                generate_instr(functionInstruction, s, nextquad);
+                generate_instr(all_instructions, s, next_quad);
             }
             else{
-                tempReg = tempSet.get_float_reg();
+                tempReg = register_handler.get_float_reg();
                 s = tempReg + " = " + (*($1.reg_name));   
-                generate_instr(functionInstruction, s, nextquad);
+                generate_instr(all_instructions, s, next_quad);
             }
             s = reg_name + " = " + reg_name + " * " + tempReg;
-            generate_instr(functionInstruction, s, nextquad);
-            tempSet.free_reg(tempReg);
+            generate_instr(all_instructions, s, next_quad);
+            register_handler.free_reg(tempReg);
             s = (*($1.reg_name)) + " = " + reg_name ;
-            generate_instr(functionInstruction, s, nextquad);
+            generate_instr(all_instructions, s, next_quad);
             $$.reg_name = new string(reg_name);
-            if ($1.offset_reg_name != NULL) tempSet.free_reg(*($1.offset_reg_name));
+            if ($1.offset_reg_name != NULL) register_handler.free_reg(*($1.offset_reg_name));
         }
     }
     | LHS DIVASG ASG
     {
         if ($1.type == ERRORTYPE || $3.type == ERRORTYPE) {
             $$.type = ERRORTYPE;
-            errorFound = true;
+            found_error = true;
         }
         else if ($3.type == NULLVOID) {
             cout << BOLD(FRED("ERROR : ")) << "Line no. " << yylineno << ":  ";
             cout << "Cannot assign void to non-void type " << *($1.reg_name) << endl;
             $$.type = ERRORTYPE;
-            errorFound = true;
+            found_error = true;
         }
         else {
             $$.type = $1.type;
             string reg_name;
             if ($1.type == INTEGER && $3.type == FLOATING) {
-                reg_name = tempSet.get_temp_reg();
+                reg_name = register_handler.get_temp_reg();
                 string s = reg_name + " = convertToInt(" + (*($3.reg_name)) + ")";   
                 cout << BOLD(FBLU("Warning : ")) << FCYN("Line No. "+to_string(yylineno)+":Implicit Type Conversion") << endl;
-                generate_instr(functionInstruction, s, nextquad);
-                tempSet.free_reg(*($3.reg_name));
+                generate_instr(all_instructions, s, next_quad);
+                register_handler.free_reg(*($3.reg_name));
             }
             else if($1.type == FLOATING && ($3.type == INTEGER || $3.type == BOOLEAN)) {
-                reg_name = tempSet.get_float_reg();
+                reg_name = register_handler.get_float_reg();
                 string s = reg_name + " = convertToFloat(" + (*($3.reg_name)) + ")";   
                 cout << BOLD(FBLU("Warning : ")) << FCYN("Line No. "+to_string(yylineno)+":Implicit Type Conversion") << endl;
-                generate_instr(functionInstruction, s, nextquad); 
-                tempSet.free_reg(*($3.reg_name));
+                generate_instr(all_instructions, s, next_quad); 
+                register_handler.free_reg(*($3.reg_name));
             }
             else {
                 reg_name = *($3.reg_name);
             }
             string s, tempReg;
             if($1.type == INTEGER){
-                tempReg = tempSet.get_temp_reg();
+                tempReg = register_handler.get_temp_reg();
                 s = tempReg + " = " + (*($1.reg_name));
-                generate_instr(functionInstruction, s, nextquad);
+                generate_instr(all_instructions, s, next_quad);
             }
             else{
-                tempReg = tempSet.get_float_reg();
+                tempReg = register_handler.get_float_reg();
                 s = tempReg + " = " + (*($1.reg_name));   
-                generate_instr(functionInstruction, s, nextquad);
+                generate_instr(all_instructions, s, next_quad);
             }
             s = reg_name + " = " + reg_name + " / " + tempReg;
-            generate_instr(functionInstruction, s, nextquad);
-            tempSet.free_reg(tempReg);
+            generate_instr(all_instructions, s, next_quad);
+            register_handler.free_reg(tempReg);
             s = (*($1.reg_name)) + " = " + reg_name ;
-            generate_instr(functionInstruction, s, nextquad);
+            generate_instr(all_instructions, s, next_quad);
             $$.reg_name = new string(reg_name);
-            if ($1.offset_reg_name != NULL) tempSet.free_reg(*($1.offset_reg_name));
+            if ($1.offset_reg_name != NULL) register_handler.free_reg(*($1.offset_reg_name));
         }
     }
     | LHS MODASG ASG
     {
         if ($1.type == ERRORTYPE || $3.type == ERRORTYPE) {
             $$.type = ERRORTYPE;
-            errorFound = true;
+            found_error = true;
         }
         else if ($3.type == NULLVOID) {
             cout << BOLD(FRED("ERROR : ")) << "Line no. " << yylineno << ":  ";
             cout << "Cannot assign void to non-void type " << *($1.reg_name) << endl;
             $$.type = ERRORTYPE;
-            errorFound = true;
+            found_error = true;
         }
         else {
             $$.type = $1.type;
             string reg_name;
             if ($1.type == INTEGER && $3.type == FLOATING) {
-                reg_name = tempSet.get_temp_reg();
+                reg_name = register_handler.get_temp_reg();
                 string s = reg_name + " = convertToInt(" + (*($3.reg_name)) + ")";   
                 cout << BOLD(FBLU("Warning : ")) << FCYN("Line No. "+to_string(yylineno)+":Implicit Type Conversion") << endl;
-                generate_instr(functionInstruction, s, nextquad);
-                tempSet.free_reg(*($3.reg_name));
+                generate_instr(all_instructions, s, next_quad);
+                register_handler.free_reg(*($3.reg_name));
             }
             else if($1.type == FLOATING && ($3.type == INTEGER || $3.type == BOOLEAN)) {
-                reg_name = tempSet.get_float_reg();
+                reg_name = register_handler.get_float_reg();
                 string s = reg_name + " = convertToFloat(" + (*($3.reg_name)) + ")";   
                 cout << BOLD(FBLU("Warning : ")) << FCYN("Line No. "+to_string(yylineno)+":Implicit Type Conversion") << endl;
-                generate_instr(functionInstruction, s, nextquad); 
-                tempSet.free_reg(*($3.reg_name));
+                generate_instr(all_instructions, s, next_quad); 
+                register_handler.free_reg(*($3.reg_name));
             }
             else {
                 reg_name = *($3.reg_name);
             }
             string s, tempReg;
             if($1.type == INTEGER){
-                tempReg = tempSet.get_temp_reg();
+                tempReg = register_handler.get_temp_reg();
                 s = tempReg + " = " + (*($1.reg_name));
-                generate_instr(functionInstruction, s, nextquad);
+                generate_instr(all_instructions, s, next_quad);
             }
             else{
-                tempReg = tempSet.get_float_reg();
+                tempReg = register_handler.get_float_reg();
                 s = tempReg + " = " + (*($1.reg_name));   
-                generate_instr(functionInstruction, s, nextquad);
+                generate_instr(all_instructions, s, next_quad);
             }
             s = reg_name + " = " + reg_name + " % " + tempReg;
-            generate_instr(functionInstruction, s, nextquad);
-            tempSet.free_reg(tempReg);
+            generate_instr(all_instructions, s, next_quad);
+            register_handler.free_reg(tempReg);
             s = (*($1.reg_name)) + " = " + reg_name ;
-            generate_instr(functionInstruction, s, nextquad);
+            generate_instr(all_instructions, s, next_quad);
             $$.reg_name = new string(reg_name);
-            if ($1.offset_reg_name != NULL) tempSet.free_reg(*($1.offset_reg_name));
+            if ($1.offset_reg_name != NULL) register_handler.free_reg(*($1.offset_reg_name));
         }
     }
 ;
@@ -1206,34 +1199,34 @@ SWITCHCASE: SWITCH LP ASG RP TEMP1 LCB  CASELIST RCB
         clear_var_list(current_function,scope);
         scope--;
 
-        int q=nextquad;
+        int q=next_quad;
         vector<int>* qList = new vector<int>;
         qList->push_back(q);
-        generate_instr(functionInstruction, "goto L", nextquad);
-        backpatch($5.false_list, nextquad, functionInstruction);
-        generate_instr(functionInstruction, "L" + to_string(nextquad) + ":", nextquad);
+        generate_instr(all_instructions, "goto L", next_quad);
+        backpatch($5.false_list, next_quad, all_instructions);
+        generate_instr(all_instructions, "L" + to_string(next_quad) + ":", next_quad);
         reverse($7.case_pair->begin(), $7.case_pair->end());
         for(auto it : *($7.case_pair)){
             if(it.first == "default"){
-                generate_instr(functionInstruction, "goto L"+to_string(it.second), nextquad);
+                generate_instr(all_instructions, "goto L"+to_string(it.second), next_quad);
             }
             else{
-                generate_instr(functionInstruction, "if "+ (*($3.reg_name)) +" == "+ it.first + " goto L" + to_string(it.second), nextquad);
+                generate_instr(all_instructions, "if "+ (*($3.reg_name)) +" == "+ it.first + " goto L" + to_string(it.second), next_quad);
             }
         }
         $7.case_pair->clear();
-        backpatch(qList, nextquad, functionInstruction);
-        backpatch($7.break_list, nextquad, functionInstruction);
-        generate_instr(functionInstruction, "L" + to_string(nextquad) + ":", nextquad);
+        backpatch(qList, next_quad, all_instructions);
+        backpatch($7.break_list, next_quad, all_instructions);
+        generate_instr(all_instructions, "L" + to_string(next_quad) + ":", next_quad);
     }
 ;
 
 TEMP1: %empty
     {
-        $$.begin=nextquad;
+        $$.begin=next_quad;
         $$.false_list = new vector<int>;
-        $$.false_list->push_back(nextquad);
-        generate_instr(functionInstruction, "goto L", nextquad);
+        $$.false_list->push_back(next_quad);
+        generate_instr(all_instructions, "goto L", next_quad);
         scope++;
     }
 ;
@@ -1247,8 +1240,8 @@ TEMP2:%empty
 
 CASELIST:
     CASE MINUS NUMINT TEMP2 {
-        $4.case_pair->push_back(make_pair("-"+string($3), nextquad));
-        generate_instr(functionInstruction, "L" + to_string(nextquad) + ":", nextquad);
+        $4.case_pair->push_back(make_pair("-"+string($3), next_quad));
+        generate_instr(all_instructions, "L" + to_string(next_quad) + ":", next_quad);
         } COLON BODY 
     CASELIST
     {
@@ -1267,8 +1260,8 @@ CASELIST:
     }
     |
     CASE NUMINT TEMP2 {
-        $3.case_pair->push_back(make_pair(string($2), nextquad));
-        generate_instr(functionInstruction, "L" + to_string(nextquad) + ":", nextquad);
+        $3.case_pair->push_back(make_pair(string($2), next_quad));
+        generate_instr(all_instructions, "L" + to_string(next_quad) + ":", next_quad);
         } COLON BODY 
     CASELIST
     {
@@ -1293,8 +1286,8 @@ CASELIST:
         $$.case_pair = new vector<pair<string,int>>;
     }
     | DEFAULT COLON TEMP2 {
-        $3.case_pair->push_back(make_pair("default", nextquad));
-        generate_instr(functionInstruction, "L" + to_string(nextquad) + ":", nextquad);
+        $3.case_pair->push_back(make_pair("default", next_quad));
+        generate_instr(all_instructions, "L" + to_string(next_quad) + ":", next_quad);
     }
      BODY {
         $$.next_list = new vector<int>;
@@ -1310,41 +1303,41 @@ CASELIST:
 
 M3: %empty
     { 
-        $$ = nextquad;
-        generate_instr(functionInstruction, "L" + to_string(nextquad) + ":", nextquad); 
+        $$ = next_quad;
+        generate_instr(all_instructions, "L" + to_string(next_quad) + ":", next_quad); 
     }
 ;
 
 N3: %empty
     { 
-        $$.begin = nextquad; 
+        $$.begin = next_quad; 
         $$.false_list = new vector<int>;
-        $$.false_list->push_back(nextquad);
-        generate_instr(functionInstruction, "goto L", nextquad);
+        $$.false_list->push_back(next_quad);
+        generate_instr(all_instructions, "goto L", next_quad);
     }
 ;
 
 P3: %empty 
     { 
         $$.false_list = new vector<int>;
-        $$.false_list->push_back(nextquad);
-        generate_instr(functionInstruction, "goto L", nextquad);
-        $$.begin = nextquad; 
-        generate_instr(functionInstruction, "L"+to_string(nextquad)+":", nextquad);
+        $$.false_list->push_back(next_quad);
+        generate_instr(all_instructions, "goto L", next_quad);
+        $$.begin = next_quad; 
+        generate_instr(all_instructions, "L"+to_string(next_quad)+":", next_quad);
     }
 ;
 
 Q3: %empty
     {
-        $$.begin = nextquad;
+        $$.begin = next_quad;
         $$.false_list = new vector<int>;
-        $$.false_list->push_back(nextquad);
+        $$.false_list->push_back(next_quad);
     }
 ;
 
 Q4: %empty
     {
-        $$ = nextquad;
+        $$ = next_quad;
     }
 ;
 
@@ -1352,23 +1345,23 @@ FORLOOP: FOREXP Q4 LCB BODY RCB
     {
         clear_var_list(current_function, scope);
         scope--;
-        generate_instr(functionInstruction, "goto L" + to_string($1.begin), nextquad); 
+        generate_instr(all_instructions, "goto L" + to_string($1.begin), next_quad); 
         merge_lists($1.false_list,$4.break_list);
-        backpatch($4.continue_list,$1.begin, functionInstruction);
-        backpatch($1.false_list, nextquad, functionInstruction);
-        generate_instr(functionInstruction, "L" + to_string(nextquad) + ":", nextquad); 
+        backpatch($4.continue_list,$1.begin, all_instructions);
+        backpatch($1.false_list, next_quad, all_instructions);
+        generate_instr(all_instructions, "L" + to_string(next_quad) + ":", next_quad); 
     }
 ;
 
 FOREXP: FOR LP ASG1 SEMI M3 ASG1 Q3 {
         if($6.type!=NULLVOID){
-            generate_instr(functionInstruction, "if "+ (*($6.reg_name)) + " == 0 goto L", nextquad);
+            generate_instr(all_instructions, "if "+ (*($6.reg_name)) + " == 0 goto L", next_quad);
         }
     } P3 SEMI ASG1 N3 RP 
     {
-        backpatch($12.false_list,$5,functionInstruction);
-        backpatch($9.false_list,nextquad,functionInstruction);
-        generate_instr(functionInstruction, "L" + to_string(nextquad) + ":", nextquad); 
+        backpatch($12.false_list,$5,all_instructions);
+        backpatch($9.false_list,next_quad,all_instructions);
+        generate_instr(all_instructions, "L" + to_string(next_quad) + ":", next_quad); 
         $$.false_list = new vector<int>;
         if($6.type!=NULLVOID){
             $$.false_list->push_back($7.begin);            
@@ -1376,18 +1369,18 @@ FOREXP: FOR LP ASG1 SEMI M3 ASG1 Q3 {
         $$.begin = $9.begin;
         scope++;
         if($3.type!=NULLVOID){
-            tempSet.free_reg(*($3.reg_name));
+            register_handler.free_reg(*($3.reg_name));
         }
         if($6.type!=NULLVOID){
-            tempSet.free_reg(*($6.reg_name));
+            register_handler.free_reg(*($6.reg_name));
         }
         if($11.type!=NULLVOID){
-            tempSet.free_reg(*($11.reg_name));
+            register_handler.free_reg(*($11.reg_name));
         }
     }
     | FOR error RP
     {
-        errorFound = 1;
+        found_error = 1;
         $$.false_list = new vector<int>;
         cout << BOLD(FRED("ERROR : ")) << FYEL("Line no. " + to_string(yylineno) + ": Syntax error in for loop, discarded token till RP") << endl;
         scope++;
@@ -1408,16 +1401,16 @@ ASG1: ASG
 
 M1: %empty
     {
-        $$=nextquad;
-        generate_instr(functionInstruction, "L" + to_string(nextquad) + ":", nextquad);
+        $$=next_quad;
+        generate_instr(all_instructions, "L" + to_string(next_quad) + ":", next_quad);
     }
 ;
 
 M2: %empty
     {
         $$.next_list = new vector<int>;
-        ($$.next_list)->push_back(nextquad);
-        generate_instr(functionInstruction, "goto L", nextquad);
+        ($$.next_list)->push_back(next_quad);
+        generate_instr(all_instructions, "goto L", next_quad);
     }
 ;
 
@@ -1431,8 +1424,8 @@ IFSTMT: IFEXP LCB BODY RCB
         merge_lists($$.next_list, $1.false_list);
         merge_lists($$.break_list, $3.break_list);
         merge_lists($$.continue_list, $3.continue_list);
-        backpatch($$.next_list,nextquad,functionInstruction);
-        generate_instr(functionInstruction, "L" + to_string(nextquad) + ":", nextquad);
+        backpatch($$.next_list,next_quad,all_instructions);
+        generate_instr(all_instructions, "L" + to_string(next_quad) + ":", next_quad);
     }
     | IFEXP LCB BODY RCB {clear_var_list(current_function,scope);} M2 ELSE M1 LCB BODY RCB
     {
@@ -1441,10 +1434,10 @@ IFSTMT: IFEXP LCB BODY RCB
         $$.next_list= new vector<int>;
         $$.break_list = new vector<int>;
         $$.continue_list= new vector<int>;
-        backpatch($1.false_list,$8,functionInstruction);
+        backpatch($1.false_list,$8,all_instructions);
         merge_lists($$.next_list,$6.next_list );
-        backpatch($$.next_list,nextquad,functionInstruction);
-        generate_instr(functionInstruction, "L" + to_string(nextquad) + ":", nextquad);
+        backpatch($$.next_list,next_quad,all_instructions);
+        generate_instr(all_instructions, "L" + to_string(next_quad) + ":", next_quad);
         merge_lists($$.break_list, $3.break_list);
         merge_lists($$.continue_list, $3.continue_list);
         merge_lists($$.break_list, $10.break_list);
@@ -1456,19 +1449,19 @@ IFEXP: IF LP ASG RP
     {
         if($3.type != ERRORTYPE && $3.type!=NULLVOID){
             $$.false_list = new vector <int>;
-            $$.false_list->push_back(nextquad);
+            $$.false_list->push_back(next_quad);
             if($3.type == NULLVOID){
                 cout << BOLD(FRED("ERROR : ")) << "Line no. " << yylineno << "condition in if statement can't be empty" << endl;
-                errorFound=true;
+                found_error=true;
             }
-            generate_instr(functionInstruction, "if "+ (*($3.reg_name)) + " == 0 goto L", nextquad);
+            generate_instr(all_instructions, "if "+ (*($3.reg_name)) + " == 0 goto L", next_quad);
             scope++;
-            tempSet.free_reg(*($3.reg_name));
+            register_handler.free_reg(*($3.reg_name));
         } 
     }
     | IF error RP
     {
-        errorFound = 1;
+        found_error = 1;
         $$.false_list = new vector <int>;
         cout << BOLD(FRED("ERROR : ")) << FYEL("Line no. " + to_string(yylineno) + ": Syntax error in if, discarding tokens till RP") << endl;
         scope++;
@@ -1480,14 +1473,14 @@ WHILESTMT:  WHILEEXP LCB BODY RCB
         clear_var_list(current_function,scope);
         scope--;
 
-        generate_instr(functionInstruction, "goto L" + to_string($1.begin), nextquad);
-        backpatch($3.next_list, $1.begin, functionInstruction);
-        backpatch($3.continue_list, $1.begin, functionInstruction);
+        generate_instr(all_instructions, "goto L" + to_string($1.begin), next_quad);
+        backpatch($3.next_list, $1.begin, all_instructions);
+        backpatch($3.continue_list, $1.begin, all_instructions);
         $$.next_list = new vector<int>;
         merge_lists($$.next_list, $1.false_list);
         merge_lists($$.next_list, $3.break_list);
-        backpatch($$.next_list,nextquad,functionInstruction);
-        generate_instr(functionInstruction, "L" + to_string(nextquad) + ":", nextquad);
+        backpatch($$.next_list,next_quad,all_instructions);
+        generate_instr(all_instructions, "L" + to_string(next_quad) + ":", next_quad);
     }
 ;
 
@@ -1497,12 +1490,12 @@ WHILEEXP: WHILE M1 LP ASG RP
         if($4.type == NULLVOID || $4.type == ERRORTYPE){
             cout << BOLD(FRED("ERROR : ")) << "Line no. " << yylineno << ":  ";
             cout<<"Expression in if statement can't be empty"<<endl;
-            errorFound = true;
+            found_error = true;
         }
         else{
             $$.false_list = new vector<int>;
-            ($$.false_list)->push_back(nextquad);
-            generate_instr(functionInstruction, "if " + *($4.reg_name) + "== 0 goto L", nextquad);
+            ($$.false_list)->push_back(next_quad);
+            generate_instr(all_instructions, "if " + *($4.reg_name) + "== 0 goto L", next_quad);
             $$.begin = $2; 
         }
     }
@@ -1523,8 +1516,8 @@ TP1: %empty
 CONDITION1: CONDITION1 TP1
     {
         if($1.type!=ERRORTYPE){
-            $2.temp->push_back(nextquad);
-            generate_instr(functionInstruction, "if " + *($1.reg_name) + "!= 0 goto L", nextquad);
+            $2.temp->push_back(next_quad);
+            generate_instr(all_instructions, "if " + *($1.reg_name) + "!= 0 goto L", next_quad);
 
         }
     }
@@ -1539,16 +1532,16 @@ CONDITION1: CONDITION1 TP1
         }
         else{
             $$.type = BOOLEAN;
-            $$.reg_name = new string(tempSet.get_temp_reg());
+            $$.reg_name = new string(register_handler.get_temp_reg());
             vector<int>* qList = new vector<int>;
             if($5.jump_list!=NULL){
-                qList->push_back(nextquad);
-                generate_instr(functionInstruction,"goto L",nextquad);
-                backpatch($5.jump_list, nextquad, functionInstruction);
-                generate_instr(functionInstruction, "L" + to_string(nextquad) + ":", nextquad);
-                generate_instr(functionInstruction,(*($5.reg_name)) + " = 0",nextquad) ;
-                backpatch(qList,nextquad,functionInstruction);
-                generate_instr(functionInstruction, "L" + to_string(nextquad) + ":", nextquad);
+                qList->push_back(next_quad);
+                generate_instr(all_instructions,"goto L",next_quad);
+                backpatch($5.jump_list, next_quad, all_instructions);
+                generate_instr(all_instructions, "L" + to_string(next_quad) + ":", next_quad);
+                generate_instr(all_instructions,(*($5.reg_name)) + " = 0",next_quad) ;
+                backpatch(qList,next_quad,all_instructions);
+                generate_instr(all_instructions, "L" + to_string(next_quad) + ":", next_quad);
                 qList->clear();
             }
             
@@ -1556,12 +1549,12 @@ CONDITION1: CONDITION1 TP1
             merge_lists($$.jump_list,$1.jump_list);
             
             merge_lists($$.jump_list, $2.temp);
-            ($$.jump_list)->push_back(nextquad);
-            generate_instr(functionInstruction, "if " + *($5.reg_name) + "!= 0 goto L", nextquad);
+            ($$.jump_list)->push_back(next_quad);
+            generate_instr(all_instructions, "if " + *($5.reg_name) + "!= 0 goto L", next_quad);
             string s = (*($$.reg_name)) + " = 0";   
-            generate_instr(functionInstruction,s,nextquad);
-            tempSet.free_reg(*($1.reg_name));
-            tempSet.free_reg(*($5.reg_name)); 
+            generate_instr(all_instructions,s,next_quad);
+            register_handler.free_reg(*($1.reg_name));
+            register_handler.free_reg(*($5.reg_name)); 
         }
     }
     | CONDITION2
@@ -1571,13 +1564,13 @@ CONDITION1: CONDITION1 TP1
             $$.reg_name = $1.reg_name; 
             if($1.jump_list!=NULL){
                 vector<int>* qList = new vector<int>;
-                qList->push_back(nextquad);
-                generate_instr(functionInstruction,"goto L",nextquad);
-                backpatch($1.jump_list, nextquad, functionInstruction);
-                generate_instr(functionInstruction, "L" + to_string(nextquad) + ":", nextquad);
-                generate_instr(functionInstruction,(*($$.reg_name)) + " = 0",nextquad) ;
-                backpatch(qList,nextquad,functionInstruction);
-                generate_instr(functionInstruction, "L" + to_string(nextquad) + ":", nextquad);
+                qList->push_back(next_quad);
+                generate_instr(all_instructions,"goto L",next_quad);
+                backpatch($1.jump_list, next_quad, all_instructions);
+                generate_instr(all_instructions, "L" + to_string(next_quad) + ":", next_quad);
+                generate_instr(all_instructions,(*($$.reg_name)) + " = 0",next_quad) ;
+                backpatch(qList,next_quad,all_instructions);
+                generate_instr(all_instructions, "L" + to_string(next_quad) + ":", next_quad);
                 qList->clear();   
             }
         }
@@ -1589,8 +1582,8 @@ CONDITION2: CONDITION2 TP1
     {
       if ($1.type!=ERRORTYPE ){
 
-          ($2.temp)->push_back(nextquad);
-         generate_instr(functionInstruction, "if " + *($1.reg_name) + " == 0 " +" goto L", nextquad);
+          ($2.temp)->push_back(next_quad);
+         generate_instr(all_instructions, "if " + *($1.reg_name) + " == 0 " +" goto L", next_quad);
       } 
     }
     AND EXPR1 
@@ -1604,19 +1597,19 @@ CONDITION2: CONDITION2 TP1
         }
         else{
             $$.type = BOOLEAN;
-            $$.reg_name = new string(tempSet.get_temp_reg());
+            $$.reg_name = new string(register_handler.get_temp_reg());
             $$.jump_list = new vector<int>;
             merge_lists($$.jump_list,$1.jump_list);
             vector<int>* qList = new vector<int>;
             
             merge_lists($$.jump_list, $2.temp);
-            ($$.jump_list)->push_back(nextquad);
-            generate_instr(functionInstruction, "if " + *($5.reg_name) + " == 0 "+" goto L", nextquad);
+            ($$.jump_list)->push_back(next_quad);
+            generate_instr(all_instructions, "if " + *($5.reg_name) + " == 0 "+" goto L", next_quad);
 
             string s = (*($$.reg_name)) + " = 1";   
-            generate_instr(functionInstruction,s,nextquad);
-            tempSet.free_reg(*($1.reg_name));
-            tempSet.free_reg(*($5.reg_name));   
+            generate_instr(all_instructions,s,next_quad);
+            register_handler.free_reg(*($1.reg_name));
+            register_handler.free_reg(*($5.reg_name));   
         }
     }
     | EXPR1
@@ -1636,7 +1629,7 @@ EXPR1: NOT EXPR21
         if ($2.type != ERRORTYPE && $2.type != NULLVOID) {
             $$.reg_name = $2.reg_name;
             string s = (*($$.reg_name)) + " = ~" + (*($2.reg_name));   
-            generate_instr(functionInstruction, s, nextquad);
+            generate_instr(all_instructions, s, next_quad);
         }
     }
     | EXPR21
@@ -1659,11 +1652,11 @@ EXPR21: EXPR2 EQUAL EXPR2
         }
         else {
             $$.type = BOOLEAN;
-            $$.reg_name = new string(tempSet.get_temp_reg());     
+            $$.reg_name = new string(register_handler.get_temp_reg());     
             string s = (*($$.reg_name)) + " = " + (*($1.reg_name)) + " == " + (*($3.reg_name))   ;
-            generate_instr(functionInstruction, s, nextquad);
-            tempSet.free_reg(*($1.reg_name));
-            tempSet.free_reg(*($3.reg_name));  
+            generate_instr(all_instructions, s, next_quad);
+            register_handler.free_reg(*($1.reg_name));
+            register_handler.free_reg(*($3.reg_name));  
         }   
     }
     | EXPR2 NOTEQUAL EXPR2
@@ -1677,11 +1670,11 @@ EXPR21: EXPR2 EQUAL EXPR2
         }
         else{
             $$.type = BOOLEAN;
-            $$.reg_name = new string(tempSet.get_temp_reg());     
+            $$.reg_name = new string(register_handler.get_temp_reg());     
             string s = (*($$.reg_name)) + " = " + (*($1.reg_name)) + " != " + (*($3.reg_name));   
-            generate_instr(functionInstruction, s, nextquad);
-            tempSet.free_reg(*($1.reg_name));
-            tempSet.free_reg(*($3.reg_name));  
+            generate_instr(all_instructions, s, next_quad);
+            register_handler.free_reg(*($1.reg_name));
+            register_handler.free_reg(*($3.reg_name));  
         }   
     }
     | EXPR2 LT EXPR2 
@@ -1695,11 +1688,11 @@ EXPR21: EXPR2 EQUAL EXPR2
         }
         else{
             $$.type = BOOLEAN;
-            $$.reg_name = new string(tempSet.get_temp_reg());     
+            $$.reg_name = new string(register_handler.get_temp_reg());     
             string s = (*($$.reg_name)) + " = " + (*($1.reg_name)) + " < " + (*($3.reg_name));   
-            generate_instr(functionInstruction, s, nextquad);
-            tempSet.free_reg(*($1.reg_name));
-            tempSet.free_reg(*($3.reg_name));  
+            generate_instr(all_instructions, s, next_quad);
+            register_handler.free_reg(*($1.reg_name));
+            register_handler.free_reg(*($3.reg_name));  
         }   
     }
     | EXPR2 GT EXPR2
@@ -1713,18 +1706,18 @@ EXPR21: EXPR2 EQUAL EXPR2
         }
         else{
             $$.type = BOOLEAN;
-            $$.reg_name = new string(tempSet.get_temp_reg());     
+            $$.reg_name = new string(register_handler.get_temp_reg());     
             string s = (*($$.reg_name)) + " = " + (*($1.reg_name)) + " > " + (*($3.reg_name));   
-            generate_instr(functionInstruction, s, nextquad);
-            tempSet.free_reg(*($1.reg_name));
-            tempSet.free_reg(*($3.reg_name));  
+            generate_instr(all_instructions, s, next_quad);
+            register_handler.free_reg(*($1.reg_name));
+            register_handler.free_reg(*($3.reg_name));  
         }   
     }
     | EXPR2 LE EXPR2
     {
         if($1.type == ERRORTYPE || $3.type == ERRORTYPE){
             $$.type = ERRORTYPE;
-            errorFound = true;
+            found_error = true;
         }
         else if($1.type == NULLVOID || $3.type == NULLVOID){
             $$.type = ERRORTYPE;
@@ -1732,11 +1725,11 @@ EXPR21: EXPR2 EQUAL EXPR2
         }
         else{
             $$.type = BOOLEAN;
-            $$.reg_name = new string(tempSet.get_temp_reg());     
+            $$.reg_name = new string(register_handler.get_temp_reg());     
             string s = (*($$.reg_name)) + " = " + (*($1.reg_name)) + " <= " + (*($3.reg_name));   
-            generate_instr(functionInstruction, s, nextquad);
-            tempSet.free_reg(*($1.reg_name));
-            tempSet.free_reg(*($3.reg_name));  
+            generate_instr(all_instructions, s, next_quad);
+            register_handler.free_reg(*($1.reg_name));
+            register_handler.free_reg(*($3.reg_name));  
         }   
     }
     | EXPR2 GE EXPR2
@@ -1750,18 +1743,18 @@ EXPR21: EXPR2 EQUAL EXPR2
         }
         else{
             $$.type = BOOLEAN;
-            $$.reg_name = new string(tempSet.get_temp_reg());     
+            $$.reg_name = new string(register_handler.get_temp_reg());     
             string s = (*($$.reg_name)) + " = " + (*($1.reg_name)) + " >= " + (*($3.reg_name));  
-            generate_instr(functionInstruction, s, nextquad);
-            tempSet.free_reg(*($1.reg_name));
-            tempSet.free_reg(*($3.reg_name));  
+            generate_instr(all_instructions, s, next_quad);
+            register_handler.free_reg(*($1.reg_name));
+            register_handler.free_reg(*($3.reg_name));  
         }   
     } 
     | EXPR2 
     {
         $$.type = $1.type; 
         if($$.type == ERRORTYPE){
-            errorFound = true;
+            found_error = true;
         }
         else{
             if($1.type != NULLVOID){
@@ -1776,38 +1769,38 @@ EXPR2:  EXPR2 PLUS TERM
     {
         if ($1.type == ERRORTYPE || $3.type == ERRORTYPE) {
             $$.type = ERRORTYPE; 
-            errorFound = true; 
+            found_error = true; 
         }
         else {
             if (check_type_mismatch($1.type, $3.type)) {
                 $$.type = type_match($1.type,$3.type);
 
                 if ($1.type == INTEGER && $3.type == FLOATING) {
-                    string newReg = tempSet.get_float_reg();
+                    string newReg = register_handler.get_float_reg();
                     string s = newReg + " = " + "convertToFloat(" + (*($1.reg_name)) + ")";
                     cout << BOLD(FBLU("Warning : ")) << FCYN("Line No. "+to_string(yylineno)+":Implicit Type Conversion") << endl;
-                    tempSet.free_reg(*($1.reg_name));
+                    register_handler.free_reg(*($1.reg_name));
                     $1.reg_name = &newReg;
-                    generate_instr(functionInstruction, s, nextquad);
+                    generate_instr(all_instructions, s, next_quad);
                 }
                 else if ($1.type == FLOATING && $3.type == INTEGER) {
-                    string newReg = tempSet.get_float_reg();
+                    string newReg = register_handler.get_float_reg();
                     string s = newReg + " = " + "convertToFloat(" + (*($3.reg_name)) + ")";
                     cout << BOLD(FBLU("Warning : ")) << FCYN("Line No. "+to_string(yylineno)+":Implicit Type Conversion") << endl;
-                    tempSet.free_reg(*($3.reg_name));
+                    register_handler.free_reg(*($3.reg_name));
                     $3.reg_name = &newReg;
-                    generate_instr(functionInstruction, s, nextquad);
+                    generate_instr(all_instructions, s, next_quad);
                 }
 
                 if ($$.type == INTEGER) 
-                    $$.reg_name = new string(tempSet.get_temp_reg());
+                    $$.reg_name = new string(register_handler.get_temp_reg());
                 else
-                    $$.reg_name = new string(tempSet.get_float_reg());
+                    $$.reg_name = new string(register_handler.get_float_reg());
                     
                 string s = (*($$.reg_name)) + " = " + (*($1.reg_name)) + " + " + (*($3.reg_name));;   
-                generate_instr(functionInstruction, s, nextquad);
-                tempSet.free_reg(*($1.reg_name));
-                tempSet.free_reg(*($3.reg_name));   
+                generate_instr(all_instructions, s, next_quad);
+                register_handler.free_reg(*($1.reg_name));
+                register_handler.free_reg(*($3.reg_name));   
             }
             else {
                 cout << BOLD(FRED("ERROR : ")) << "Line no. " << yylineno << ":  ";
@@ -1820,38 +1813,38 @@ EXPR2:  EXPR2 PLUS TERM
     {
         if ($1.type == ERRORTYPE || $3.type == ERRORTYPE) {
             $$.type = ERRORTYPE;
-            errorFound = true;  
+            found_error = true;  
         }
         else {
             if (check_type_mismatch($1.type, $3.type)) {
                 $$.type = type_match($1.type,$3.type);
 
                 if ($1.type == INTEGER && $3.type == FLOATING) {
-                    string newReg = tempSet.get_float_reg();
+                    string newReg = register_handler.get_float_reg();
                     string s = newReg + " = " + "convertToFloat(" + (*($1.reg_name)) + ")";
                     cout << BOLD(FBLU("Warning : ")) << FCYN("Line No. "+to_string(yylineno)+":Implicit Type Conversion") << endl;
-                    tempSet.free_reg(*($1.reg_name));
+                    register_handler.free_reg(*($1.reg_name));
                     $1.reg_name = &newReg;
-                    generate_instr(functionInstruction, s, nextquad);
+                    generate_instr(all_instructions, s, next_quad);
                 }
                 else if ($1.type == FLOATING && $3.type == INTEGER) {
-                    string newReg = tempSet.get_float_reg();
+                    string newReg = register_handler.get_float_reg();
                     string s = newReg + " = " + "convertToFloat(" + (*($3.reg_name)) + ")";
                     cout << BOLD(FBLU("Warning : ")) << FCYN("Line No. "+to_string(yylineno)+":Implicit Type Conversion") << endl;
-                    tempSet.free_reg(*($3.reg_name));
+                    register_handler.free_reg(*($3.reg_name));
                     $3.reg_name = &newReg;
-                    generate_instr(functionInstruction, s, nextquad);
+                    generate_instr(all_instructions, s, next_quad);
                 }
 
                 if ($$.type == INTEGER) 
-                    $$.reg_name = new string(tempSet.get_temp_reg());
+                    $$.reg_name = new string(register_handler.get_temp_reg());
                 else
-                    $$.reg_name = new string(tempSet.get_float_reg());
+                    $$.reg_name = new string(register_handler.get_float_reg());
                     
                 string s = (*($$.reg_name)) + " = " + (*($1.reg_name)) + " - " + (*($3.reg_name));;   
-                generate_instr(functionInstruction, s, nextquad);
-                tempSet.free_reg(*($1.reg_name));
-                tempSet.free_reg(*($3.reg_name));   
+                generate_instr(all_instructions, s, next_quad);
+                register_handler.free_reg(*($1.reg_name));
+                register_handler.free_reg(*($3.reg_name));   
             }
             else {
                 cout << BOLD(FRED("ERROR : ")) << "Line no. " << yylineno << ":  ";
@@ -1864,7 +1857,7 @@ EXPR2:  EXPR2 PLUS TERM
     { 
         $$.type = $1.type; 
         if ($1.type == ERRORTYPE) {
-            errorFound = true;
+            found_error = true;
         }
         else {
             if($1.type!= NULLVOID){
@@ -1885,31 +1878,31 @@ TERM: TERM MUL FACTOR
                 $$.type = type_match($1.type,$3.type);
 
                 if ($1.type == INTEGER && $3.type == FLOATING) {
-                    string newReg = tempSet.get_float_reg();
+                    string newReg = register_handler.get_float_reg();
                     string s = newReg + " = " + "convertToFloat(" + (*($1.reg_name)) + ")";
                     cout << BOLD(FBLU("Warning : ")) << FCYN("Line No. "+to_string(yylineno)+":Implicit Type Conversion") << endl;
-                    tempSet.free_reg(*($1.reg_name));
+                    register_handler.free_reg(*($1.reg_name));
                     $1.reg_name = &newReg;
-                    generate_instr(functionInstruction, s, nextquad);
+                    generate_instr(all_instructions, s, next_quad);
                 }
                 else if ($1.type == FLOATING && $3.type == INTEGER) {
-                    string newReg = tempSet.get_float_reg();
+                    string newReg = register_handler.get_float_reg();
                     string s = newReg + " = " + "convertToFloat(" + (*($3.reg_name)) + ")";
                     cout << BOLD(FBLU("Warning : ")) << FCYN("Line No. "+to_string(yylineno)+":Implicit Type Conversion") << endl;
-                    tempSet.free_reg(*($3.reg_name));
+                    register_handler.free_reg(*($3.reg_name));
                     $3.reg_name = &newReg;
-                    generate_instr(functionInstruction, s, nextquad);
+                    generate_instr(all_instructions, s, next_quad);
                 }
 
                 if ($$.type == INTEGER) 
-                    $$.reg_name = new string(tempSet.get_temp_reg());
+                    $$.reg_name = new string(register_handler.get_temp_reg());
                 else
-                    $$.reg_name = new string(tempSet.get_float_reg());
+                    $$.reg_name = new string(register_handler.get_float_reg());
                     
                 string s = (*($$.reg_name)) + " = " + (*($1.reg_name)) + " * " + (*($3.reg_name));;   
-                generate_instr(functionInstruction, s, nextquad);
-                tempSet.free_reg(*($1.reg_name));
-                tempSet.free_reg(*($3.reg_name));   
+                generate_instr(all_instructions, s, next_quad);
+                register_handler.free_reg(*($1.reg_name));
+                register_handler.free_reg(*($3.reg_name));   
             }
             else {
                 cout << BOLD(FRED("ERROR : ")) << "Line no. " << yylineno << ":  ";
@@ -1928,31 +1921,31 @@ TERM: TERM MUL FACTOR
                 $$.type = type_match($1.type,$3.type);
 
                 if ($1.type == INTEGER && $3.type == FLOATING) {
-                    string newReg = tempSet.get_float_reg();
+                    string newReg = register_handler.get_float_reg();
                     string s = newReg + " = " + "convertToFloat(" + (*($1.reg_name)) + ")";
                     cout << BOLD(FBLU("Warning : ")) << FCYN("Line No. "+to_string(yylineno)+":Implicit Type Conversion") << endl;
-                    tempSet.free_reg(*($1.reg_name));
+                    register_handler.free_reg(*($1.reg_name));
                     $1.reg_name = &newReg;
-                    generate_instr(functionInstruction, s, nextquad);
+                    generate_instr(all_instructions, s, next_quad);
                 }
                 else if ($1.type == FLOATING && $3.type == INTEGER) {
-                    string newReg = tempSet.get_float_reg();
+                    string newReg = register_handler.get_float_reg();
                     string s = newReg + " = " + "convertToFloat(" + (*($3.reg_name)) + ")";
                     cout << BOLD(FBLU("Warning : ")) << FCYN("Line No. "+to_string(yylineno)+":Implicit Type Conversion") << endl;
-                    tempSet.free_reg(*($3.reg_name));
+                    register_handler.free_reg(*($3.reg_name));
                     $3.reg_name = &newReg;
-                    generate_instr(functionInstruction, s, nextquad);
+                    generate_instr(all_instructions, s, next_quad);
                 }
 
                 if ($$.type == INTEGER) 
-                    $$.reg_name = new string(tempSet.get_temp_reg());
+                    $$.reg_name = new string(register_handler.get_temp_reg());
                 else
-                    $$.reg_name = new string(tempSet.get_float_reg());
+                    $$.reg_name = new string(register_handler.get_float_reg());
                     
                 string s = (*($$.reg_name)) + " = " + (*($1.reg_name)) + " / " + (*($3.reg_name));   
-                generate_instr(functionInstruction, s, nextquad);
-                tempSet.free_reg(*($1.reg_name));
-                tempSet.free_reg(*($3.reg_name));   
+                generate_instr(all_instructions, s, next_quad);
+                register_handler.free_reg(*($1.reg_name));
+                register_handler.free_reg(*($3.reg_name));   
             }
             else {
                 cout << BOLD(FRED("ERROR : ")) << "Line no. " << yylineno << ": ";
@@ -1969,11 +1962,11 @@ TERM: TERM MUL FACTOR
         else {
             if ($1.type == INTEGER && $3.type == INTEGER) {
                 $$.type = INTEGER;
-                $$.reg_name = new string(tempSet.get_temp_reg());  
+                $$.reg_name = new string(register_handler.get_temp_reg());  
                 string s = (*($$.reg_name)) + " = " + (*($1.reg_name)) + " % " + (*($3.reg_name));;   
-                generate_instr(functionInstruction, s, nextquad);
-                tempSet.free_reg(*($1.reg_name));
-                tempSet.free_reg(*($3.reg_name));   
+                generate_instr(all_instructions, s, next_quad);
+                register_handler.free_reg(*($1.reg_name));
+                register_handler.free_reg(*($3.reg_name));   
             }
             else {
                 cout << BOLD(FRED("ERROR : ")) << "Line no. " << yylineno << ": ";
@@ -1986,7 +1979,7 @@ TERM: TERM MUL FACTOR
     { 
         $$.type = $1.type; 
         if ($1.type == ERRORTYPE) {
-            errorFound = true;
+            found_error = true;
         }
         else {
             if($1.type != NULLVOID){
@@ -2002,12 +1995,12 @@ FACTOR: ID_ARR
         $$.type = $1.type;
         if ($$.type != ERRORTYPE) {
             if ($$.type == INTEGER)
-                $$.reg_name = new string(tempSet.get_temp_reg());
-            else $$.reg_name = new string(tempSet.get_float_reg());
+                $$.reg_name = new string(register_handler.get_temp_reg());
+            else $$.reg_name = new string(register_handler.get_float_reg());
             string s = (*($$.reg_name)) + " = " + (*($1.reg_name)) ;
-            generate_instr(functionInstruction, s, nextquad);
+            generate_instr(all_instructions, s, next_quad);
             if($1.offset_reg_name != NULL){
-                tempSet.free_reg((*($1.offset_reg_name)));
+                register_handler.free_reg((*($1.offset_reg_name)));
             }
         }
     }
@@ -2017,60 +2010,60 @@ FACTOR: ID_ARR
         if($2.type != ERRORTYPE){
             string s="";
             if ($$.type == INTEGER){
-                $$.reg_name = new string(tempSet.get_temp_reg());
-                string temp=tempSet.get_temp_reg();
-                string temp1=tempSet.get_temp_reg();
-                generate_instr(functionInstruction, temp + " = 0", nextquad);
-                generate_instr(functionInstruction, temp1 + " = " +  (*($2.reg_name)), nextquad);
+                $$.reg_name = new string(register_handler.get_temp_reg());
+                string temp=register_handler.get_temp_reg();
+                string temp1=register_handler.get_temp_reg();
+                generate_instr(all_instructions, temp + " = 0", next_quad);
+                generate_instr(all_instructions, temp1 + " = " +  (*($2.reg_name)), next_quad);
                 s = (*($$.reg_name)) + " = " + temp + " -" + temp1 ;
-                tempSet.free_reg(temp);
-                tempSet.free_reg(temp1);
+                register_handler.free_reg(temp);
+                register_handler.free_reg(temp1);
             }
             else{ 
-                $$.reg_name = new string(tempSet.get_float_reg());
-                string temp=tempSet.get_float_reg();
-                string temp1=tempSet.get_temp_reg();
-                generate_instr(functionInstruction, temp + " = 0", nextquad);
-                generate_instr(functionInstruction, temp1 + " = " +  (*($2.reg_name)), nextquad);
+                $$.reg_name = new string(register_handler.get_float_reg());
+                string temp=register_handler.get_float_reg();
+                string temp1=register_handler.get_temp_reg();
+                generate_instr(all_instructions, temp + " = 0", next_quad);
+                generate_instr(all_instructions, temp1 + " = " +  (*($2.reg_name)), next_quad);
                 s = (*($$.reg_name)) + " = 0 -" + temp1 ;
-                tempSet.free_reg(temp);
-                tempSet.free_reg(temp1);
+                register_handler.free_reg(temp);
+                register_handler.free_reg(temp1);
             }
             // string s = (*($$.reg_name)) + " = 0 -" + (*($2.reg_name)) ;
-            generate_instr(functionInstruction, s, nextquad);
+            generate_instr(all_instructions, s, next_quad);
             if($2.offset_reg_name != NULL){
-                tempSet.free_reg((*($2.offset_reg_name)));
+                register_handler.free_reg((*($2.offset_reg_name)));
             }
         }       
     }
     | MINUS NUMINT
     {
         $$.type = INTEGER; 
-        $$.reg_name = new string(tempSet.get_temp_reg());
+        $$.reg_name = new string(register_handler.get_temp_reg());
         string s = (*($$.reg_name)) + " = -" + string($2) ;
-        generate_instr(functionInstruction, s, nextquad);  
+        generate_instr(all_instructions, s, next_quad);  
         
     }
     | NUMINT    
     { 
         $$.type = INTEGER; 
-        $$.reg_name = new string(tempSet.get_temp_reg());
+        $$.reg_name = new string(register_handler.get_temp_reg());
         string s = (*($$.reg_name)) + " = " + string($1) ;
-        generate_instr(functionInstruction, s, nextquad);  
+        generate_instr(all_instructions, s, next_quad);  
     }
     | MINUS NUMFLOAT
     {
         $$.type = FLOATING;
-        $$.reg_name = new string(tempSet.get_float_reg());
+        $$.reg_name = new string(register_handler.get_float_reg());
         string s = (*($$.reg_name)) + " = " + string($2) ;
-        generate_instr(functionInstruction, s, nextquad);  
+        generate_instr(all_instructions, s, next_quad);  
     }
     | NUMFLOAT  
     { 
         $$.type = FLOATING;
-        $$.reg_name = new string(tempSet.get_float_reg());
+        $$.reg_name = new string(register_handler.get_float_reg());
         string s = (*($$.reg_name)) + " = " + string($1) ;
-        generate_instr(functionInstruction, s, nextquad);  
+        generate_instr(all_instructions, s, next_quad);  
     }
     | FUNC_CALL 
     { 
@@ -2096,18 +2089,18 @@ FACTOR: ID_ARR
     {
         if ($1.type == INTEGER) {
             $$.type = INTEGER;   
-            string newReg = tempSet.get_temp_reg();
+            string newReg = register_handler.get_temp_reg();
             $$.reg_name = new string(newReg); 
             string s = newReg + " = " + (*($1.reg_name)) ;
-            generate_instr(functionInstruction, s, nextquad); // T2 = i
-            string newReg2 = tempSet.get_temp_reg();
+            generate_instr(all_instructions, s, next_quad); // T2 = i
+            string newReg2 = register_handler.get_temp_reg();
             s = newReg2 + " = " + newReg + " + 1"; // T3 = T2+1
-            generate_instr(functionInstruction, s, nextquad);
+            generate_instr(all_instructions, s, next_quad);
             s = (*($1.reg_name)) + " = " + newReg2; // i = T3
-            generate_instr(functionInstruction, s, nextquad);
-            tempSet.free_reg(newReg2);
+            generate_instr(all_instructions, s, next_quad);
+            register_handler.free_reg(newReg2);
             if($1.offset_reg_name != NULL){
-                tempSet.free_reg((*($1.offset_reg_name)));
+                register_handler.free_reg((*($1.offset_reg_name)));
             }
         }
         else {
@@ -2120,18 +2113,18 @@ FACTOR: ID_ARR
     {
         if ($1.type == INTEGER) {
             $$.type = INTEGER;   
-            string newReg = tempSet.get_temp_reg();
+            string newReg = register_handler.get_temp_reg();
             $$.reg_name = new string(newReg);
             string s = newReg + " = " + (*($1.reg_name)); // T0 = i
-            generate_instr(functionInstruction, s, nextquad);
-            string newReg2 = tempSet.get_temp_reg();
+            generate_instr(all_instructions, s, next_quad);
+            string newReg2 = register_handler.get_temp_reg();
             s = newReg2 + " = " + newReg + " - 1"; // T3 = T2+1
-            generate_instr(functionInstruction, s, nextquad);
+            generate_instr(all_instructions, s, next_quad);
             s = (*($1.reg_name)) + " = " + newReg2; // i = T3
-            generate_instr(functionInstruction, s, nextquad);
-            tempSet.free_reg(newReg2); 
+            generate_instr(all_instructions, s, next_quad);
+            register_handler.free_reg(newReg2); 
             if($1.offset_reg_name != NULL){
-                tempSet.free_reg((*($1.offset_reg_name)));
+                register_handler.free_reg((*($1.offset_reg_name)));
             }    
         }
         else {
@@ -2144,18 +2137,18 @@ FACTOR: ID_ARR
     {
         if ($2.type == INTEGER) {
             $$.type = INTEGER;   
-            string newReg = tempSet.get_temp_reg();
+            string newReg = register_handler.get_temp_reg();
             string s = newReg + " = " + (*($2.reg_name)); // T2 = i
-            generate_instr(functionInstruction, s, nextquad);
-            string newReg2 = tempSet.get_temp_reg();
+            generate_instr(all_instructions, s, next_quad);
+            string newReg2 = register_handler.get_temp_reg();
             $$.reg_name = new string(newReg2);
             s = newReg2 + " = " + newReg + " + 1"; // T3 = T2+1
-            generate_instr(functionInstruction, s, nextquad);
+            generate_instr(all_instructions, s, next_quad);
             s = (*($2.reg_name)) + " = " + newReg2; // i = T3
-            generate_instr(functionInstruction, s, nextquad);
-            tempSet.free_reg(newReg); 
+            generate_instr(all_instructions, s, next_quad);
+            register_handler.free_reg(newReg); 
             if($2.offset_reg_name != NULL){
-                tempSet.free_reg((*($2.offset_reg_name)));
+                register_handler.free_reg((*($2.offset_reg_name)));
             }     
         }
         else {
@@ -2168,18 +2161,18 @@ FACTOR: ID_ARR
     {
         if ($2.type == INTEGER) {
             $$.type = INTEGER;   
-            string newReg = tempSet.get_temp_reg();
+            string newReg = register_handler.get_temp_reg();
             string s = newReg + " = " + (*($2.reg_name)); // T2 = i
-            generate_instr(functionInstruction, s, nextquad);
-            string newReg2 = tempSet.get_temp_reg();
+            generate_instr(all_instructions, s, next_quad);
+            string newReg2 = register_handler.get_temp_reg();
             $$.reg_name = new string(newReg2);
             s = newReg2 + " = " + newReg + " - 1"; // T3 = T2+1
-            generate_instr(functionInstruction, s, nextquad);
+            generate_instr(all_instructions, s, next_quad);
             s = (*($2.reg_name)) + " = " + newReg2; // i = T3
-            generate_instr(functionInstruction, s, nextquad);
-            tempSet.free_reg(newReg);
+            generate_instr(all_instructions, s, next_quad);
+            register_handler.free_reg(newReg);
             if($2.offset_reg_name != NULL){
-                tempSet.free_reg((*($2.offset_reg_name)));
+                register_handler.free_reg((*($2.offset_reg_name)));
             }         
         }
         else {
@@ -2240,7 +2233,7 @@ ID_ARR: ID
         sym_tab_entry* rec = NULL;
         $$.offset_reg_name = NULL; 
         if($2.type == ERRORTYPE){
-            errorFound = true;
+            found_error = true;
             $$.type = ERRORTYPE;
         }
         else{
@@ -2250,29 +2243,29 @@ ID_ARR: ID
                     if (dimlist.size() == rec->dimlist.size()) {
                         $$.type = rec->data_type_obj;
                         // calculate linear address using dimensions then pass to FACTOR
-                        string offsetRegister = tempSet.get_temp_reg();
-                        string dimlistRegister = tempSet.get_temp_reg();
+                        string offsetRegister = register_handler.get_temp_reg();
+                        string dimlistRegister = register_handler.get_temp_reg();
                         string s = offsetRegister + " = 0";
-                        generate_instr(functionInstruction, s, nextquad);
+                        generate_instr(all_instructions, s, next_quad);
                         for (int i = 0; i < rec->dimlist.size(); i++) {
                             s = offsetRegister + " = " + offsetRegister + " + " + dimlist[i];
-                            generate_instr(functionInstruction, s, nextquad);
+                            generate_instr(all_instructions, s, next_quad);
                             // offset += dimlist[i];
                             if (i != rec->dimlist.size()-1) {
                                 // offset *= rec->dimlist[i+1];
                                 s = dimlistRegister + " = " + to_string(rec->dimlist[i+1]);
-                                generate_instr(functionInstruction, s, nextquad);                                
+                                generate_instr(all_instructions, s, next_quad);                                
                                 s = offsetRegister + " = " + offsetRegister + " * " + dimlistRegister;
-                                generate_instr(functionInstruction, s, nextquad);
+                                generate_instr(all_instructions, s, next_quad);
                             }
-                            tempSet.free_reg(dimlist[i]);
+                            register_handler.free_reg(dimlist[i]);
                         }
                         string dataType = get_string_from_data_type($$.type);
                         dataType += "_" + to_string(rec->scope); 
                         s = "_" + string($1) + "_" + dataType ;
                         s += "[" + offsetRegister + "]";
                         $$.reg_name = new string(s);
-                        tempSet.free_reg(dimlistRegister);
+                        register_handler.free_reg(dimlistRegister);
                         $$.offset_reg_name = new string(offsetRegister);
                         
                     }
@@ -2324,7 +2317,7 @@ BR_DIMLIST: LSB ASG RSB
 
 void yyerror(const char *s)
 {      
-    errorFound=1;
+    found_error=1;
     fprintf (stderr, "%s\n", s);
     // cout << "Line no. " << yylineno << ": Syntax error" << endl;
     // fflush(stdout);
@@ -2332,26 +2325,24 @@ void yyerror(const char *s)
 
 int main(int argc, char **argv)
 {
-    nextquad = 0;
+    next_quad = 0;
     scope = 0;
     found = 0;
-    offsetCalc = 0;
-    errorFound=false;
-    switchVar.clear();
+    found_error = false;
     dimlist.clear();
     
     yyparse();
     set_offsets(sym_tab_func_entry, global_vars);
-    ofstream outinter;
-    outinter.open("./output/intermediate.txt");
-    if(!errorFound){
-        for(auto it:functionInstruction){
+    ofstream intermediate_output_file;
+    intermediate_output_file.open("./output/intermediate.txt");
+    if(!found_error){
+        for(auto it:all_instructions){
             cout << it << endl;
-            outinter<<it<<endl;
+            intermediate_output_file << it << endl;
         }
         cout << "intermediate code generated in output folder" << endl;
     } else {
         cout << "No intermediate code generated" << endl;
     }
-    outinter.close();
+    intermediate_output_file.close();
 }

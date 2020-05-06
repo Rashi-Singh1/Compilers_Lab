@@ -57,22 +57,22 @@ void register_handler_class::free_reg(string s){
     }
 }
 
-void generate_instr(vector<string> &functionInstruction, string instruction, int &nextQuad){
-    functionInstruction.push_back(instruction);
+void generate_instr(vector<string> &all_instructions, string instruction, int &nextQuad){
+    all_instructions.push_back(instruction);
     nextQuad++;
     // cout << instruction << endl;
     return;
 }
 
-void backpatch(vector<int> *&lineNumbers, int labelNumber, vector<string> &functionInstruction){
+void backpatch(vector<int> *&lineNumbers, int labelNumber, vector<string> &all_instructions){
     if(lineNumbers == NULL){
         cout << "Given line numbers for "<<labelNumber<<" is NULL"<<endl;
         return;
     }
     string statement;
     for(int it : (*lineNumbers)){
-        // statement = functionInstruction[it];        // statement +=("L"+ to_string(labelNumber));
-        functionInstruction[it] += (to_string(labelNumber));
+        // statement = all_instructions[it];        // statement +=("L"+ to_string(labelNumber));
+        all_instructions[it] += (to_string(labelNumber));
     }
     lineNumbers->clear();
 }
