@@ -28,30 +28,30 @@ using namespace std;
 #define BOLD(x) "\x1B[1m" x RST
 #define UNDL(x) "\x1B[4m" x RST
 
-class registerSet {
+class register_handler_class {
 private:
-    vector<int> tempRegister;
-    vector<int> floatRegister;
+    vector<int> temp_regs;
+    vector<int> float_regs;
 public:
-    registerSet(){
-        tempRegister.clear();
+    register_handler_class(){
+        temp_regs.clear();
         for(int i=9; i>=0; i--){
-            tempRegister.push_back(i);
+            temp_regs.push_back(i);
         }
-        floatRegister.clear();
+        float_regs.clear();
         for(int i=10; i>=0; i--){
             if(i==0||i==12){
                 continue;
             }
-            floatRegister.push_back(i);
+            float_regs.push_back(i);
         }
     }
-    string getRegister();
-    string getFloatRegister();
-    void freeRegister(string s);
+    string get_temp_reg();
+    string get_float_reg();
+    void free_reg(string s);
 };
 
-void gen(vector<string> &, string ,int &);
+void generate_instr(vector<string> &, string ,int &);
 void backpatch(vector<int> *&, int, vector<string> &);
-void merge(vector<int> *&, vector<int> *&);
-void mergeSwitch(vector<pair<string,int>> *&receiver,vector<pair<string,int>> *&donor); 
+void merge_lists(vector<int> *&, vector<int> *&);
+void merge_lists_switch(vector<pair<string,int>> *&receiver,vector<pair<string,int>> *&donor); 
