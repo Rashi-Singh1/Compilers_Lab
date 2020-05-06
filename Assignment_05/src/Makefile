@@ -3,10 +3,10 @@ PRINT_LINE = @printf "\n------------------------------------------\n"
 .PHONY: all clean test test_lex
 .DEFAULT: main
 
-main: lex.yy.c parser.tab.c
+main: lex.yy.c parser.tab.c datastructures.c helperfunctions.c datastructures.h helperfunctions.h
 	g++ -g  lex.yy.c parser.tab.c datastructures.c helperfunctions.c -o main
 
-parser.tab.c parser.tab.h: parser.y
+parser.tab.c parser.tab.h: parser.y datastructures.c helperfunctions.c datastructures.h helperfunctions.h
 	bison -d parser.y
 
 lex.yy.c: lex.l parser.tab.h
