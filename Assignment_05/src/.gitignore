@@ -1,8 +1,7 @@
 main
 lex.yy.c
-parser.tab.c
-parser.tab.h
-parser.tab.h.gch
+pass_1.tab.c
+pass_1.tab.h
+pass_1.tab.h.gch
 tests/lex/test_lex
 output/*.txt
-

@@ -3,17 +3,17 @@ PRINT_LINE = @printf "\n------------------------------------------\n"
 .PHONY: all clean test test_lex
 .DEFAULT: main
 
-main: lex.yy.c parser.tab.c datastructures.c helperfunctions.c datastructures.h helperfunctions.h
-	g++ -g  lex.yy.c parser.tab.c datastructures.c helperfunctions.c -o main
+main: lex.yy.c pass_1.tab.c datastructures.c helperfunctions.c datastructures.h helperfunctions.h
+	g++ -g  lex.yy.c pass_1.tab.c datastructures.c helperfunctions.c -o main
 
-parser.tab.c parser.tab.h: parser.y datastructures.c helperfunctions.c datastructures.h helperfunctions.h
-	bison -d parser.y
+pass_1.tab.c pass_1.tab.h: pass_1.y datastructures.c helperfunctions.c datastructures.h helperfunctions.h
+	bison -d pass_1.y
 
-lex.yy.c: lex.l parser.tab.h
-	flex lex.l
+lex.yy.c: pass_1.l pass_1.tab.h
+	flex pass_1.l
 
-./tests/lex/test_lex: ./tests/lex/test_bench.c parser.tab.h lex.yy.c
-	gcc -g --std=gnu11 lex.yy.c parser.tab.h ./tests/lex/test_bench.c -o ./tests/lex/test_lex
+./tests/lex/test_lex: ./tests/lex/test_bench.c pass_1.tab.h lex.yy.c
+	gcc -g --std=gnu11 lex.yy.c pass_1.tab.h ./tests/lex/test_bench.c -o ./tests/lex/test_lex
 
 test_lex: ./tests/test$(N) ./tests/lex/test_lex
 	$(PRINT_LINE)
@@ -38,6 +38,6 @@ test: ./tests/test$(N) main
 	@./main < ./tests/test$(N)
 
 clean:
-	-rm -f main lex.yy.c parser.tab.c parser.tab.h parser.tab.h.gch ./tests/lex/test_lex 
+	-rm -f main lex.yy.c pass_1.tab.c pass_1.tab.h pass_1.tab.h.gch ./tests/lex/test_lex 
 	-rm -f output/intermediate.txt
 	-rm -f output/symtab.txt

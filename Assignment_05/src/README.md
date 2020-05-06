@@ -15,11 +15,11 @@ $ sudo apt install bison flex
 $ make test N=<test number>
 $ make test N=13 	# To run ./tests/test13
 ```
-### 1. Compile parser
+### 1. Compile pass_1
 ```
 $ make
 ```
-```main``` executable, ```lex.yy.c``` flex output, ```parser.tab.c``` and ```parser.tab.h``` bison outputs are created.
+```main``` executable, ```lex.yy.c``` flex output, ```pass_1.tab.c``` and ```pass_1.tab.h``` bison outputs are created.
 
 ### 2. Run tests
 ```
@@ -34,5 +34,5 @@ $ make test_lex N=3			# Lexically analyse test3
 ```
 
 ## Information about files
-- **lex.l** : Flex input file
-- **parser.y** : Bison input file
+- **pass_1.l** : Flex input file
+- **pass_1.y** : Bison input file

@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "../../parser.tab.h"
+#include "../../pass_1.tab.h"
 
 extern int yylex();
 extern int yylineno;
@@ -18,7 +18,7 @@ YYSTYPE yylval;
 
 int main(int argc, char const *argv[])
 {
-    printf("Find token_no to token name mappings in ../../parser.tab.h\n");
+    printf("Find token_no to token name mappings in ../../pass_1.tab.h\n");
     printf("yylineno|  token_no,yytext    token_no,yytext    ...\n");
     int token;
     int prv_lineno = 0;

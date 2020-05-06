@@ -1,5 +1,5 @@
 %{    
-# include "parser.tab.h"
+# include "pass_1.tab.h"
 %}
 %option noyywrap
 %%
