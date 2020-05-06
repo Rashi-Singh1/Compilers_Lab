@@ -4,3 +4,5 @@ parser.tab.c
 parser.tab.h
 parser.tab.h.gch
 tests/lex/test_lex
+output/*.txt
+
