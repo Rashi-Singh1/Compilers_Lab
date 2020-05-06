@@ -32,29 +32,29 @@ using namespace std;
 
 enum data_type {INTEGER, FLOATING, NULLVOID, BOOLEAN, ERRORTYPE};
 enum var_type {SIMPLE, ARRAY};
-enum Tag{PARAMAETER, VARIABLE};
+enum var_param_tag{PARAMAETER, VARIABLE};
 
 struct expression{
     data_type type;
-    string* registerName;
-    string* offsetRegName;
+    string* reg_name;
+    string* offset_reg_name;
 };
 
 struct stmt {
-    vector<int> *nextList;
-    vector<int> *breakList;
-    vector<int> *continueList;
+    vector<int> *next_list;
+    vector<int> *break_list;
+    vector<int> *continue_list;
 };
 
 struct whileexp {
     int begin;
-    vector<int> *falseList;
+    vector<int> *false_list;
 };
 
 struct shortcircuit{
     data_type type;
-    string* registerName;
-    vector<int>* jumpList;
+    string* reg_name;
+    vector<int>* jump_list;
 };
 
 struct condition2temp{
@@ -62,21 +62,21 @@ struct condition2temp{
 };
 
 struct switchcaser{
-    vector<int> *nextList;
-    vector<pair<string,int>> *casepair;
-    vector<int> *breakList;
-    vector<int> *continueList;
+    vector<int> *next_list;
+    vector<pair<string,int>> *case_pair;
+    vector<int> *break_list;
+    vector<int> *continue_list;
 };
 
 struct switchtemp{
-    vector<pair<string,int>> *casepair;
+    vector<pair<string,int>> *case_pair;
 };
 
 struct sym_tab_entry {
     string name;
     var_type type;
     data_type data_type_obj;
-    Tag tag;
+    var_param_tag tag;
     int scope;
     vector<int> dimlist; // cube[x][y][z] => (x -> y -> z)
     int variable_offset;
@@ -114,4 +114,4 @@ void set_offsets(vector<function_entry*> &sym_tab_func_entry, vector<sym_tab_ent
 string get_string_from_data_type(data_type a);
 int get_int_from_data_type(data_type a);
 int get_string_from_var_type(var_type a);
-int get_int_from_tag(Tag a);
+int get_int_from_tag(var_param_tag a);

@@ -257,7 +257,7 @@ int get_string_from_var_type(var_type a){
 }
 
 
-int get_int_from_tag(Tag a){
+int get_int_from_tag(var_param_tag a){
     switch(a){
         case PARAMAETER : return 0;
         case VARIABLE   : return 1;
