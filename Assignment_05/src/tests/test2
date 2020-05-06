@@ -1,20 +1,20 @@
-int glv;
-int funct(int x , float y){
-    int yy;
-    int z;
-    float xx;
+int sum(int x , float y){
+    int added = x + y;
+    return added;
 }
 
 int main(){
- int i;
+ int i, y = 1;
+ float g = 5;
  for(i = 0; i < 4; i++){
-     int y=1;
-     int g = 1;
+ 	y = y+1;
+ 	g = g-1;
  }
  int x = 1;
  if(x == 1){
      x = x + x * x;
  } else{
-     
+     x = sum(y, g);
  }
+ return 0;
 }
