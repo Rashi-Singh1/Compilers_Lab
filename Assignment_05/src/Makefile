@@ -7,10 +7,10 @@ output/mips.s: output/intermediate.txt output/symtab.txt pass_2
 	./pass_2 < output/intermediate.txt
 	cat mips.s
 
-pass_2: pass_2.l pass_2.y symTabParser.h symTabParser.c
+pass_2: pass_2.l pass_2.y pass_2_helper.h pass_2_helper.c
 	bison -d pass_2.y
 	flex pass_2.l
-	g++ -o $@ pass_2.tab.c lex.yy.c symTabParser.c
+	g++ -o $@ pass_2.tab.c lex.yy.c pass_2_helper.c
 
 pass_1: pass_1.l pass_1.y datastructures.c helperfunctions.c datastructures.h helperfunctions.h
 	bison -d pass_1.y

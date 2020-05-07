@@ -1,4 +1,4 @@
-#include "symTabParser.h"
+#include "pass_2_helper.h"
 
 string data_type_to_string(data_type a){
     switch(a){
