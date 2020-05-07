@@ -1,7 +1,9 @@
-main
+pass_1
 lex.yy.c
-pass_1.tab.c
-pass_1.tab.h
-pass_1.tab.h.gch
+*.tab.c
+*.tab.h
+*.tab.h.gch
 tests/lex/test_lex
 output/*.txt
+output/mips.s
+pass_2
