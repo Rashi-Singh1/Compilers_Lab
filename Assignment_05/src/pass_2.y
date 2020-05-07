@@ -23,8 +23,8 @@ string current_function_name;
 int param_offset;
 string return_value;
 int floatLabel = 0;
-vector<funcEntry> functionList;
-vector<typeRecord> global_vars;
+vector<function_entry> functionList;
+vector<sym_tab_entry> global_vars;
 
 void sw_all_registers(int frameSize);
 void lw_all_registers(int frameSize);  
@@ -87,7 +87,7 @@ STMT: ASG
     }
     | CALL USERVAR COMMA NUMINT
     {
-        int frameSize = getFunctionOffset(functionList, current_function_name); 
+        int frameSize = get_function_offset(functionList, current_function_name); 
         sw_all_registers(frameSize+param_offset);       // Save all temp registers
         fprintf(output_file, "jal %s\n", $2);                     // jal calling
         lw_all_registers(frameSize+param_offset);   // retrieve all registers
@@ -99,7 +99,7 @@ STMT: ASG
         } else {
             fprintf(output_file, "move $t%c, $v0\n", return_value[1]);   // move result to refparam 
         }
-        int funcParamOffset = getParamOffset(functionList, string($2));
+        int funcParamOffset = get_param_offset(functionList, string($2));
         fprintf(output_file, "add $sp, $sp, %d\n", funcParamOffset);  // collapse space used by parameters
         param_offset-=funcParamOffset;
         return_value = "";
@@ -109,7 +109,7 @@ STMT: ASG
         current_function_name = string($3);
         fprintf(output_file, "%s:\n", $3);
         // Push return address and frame pointer to top of frame
-        int frameSize = getFunctionOffset(functionList, current_function_name);
+        int frameSize = get_function_offset(functionList, current_function_name);
         fprintf(output_file, "subu $sp, $sp, %d\n", frameSize);
         fprintf(output_file, "sw $ra, %d($sp)\n", frameSize-INTSIZE);
         fprintf(output_file, "sw $fp, %d($sp)\n", frameSize-2*INTSIZE);
@@ -117,7 +117,7 @@ STMT: ASG
     }
     | FUNCTION END
     {
-        int frameSize = getFunctionOffset(functionList, current_function_name);
+        int frameSize = get_function_offset(functionList, current_function_name);
         fprintf(output_file, "end_%s:\n", current_function_name.c_str());
         fprintf(output_file, "move $sp, $fp\n");                          // move    $sp,$fp
         fprintf(output_file, "lw $ra, %d($sp)\n", frameSize-INTSIZE);     // lw      $31,52($sp)
@@ -176,7 +176,7 @@ STMT: ASG
 
 ASG: USERVAR ASSIGN REGINT
     {
-        int offset = getOffset(functionList, global_vars, current_function_name, string($1), 0, is_global_var)+param_offset;
+        int offset = get_offset(functionList, global_vars, current_function_name, string($1), 0, is_global_var)+param_offset;
         if(!is_global_var){
             fprintf(output_file, "sw $t%c, %d($sp)\n", $3[1], offset);
         } else {
@@ -186,12 +186,12 @@ ASG: USERVAR ASSIGN REGINT
     | USERVAR LSB NUMINT RSB ASSIGN REGINT
     {
         // useless
-        int offset = getOffset(functionList, global_vars, current_function_name, string($1), 0, is_global_var)+param_offset;
+        int offset = get_offset(functionList, global_vars, current_function_name, string($1), 0, is_global_var)+param_offset;
         fprintf(output_file, "sw $t%c, %d($sp)\n", $3[1], offset);
     }
     | USERVAR LSB REGINT RSB ASSIGN REGINT
     {
-        int offset = getOffset(functionList, global_vars, current_function_name, string($1), 0, is_global_var)+param_offset;
+        int offset = get_offset(functionList, global_vars, current_function_name, string($1), 0, is_global_var)+param_offset;
         if(!is_global_var){
             fprintf(output_file, "mul $t%s, $t%s, %d\n", $3+1, $3+1, INTSIZE);
             fprintf(output_file,"li $s1, %d\n", offset);
@@ -207,7 +207,7 @@ ASG: USERVAR ASSIGN REGINT
     }
     | REGINT ASSIGN USERVAR
     {
-        int offset = getOffset(functionList, global_vars, current_function_name, string($3), 0, is_global_var)+param_offset;
+        int offset = get_offset(functionList, global_vars, current_function_name, string($3), 0, is_global_var)+param_offset;
         if(!is_global_var){
             fprintf(output_file, "lw $t%c, %d($sp)\n", $1[1], offset);
         } else {
@@ -216,7 +216,7 @@ ASG: USERVAR ASSIGN REGINT
     }
     | REGINT ASSIGN USERVAR LSB REGINT RSB
     {
-        int offset = getOffset(functionList, global_vars, current_function_name, string($3), 0, is_global_var)+param_offset;
+        int offset = get_offset(functionList, global_vars, current_function_name, string($3), 0, is_global_var)+param_offset;
         if(!is_global_var){
             fprintf(output_file, "mul $t%s, $t%s, %d\n", $5+1, $5+1, INTSIZE);
             fprintf(output_file,"li $s1, %d\n", offset);
@@ -233,7 +233,7 @@ ASG: USERVAR ASSIGN REGINT
     | REGINT ASSIGN USERVAR LSB NUMINT RSB
     {
         //useless
-        int offset = getOffset(functionList, global_vars, current_function_name, string($3), 0, is_global_var)+param_offset;
+        int offset = get_offset(functionList, global_vars, current_function_name, string($3), 0, is_global_var)+param_offset;
         fprintf(output_file, "sw $t%c, %d($sp)\n", $1[1], offset);
     }
     | REGINT ASSIGN NUMINT
@@ -318,7 +318,7 @@ ASG: USERVAR ASSIGN REGINT
 
 FLOATASG: USERVAR ASSIGN REGFLOAT
     {
-        int offset = getOffset(functionList, global_vars, current_function_name, string($1), 0, is_global_var)+param_offset;
+        int offset = get_offset(functionList, global_vars, current_function_name, string($1), 0, is_global_var)+param_offset;
         if(!is_global_var){
             fprintf(output_file, "s.s $f%s, %d($sp)\n", $3+1, offset);
         } else {
@@ -328,12 +328,12 @@ FLOATASG: USERVAR ASSIGN REGFLOAT
     | USERVAR LSB NUMINT RSB ASSIGN REGFLOAT
     {
         //useless
-        int offset = getOffset(functionList, global_vars, current_function_name, string($1), 0, is_global_var)+param_offset;
+        int offset = get_offset(functionList, global_vars, current_function_name, string($1), 0, is_global_var)+param_offset;
         fprintf(output_file, "s.s $f%s, %d($sp)\n", $3+1, offset);
     }
     | USERVAR LSB REGINT RSB ASSIGN REGFLOAT
     {
-        int offset = getOffset(functionList, global_vars, current_function_name, string($1), 0, is_global_var)+param_offset;
+        int offset = get_offset(functionList, global_vars, current_function_name, string($1), 0, is_global_var)+param_offset;
         if(!is_global_var){
             fprintf(output_file, "mul $t%s, $t%s, %d\n", $3+1, $3+1, INTSIZE);
             fprintf(output_file,"li $s1, %d\n", offset);
@@ -349,7 +349,7 @@ FLOATASG: USERVAR ASSIGN REGFLOAT
     }
     | REGFLOAT ASSIGN USERVAR
     {
-        int offset = getOffset(functionList, global_vars, current_function_name, string($3), 0, is_global_var)+param_offset;
+        int offset = get_offset(functionList, global_vars, current_function_name, string($3), 0, is_global_var)+param_offset;
         if(!is_global_var){
             fprintf(output_file, "l.s $f%s, %d($sp)\n", $1+1, offset);
         } else {
@@ -358,7 +358,7 @@ FLOATASG: USERVAR ASSIGN REGFLOAT
     }
     | REGFLOAT ASSIGN USERVAR LSB REGINT RSB
     {
-        int offset = getOffset(functionList, global_vars, current_function_name, string($3), 0, is_global_var)+param_offset;
+        int offset = get_offset(functionList, global_vars, current_function_name, string($3), 0, is_global_var)+param_offset;
         if(!is_global_var){
             fprintf(output_file, "mul $t%s, $t%s, %d\n", $5+1, $5+1, INTSIZE);
             fprintf(output_file, "subu $s0, $sp, $t%s\n", $5+1);
@@ -571,14 +571,14 @@ void yyerror(char *s)
 
 int main(int argc, char **argv)
 {
-    readSymbolTable(functionList, global_vars);
+    read_symtab(functionList, global_vars);
     return_value = ""; 
     is_global_var = false;
     output_file = fopen("output/mips.s", "w");
     fflush(output_file);
     fprintf(output_file,".data\n");
     for(auto it : global_vars){
-        fprintf(output_file, "%s: .space %d\n", it.name.c_str(), 4*(it.varOffset));
+        fprintf(output_file, "%s: .space %d\n", it.name.c_str(), 4*(it.var_offset));
     }
     fprintf(output_file,"endline: .asciiz \"\\n\"\n");
     fprintf(output_file,".text\n");

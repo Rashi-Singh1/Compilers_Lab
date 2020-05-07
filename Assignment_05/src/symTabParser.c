@@ -1,6 +1,6 @@
 #include "symTabParser.h"
 
-string eletypeMapper(eletype a){
+string data_type_to_string(data_type a){
     switch(a){
         case INTEGER   : return "int";
         case FLOATING  : return "float";
@@ -11,7 +11,7 @@ string eletypeMapper(eletype a){
     }
 }
 
-int eletypeIntMapper(eletype a){
+int data_type_to_int(data_type a){
     switch(a){
         case INTEGER   : return 0;
         case FLOATING  : return 1;
@@ -21,7 +21,7 @@ int eletypeIntMapper(eletype a){
         default : return 999;
     }
 }
-eletype getEleType(string x){
+data_type string_to_data_type(string x){
     if(x=="0")
         return INTEGER;
     if(x=="1")
@@ -30,19 +30,19 @@ eletype getEleType(string x){
         return NULLVOID;
     return ERRORTYPE;
 }
-int getOffset(vector<funcEntry> &functionList, vector<typeRecord> &global_vars, string functionName, string variableName, int internalOffset, bool &is_global_var){
+int get_offset(vector<function_entry> &functionList, vector<sym_tab_entry> &global_vars, string functionName, string variableName, int internalOffset, bool &is_global_var){
     is_global_var = false;
     for(auto it : functionList){
         if(it.name == functionName){
-            for (auto it2 : it.variableList){
+            for (auto it2 : it.var_list){
                 if(it2->name == variableName){
-                    int offset = it.functionOffset - 4*( internalOffset + 1) - it2->varOffset;
+                    int offset = it.function_offset - 4*( internalOffset + 1) - it2->var_offset;
                     return offset; 
                 }
             }
-            for (auto it2: it.parameterList){
+            for (auto it2: it.param_list){
                 if(it2->name == variableName){
-                    int offset = it.functionOffset + 4*(it.numOfParam - internalOffset - 1) - it2->varOffset;
+                    int offset = it.function_offset + 4*(it.num_of_param - internalOffset - 1) - it2->var_offset;
                     return offset; 
                 }
             }
@@ -58,34 +58,34 @@ int getOffset(vector<funcEntry> &functionList, vector<typeRecord> &global_vars, 
     return -1;
 }
 
-int getFunctionOffset(vector<funcEntry> &functionList,string functionName){
+int get_function_offset(vector<function_entry> &functionList,string functionName){
     for(auto it : functionList){
         if(it.name == functionName){
-            return it.functionOffset;
+            return it.function_offset;
         }
     }
     return -1;
 }
 
-void printVector(vector<funcEntry> &functionprintList){
+void print_vector(vector<function_entry> &functionprintList){
     for(auto funcRecord : functionprintList){
         cout << "$$" << endl;
-        cout << "_" << funcRecord.name << " " << eletypeMapper(funcRecord.returnType) << " ";
-        cout << funcRecord.numOfParam << " " << funcRecord.functionOffset << endl;
+        cout << "_" << funcRecord.name << " " << data_type_to_string(funcRecord.return_type) << " ";
+        cout << funcRecord.num_of_param << " " << funcRecord.function_offset << endl;
         cout << "$1" << endl;
-        for(auto varRecord : funcRecord.parameterList){
-            cout <<varRecord->name << " " << eletypeIntMapper(varRecord->eleType) << " " ;
-            cout << varRecord->scope << " " << varRecord->varOffset << endl;
+        for(auto varRecord : funcRecord.param_list){
+            cout <<varRecord->name << " " << data_type_to_int(varRecord->data_type_obj) << " " ;
+            cout << varRecord->scope << " " << varRecord->var_offset << endl;
         }
-        cout << "$2 " << funcRecord.variableList.size() << endl;
-        for(auto varRecord : funcRecord.variableList){
-            cout <<varRecord->name << " " << eletypeIntMapper(varRecord->eleType) << " " ;
-            cout << varRecord->scope << " " << varRecord->varOffset << endl;
+        cout << "$2 " << funcRecord.var_list.size() << endl;
+        for(auto varRecord : funcRecord.var_list){
+            cout <<varRecord->name << " " << data_type_to_int(varRecord->data_type_obj) << " " ;
+            cout << varRecord->scope << " " << varRecord->var_offset << endl;
         }
     }
 }
 
-void readSymbolTable(vector<funcEntry> &functionList, vector<typeRecord> &global_vars){
+void read_symtab(vector<function_entry> &functionList, vector<sym_tab_entry> &global_vars){
     ifstream myfile;
     myfile.open ("../firstPass/output/symtab.txt");
     string a;
@@ -93,7 +93,7 @@ void readSymbolTable(vector<funcEntry> &functionList, vector<typeRecord> &global
     while(myfile >> a){
         if(a=="$$"){
             // cout<<"pp "<<a<<endl;
-            funcEntry p;
+            function_entry p;
             myfile >> p.name;
             if(p.name == "GLOBAL"){
                 is_global_var = true;
@@ -103,21 +103,21 @@ void readSymbolTable(vector<funcEntry> &functionList, vector<typeRecord> &global
             }
             string x;
             myfile >> x;
-            p.returnType = getEleType(x);
-            myfile >> p.numOfParam;
-            myfile >> p.functionOffset;
+            p.return_type = string_to_data_type(x);
+            myfile >> p.num_of_param;
+            myfile >> p.function_offset;
             myfile >> x;
             if(is_global_var){
-                // global_vars.insert(global_vars.end(), p.parameterList.begin(), p.parameterList.end());
-                for(int i=0;i<p.numOfParam;i++){
-                    typeRecord newType;
-                    string eleType;
+                // global_vars.insert(global_vars.end(), p.param_list.begin(), p.param_list.end());
+                for(int i=0;i<p.num_of_param;i++){
+                    sym_tab_entry newType;
+                    string data_type_obj;
                     myfile >> newType.name;
-                    myfile >> eleType;
-                    newType.eleType = getEleType(eleType);
+                    myfile >> data_type_obj;
+                    newType.data_type_obj = string_to_data_type(data_type_obj);
                     
                     myfile >> newType.scope;
-                    myfile >> newType.varOffset;
+                    myfile >> newType.var_offset;
                     global_vars.push_back(newType);
                 }
                 for(auto it : global_vars){
@@ -125,29 +125,29 @@ void readSymbolTable(vector<funcEntry> &functionList, vector<typeRecord> &global
                 }
             }
             else{
-                (p.parameterList).resize(p.numOfParam);
-                for(int i=0;i<p.numOfParam;i++){
-                    p.parameterList[i] = new typeRecord;
-                    myfile >> (p.parameterList[i])->name;
+                (p.param_list).resize(p.num_of_param);
+                for(int i=0;i<p.num_of_param;i++){
+                    p.param_list[i] = new sym_tab_entry;
+                    myfile >> (p.param_list[i])->name;
                     string t;
                     myfile >> t;
-                    (p.parameterList[i])->eleType= getEleType(t);
-                    myfile >> (p.parameterList[i])->scope;
-                    myfile >> (p.parameterList[i])->varOffset; 
+                    (p.param_list[i])->data_type_obj= string_to_data_type(t);
+                    myfile >> (p.param_list[i])->scope;
+                    myfile >> (p.param_list[i])->var_offset; 
                 }
             }
             myfile >> x;
             int z;
             myfile >> z;
-            p.variableList.resize(z);
+            p.var_list.resize(z);
             for(int i=0;i<z;i++){
-                p.variableList[i] = new typeRecord;
-                myfile >> (p.variableList[i])->name;
+                p.var_list[i] = new sym_tab_entry;
+                myfile >> (p.var_list[i])->name;
                 string t;
                 myfile >> t;
-                (p.variableList[i])->eleType= getEleType(t);
-                myfile >> (p.variableList[i])->scope;
-                myfile >> (p.variableList[i])->varOffset;
+                (p.var_list[i])->data_type_obj= string_to_data_type(t);
+                myfile >> (p.var_list[i])->scope;
+                myfile >> (p.var_list[i])->var_offset;
             }
             if(!is_global_var){
                 functionList.push_back(p);
@@ -156,10 +156,10 @@ void readSymbolTable(vector<funcEntry> &functionList, vector<typeRecord> &global
     }
 }
 
-int getParamOffset(vector<funcEntry> &functionList, string functionName){
+int get_param_offset(vector<function_entry> &functionList, string functionName){
     for(auto it : functionList){
         if(it.name == functionName){
-            return 4*(it.numOfParam);
+            return 4*(it.num_of_param);
         }
     } 
     return 0;
