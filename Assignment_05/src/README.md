@@ -11,28 +11,41 @@ Language subset of C to target:
 
 ## Instructions to run
 ```
-$ sudo apt install bison flex
+$ sudo apt install bison flex spim
 $ make test N=<test number>
-$ make test N=13 	# To run ./tests/test13
+$ make test N=1 	# To run ./tests/test1
+$ spim
+(spim) read "output/mips.s"
+(spim) run
 ```
-### 1. Compile pass_1
+### 1. Compile both passes
 ```
 $ make
 ```
-```main``` executable, ```lex.yy.c``` flex output, ```pass_1.tab.c``` and ```pass_1.tab.h``` bison outputs are created.
+```pass_1``` executable, ```pass_2``` executable are created.
 
 ### 2. Run tests
 ```
 $ make test N=TEST_NO
 $ make test N=3             # Run test3
 ```
+Intermediate code and mips code is created in output directory.
 
-### 3. Test lexer only
+### 3. Run output in SPIM
+```
+$ spim
+(spim) read "output/mips.s"
+(spim) run
+```
+
+### 4. Test lexer only
 ```
 $ make test_lex N=TEST_NO
 $ make test_lex N=3			# Lexically analyse test3
 ```
 
 ## Information about files
-- **pass_1.l** : Flex input file
-- **pass_1.y** : Bison input file
+- **pass_1.l** : Flex input file for pass 1
+- **pass_1.y** : Bison input file for pass 1
+- **pass_2.l** : Flex input file for pass 2
+- **pass_2.y** : Bison input file for pass 2

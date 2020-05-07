@@ -5,7 +5,10 @@ PRINT_LINE = @printf "\n------------------------------------------\n"
 
 output/mips.s: output/intermediate.txt output/symtab.txt pass_2
 	./pass_2 < output/intermediate.txt
-	cat mips.s
+	@cat output/mips.s
+
+output/intermediate.txt: pass_1 tests/test1
+	./pass_1 < ./tests/test1
 
 pass_2: pass_2.l pass_2.y pass_2_helper.h pass_2_helper.c
 	bison -d pass_2.y
@@ -17,10 +20,10 @@ pass_1: pass_1.l pass_1.y datastructures.c helperfunctions.c datastructures.h he
 	flex pass_1.l
 	g++ -g -o $@ lex.yy.c pass_1.tab.c datastructures.c helperfunctions.c
 
-./tests/lex/test_lex: ./tests/lex/test_bench.c pass_1.tab.h lex.yy.c
+./tests/lex/test_lex: ./tests/lex/test_bench.c pass_1.y pass_1.l
 	bison -d pass_1.y
 	flex pass_1.l
-	gcc -g --std=gnu11 lex.yy.c pass_1.tab.h ./tests/lex/test_bench.c -o ./tests/lex/test_lex
+	g++ -g -o $@ lex.yy.c pass_1.tab.h ./tests/lex/test_bench.c
 
 test_lex: ./tests/test$(N) ./tests/lex/test_lex
 	$(PRINT_LINE)
