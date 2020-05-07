@@ -1,14 +1,19 @@
-void hello(int a, int b){	
-	switch(c+a) {
-			case 2:
-				break;
-			case 33:
-				a=45;
-				break;
-			case 56:
-				b=100;
-			default:
-				a=b;
-				break;
-	}
+int main() {
+    int a, b;
+    a = 1;
+    b = a++;
+    print a;
+    print b;
+    a = 1;
+    b = a--;
+    print a;
+    print b;
+    a = 1;
+    b = ++a;
+    print a;
+    print b;
+    a = 1;
+    b = --a;
+    print a;
+    print b;
 }

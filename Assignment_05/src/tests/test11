@@ -1,8 +1,0 @@
-
-int hello(){
-
-    if(x > 1 || z > 3){
-
-    } else{
-    }
-}

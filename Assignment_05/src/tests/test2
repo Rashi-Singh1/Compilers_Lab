@@ -1,20 +1,8 @@
-int sum(int x , float y){
-    int added = x + y;
-    return added;
+int foo(int a,int b){
+    int c,d[2];
+    return 0;
 }
 
 int main(){
- int i, y = 1;
- float g = 5;
- for(i = 0; i < 4; i++){
- 	y = y+1;
- 	g = g-1;
- }
- int x = 1;
- if(x == 1){
-     x = x + x * x;
- } else{
-     x = sum(y, g);
- }
- return 0;
+    return 0;
 }
